@@ -1,0 +1,15 @@
+# Normalisasi line ending agar diff antar anggota kelompok tetap bersih.
+* text=auto eol=lf
+
+# Berkas biner yang tidak boleh dinormalisasi.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+
+# Lockfile diperlakukan sebagai teks agar perubahan dependensi mudah ditinjau.
+package-lock.json text eol=lf
+
+# Berkas hasil generator dan OS diabaikan saat bahasa statistik diff.
+package-lock.json -diff linguist-generated

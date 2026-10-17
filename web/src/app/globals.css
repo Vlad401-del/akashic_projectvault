@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/*
+ * Palet Akashic — "prismatic minimal".
+ * Sebagian besar layar netral; warna spektrum hanya sebagai aksen kecil.
+ * Nilai warna mengikuti docs/AKASHIC_STARTER.md.
+ */
+@theme inline {
+  --color-canvas: #f8f9fc;
+  --color-surface: #ffffff;
+  --color-ink: #182230;
+  --color-ink-muted: #526071;
+  --color-line: #dce2ea;
+  --color-accent: #6d28d9;
+  --color-accent-strong: #5b21b6;
+  --color-spectrum-blue: #2563eb;
+  --color-spectrum-cyan: #0891b2;
+  --color-spectrum-coral: #e87979;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial,
+    sans-serif;
+}
+
+/*
+ * Mode gelap bawaan template dilepas dengan sengaja: arah desain Akashic
+ * menetapkan satu palet terang dan kontrasnya sudah diperiksa pada palet itu.
+ * Menyalakan mode gelap otomatis akan menampilkan teks yang belum diuji.
+ */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+  }
+
+  /* Fokus keyboard harus selalu terlihat jelas. */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+
+  a {
+    text-underline-offset: 3px;
+  }
+}
