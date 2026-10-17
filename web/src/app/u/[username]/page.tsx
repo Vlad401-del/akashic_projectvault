@@ -1,9 +1,10 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ProjectCard } from "@/components/project-card";
+import { Icon } from "@/components/icons";
 import { ProfileHeader } from "@/components/profile-header";
-import { SiteBrand } from "@/components/site-brand";
+import { ProjectCard } from "@/components/project-card";
+import { PrototypeNotice } from "@/components/prototype-notice";
+import { OwnerChip, TopBar } from "@/components/site-nav";
 import { getPublicProfile, getPublicProjects } from "@/lib/content";
 import { profiles } from "@/lib/fixtures/fixtures";
 
@@ -48,49 +49,43 @@ export default async function PublicProfilePage({ params }: PageProps<"/u/[usern
 
   return (
     <>
-      <div className="border-b border-line bg-surface">
-        <div className="mx-auto flex max-w-[1120px] items-center justify-between gap-4 px-4 py-4">
-          <SiteBrand />
-          <p className="text-xs text-ink-muted">Profil publik (local)</p>
-        </div>
-      </div>
+      <TopBar left={<OwnerChip profile={profile} />} />
 
-      <div className="mx-auto max-w-[1120px] px-4 py-8 sm:py-10">
+      <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
+        <PrototypeNotice>
+          Contoh fiktif. Nama, profil, kontak, dan proyek di halaman ini dibuat untuk prototipe.
+        </PrototypeNotice>
+
         <ProfileHeader profile={profile} />
 
-        <section aria-labelledby="daftar-proyek" className="mt-10">
-          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-            <h2 id="daftar-proyek" className="text-xl font-semibold tracking-tight text-ink">
+        <section aria-labelledby="daftar-proyek" className="mt-12 border-t border-line pt-10 sm:mt-14">
+          <div className="flex flex-wrap items-baseline justify-between gap-4">
+            <h2 id="daftar-proyek" className="text-[24px] font-semibold tracking-tight text-ink">
               Proyek
             </h2>
             {projects.length > 0 ? (
-              <p className="text-sm text-ink-muted">{projects.length} proyek tampil pada portofolio lokal</p>
+              <p className="text-[14px] text-ink-2">{projects.length} proyek</p>
             ) : null}
           </div>
 
           {projects.length === 0 ? (
-            <div className="mt-6 rounded-2xl border border-dashed border-line bg-surface px-6 py-14 text-center">
-              <h3 className="text-base font-semibold text-ink">Belum ada karya yang diterbitkan</h3>
-              <p className="mx-auto mt-2 max-w-[54ch] text-sm leading-relaxed text-ink-muted">
-                Profil ini sudah tampil publik, tetapi pemiliknya belum menerbitkan proyek. Silakan kembali lagi
-                nanti untuk membaca studi kasus yang sedang disiapkan.
+            <div className="mt-6 rounded-xl border border-dashed border-line bg-surface px-6 py-14 text-center">
+              <span className="mx-auto flex size-11 items-center justify-center rounded-full border border-line bg-canvas text-ink-2">
+                <Icon name="image" />
+              </span>
+              <h3 className="mt-4 text-[17px] font-semibold text-ink">Belum ada karya yang diterbitkan</h3>
+              <p className="mx-auto mt-2 max-w-[42ch] text-[15px] leading-[1.65] text-ink-2">
+                {profile.displayName} belum menerbitkan proyek. Karya yang sudah diterbitkan akan tampil di sini.
               </p>
             </div>
           ) : (
-            <div className="mt-6 grid gap-6 sm:grid-cols-2">
+            <div className="mt-6 grid gap-6 md:grid-cols-2">
               {projects.map((project) => (
                 <ProjectCard key={project.slug} project={project} username={profile.username} />
               ))}
             </div>
           )}
         </section>
-
-        <p className="mt-10 text-sm text-ink-muted">
-          Ingin melihat contoh lain?{" "}
-          <Link href="/" className="font-medium text-accent underline decoration-line hover:decoration-accent">
-            Kembali ke halaman awal
-          </Link>
-        </p>
       </div>
     </>
   );

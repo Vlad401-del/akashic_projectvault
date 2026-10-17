@@ -1,5 +1,6 @@
 import type { ReactElement } from "react";
 
+import { Icon } from "@/components/icons";
 import type { CoverVariant } from "@/lib/fixtures/types";
 
 /**
@@ -10,15 +11,18 @@ import type { CoverVariant } from "@/lib/fixtures/types";
  * jelas karena dibuat di repositori ini, dan setiap ilustrasi diberi label
  * "Contoh tampilan" supaya tidak disangka tangkapan layar proyek sungguhan.
  * Ilustrasi sengaja tidak memuat angka atau metrik apa pun.
+ *
+ * Warna aksen mengikuti palet terbaru: biru #2563EB, cyan #06B6D4, hijau
+ * #22C55E. Hanya dipakai sebagai aksen kecil; sebagian besar ilustrasi netral.
  */
 const SURFACE = "#FFFFFF";
 const CANVAS = "#F8F9FC";
 const LINE = "#DCE2EA";
 const BLOCK = "#E7ECF3";
 const INK_SOFT = "#8A96A6";
-const VIOLET = "#6D28D9";
-const BLUE = "#2563EB";
-const CYAN = "#0891B2";
+const ACCENT = "#2563EB";
+const CYAN = "#06B6D4";
+const GREEN = "#22C55E";
 
 function TextLines({
   x,
@@ -54,7 +58,7 @@ function TextLines({
 
 function DashboardArt() {
   const bars = [58, 92, 44, 110, 76, 64, 96];
-  const barColors = [VIOLET, BLUE, VIOLET, CYAN, VIOLET, BLUE, VIOLET];
+  const barColors = [ACCENT, CYAN, ACCENT, GREEN, ACCENT, CYAN, ACCENT];
 
   return (
     <>
@@ -68,8 +72,8 @@ function DashboardArt() {
       <rect y="44" width="132" height="356" fill={CANVAS} />
       {[74, 106, 138, 170, 202].map((y, index) => (
         <g key={y}>
-          <rect x="20" y={y} width="12" height="12" rx="3" fill={index === 0 ? VIOLET : LINE} />
-          <rect x="40" y={y + 2} width={index === 0 ? 68 : 56} height="8" rx="4" fill={index === 0 ? VIOLET : BLOCK} />
+          <rect x="20" y={y} width="12" height="12" rx="3" fill={index === 0 ? ACCENT : LINE} />
+          <rect x="40" y={y + 2} width={index === 0 ? 68 : 56} height="8" rx="4" fill={index === 0 ? ACCENT : BLOCK} />
         </g>
       ))}
 
@@ -96,9 +100,9 @@ function DashboardArt() {
           fill={barColors[index]}
         />
       ))}
-      <circle cx="196" cy="366" r="4" fill={VIOLET} />
+      <circle cx="196" cy="366" r="4" fill={ACCENT} />
       <rect x="208" y="362" width="48" height="8" rx="4" fill={BLOCK} />
-      <circle cx="292" cy="366" r="4" fill={BLUE} />
+      <circle cx="292" cy="366" r="4" fill={GREEN} />
       <rect x="304" y="362" width="48" height="8" rx="4" fill={BLOCK} />
     </>
   );
@@ -122,13 +126,13 @@ function AplikasiArt() {
         </g>
       ))}
 
-      <rect x="234" y="312" width="152" height="36" rx="12" fill={VIOLET} />
+      <rect x="234" y="312" width="152" height="36" rx="12" fill={ACCENT} />
       <rect x="288" y="326" width="44" height="8" rx="4" fill={SURFACE} opacity="0.9" />
 
       <rect x="436" y="112" width="152" height="128" rx="14" fill={SURFACE} stroke={LINE} />
       <rect x="456" y="134" width="60" height="9" rx="4.5" fill={BLOCK} />
       <TextLines x={456} y={158} widths={[112, 96, 104]} height={7} gap={13} />
-      <rect x="456" y="212" width="52" height="8" rx="4" fill={CYAN} opacity="0.65" />
+      <rect x="456" y="212" width="52" height="8" rx="4" fill={GREEN} opacity="0.75" />
 
       <rect x="52" y="128" width="132" height="96" rx="14" fill={SURFACE} stroke={LINE} />
       <circle cx="84" cy="160" r="14" fill={CANVAS} stroke={LINE} />
@@ -153,17 +157,17 @@ function RisetArt() {
       ))}
 
       <rect x="480" y="56" width="112" height="118" rx="14" fill={SURFACE} stroke={LINE} />
-      <rect x="480" y="56" width="112" height="6" rx="3" fill={VIOLET} />
+      <rect x="480" y="56" width="112" height="6" rx="3" fill={ACCENT} />
       <TextLines x={498} y={82} widths={[76, 62, 70]} height={6} gap={14} />
 
       <rect x="64" y="208" width="292" height="140" rx="14" fill={SURFACE} stroke={LINE} />
-      <rect x="64" y="208" width="6" height="140" fill={VIOLET} />
+      <rect x="64" y="208" width="6" height="140" fill={ACCENT} />
       <TextLines x={92} y={236} widths={[236, 208, 224, 156]} height={8} gap={18} />
 
-      {[VIOLET, BLUE, CYAN].map((color, index) => (
+      {[ACCENT, CYAN, GREEN].map((color, index) => (
         <g key={color}>
           <rect x="392" y={208 + index * 48} width="92" height="32" rx="16" fill={SURFACE} stroke={LINE} />
-          <circle cx={410} cy={224 + index * 48} r="5" fill={color} />
+          <circle cx="410" cy={224 + index * 48} r="5" fill={color} />
           <rect x={422} y={220 + index * 48} width="40" height="7" rx="3.5" fill={BLOCK} />
         </g>
       ))}
@@ -180,7 +184,7 @@ function LaporanArt() {
       <rect width="640" height="400" fill={CANVAS} />
       <rect x="112" y="24" width="416" height="352" rx="12" fill={SURFACE} stroke={LINE} />
       <rect x="148" y="60" width="168" height="14" rx="7" fill={INK_SOFT} opacity="0.45" />
-      <rect x="148" y="86" width="228" height="4" rx="2" fill={VIOLET} />
+      <rect x="148" y="86" width="228" height="4" rx="2" fill={ACCENT} />
       <TextLines x={148} y={112} widths={[344, 328, 336, 240]} height={8} gap={18} />
 
       <rect x="148" y="216" width="344" height="124" rx="10" fill={CANVAS} stroke={LINE} />
@@ -217,7 +221,7 @@ function AlurArt() {
       <rect x="76" y="98" width="92" height="9" rx="4.5" fill={BLOCK} />
       <rect x="76" y="118" width="64" height="7" rx="3.5" fill={LINE} />
 
-      <rect x="232" y="72" width="176" height="72" rx="12" fill={VIOLET} />
+      <rect x="232" y="72" width="176" height="72" rx="12" fill={ACCENT} />
       <rect x="252" y="98" width="104" height="9" rx="4.5" fill={SURFACE} opacity="0.9" />
       <rect x="252" y="118" width="72" height="7" rx="3.5" fill={SURFACE} opacity="0.55" />
 
@@ -236,11 +240,11 @@ function AlurArt() {
 
       <path d="M232 260H120" stroke={LINE} strokeWidth="2" />
       <rect x="56" y="224" width="64" height="72" rx="12" fill={SURFACE} stroke={LINE} />
-      <circle cx="88" cy="252" r="10" fill={BLUE} opacity="0.7" />
+      <circle cx="88" cy="252" r="10" fill={CYAN} opacity="0.8" />
       <rect x="72" y="272" width="32" height="7" rx="3.5" fill={LINE} />
 
       <rect x="432" y="224" width="152" height="72" rx="12" fill={SURFACE} stroke={LINE} />
-      <circle cx="464" cy="246" r="10" fill={CYAN} opacity="0.7" />
+      <circle cx="464" cy="246" r="10" fill={GREEN} opacity="0.8" />
       <rect x="486" y="242" width="72" height="8" rx="4" fill={BLOCK} />
       <TextLines x={448} y={268} widths={[112]} height={7} fill={LINE} />
 
@@ -257,19 +261,28 @@ const ART: Record<CoverVariant, () => ReactElement> = {
   alur: AlurArt,
 };
 
+/**
+ * `frame` menentukan tampilan bingkai:
+ * - `card`   : tanpa sudut membulat, dipakai di dalam kartu proyek.
+ * - `figure` : bersudut membulat, dipakai sebagai sampul/galeri halaman detail.
+ */
 export function ProjectCover({
   variant,
   alt,
+  frame = "figure",
   aspectClassName = "aspect-[16/10]",
 }: {
   variant: CoverVariant;
   alt: string;
+  frame?: "card" | "figure";
   aspectClassName?: string;
 }) {
   const Art = ART[variant];
+  const frameClass =
+    frame === "card" ? "border-b border-line bg-surface" : "overflow-hidden rounded-xl border border-line bg-surface";
 
   return (
-    <div className={`relative w-full overflow-hidden rounded-xl border border-line bg-surface ${aspectClassName}`}>
+    <div className={`relative w-full ${frameClass} ${aspectClassName}`}>
       <svg
         viewBox="0 0 640 400"
         role="img"
@@ -279,14 +292,19 @@ export function ProjectCover({
       >
         <Art />
       </svg>
-      <span className="absolute right-3 top-3 rounded-full border border-line bg-surface/90 px-2.5 py-1 text-[11px] font-medium text-ink-muted">
+      <span className="absolute right-3 top-3 rounded-full border border-line bg-surface/85 px-2.5 py-[3px] text-[11px] font-medium text-ink-2 backdrop-blur-[2px]">
         Contoh tampilan
       </span>
     </div>
   );
 }
 
-/** Dipakai halaman detail sebagai keterangan kecil di bawah ilustrasi. */
-export function ProjectCoverCaption({ alt }: { alt: string }) {
-  return <figcaption className="mt-2 text-xs text-ink-muted">{alt}</figcaption>;
+/** Dipakai halaman detail sebagai keterangan di bawah ilustrasi. */
+export function ProjectCoverCaption({ text, className = "" }: { text: string; className?: string }) {
+  return (
+    <figcaption className={`flex items-start gap-2 text-[14px] leading-6 text-ink-2 ${className}`}>
+      <Icon name="image" className="mt-1 size-4" />
+      <span>{text}</span>
+    </figcaption>
+  );
 }

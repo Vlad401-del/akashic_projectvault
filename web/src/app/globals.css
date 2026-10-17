@@ -2,23 +2,52 @@
 
 /*
  * Palet Akashic — "prismatic minimal".
- * Sebagian besar layar netral; warna spektrum hanya sebagai aksen kecil.
- * Nilai warna mengikuti docs/AKASHIC_STARTER.md.
+ *
+ * Sebagian besar layar netral; warna spektrum hanya muncul sebagai aksen kecil.
+ * Nilai netral (canvas, surface, ink, line) tetap seperti semula. Aksen utama
+ * memakai biru #2563EB, dan spektrum dekoratif bergerak cyan -> biru -> hijau
+ * (dengan ujung lime) untuk memberi kesan prisma, bukan violet lagi.
+ *
+ * Catatan kontras (diukur terhadap latar putih #FFFFFF):
+ *   accent #2563EB        5,17:1  aman untuk tautan dan tombol (teks putih)
+ *   ink    #182230       15,2:1
+ *   ink-2  #526071        5,9:1
+ *   hijau  #22C55E        2,3:1  GAGAL untuk teks, jadi hanya untuk dekorasi
+ *   cyan   #06B6D4        2,6:1  GAGAL untuk teks, jadi hanya untuk dekorasi
+ * Karena itu cyan, hijau, dan lime hanya dipakai pada prisma dan garis tipis,
+ * tidak pernah untuk teks atau tombol.
  */
 @theme inline {
   --color-canvas: #f8f9fc;
   --color-surface: #ffffff;
   --color-ink: #182230;
-  --color-ink-muted: #526071;
+  --color-ink-2: #526071;
   --color-line: #dce2ea;
-  --color-accent: #6d28d9;
-  --color-accent-strong: #5b21b6;
+  --color-line-strong: #c8d0db;
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-soft: #eaf1fd;
+  --color-danger: #b42318;
+  --color-danger-soft: #fef3f2;
+
+  --color-spectrum-cyan: #06b6d4;
   --color-spectrum-blue: #2563eb;
-  --color-spectrum-cyan: #0891b2;
-  --color-spectrum-coral: #e87979;
+  --color-spectrum-green: #22c55e;
+  --color-spectrum-lime: #84cc16;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial,
     sans-serif;
+}
+
+/*
+ * Gradien spektrum. Dipakai hanya pada tanda merek, kata merek, dan satu garis
+ * tipis. `--spectrum-word` sengaja sedikit lebih gelap daripada ujung spektrum
+ * dekoratif supaya tulisan "Akashic" tetap terbaca (cyan 4,4:1, hijau 4,7:1).
+ */
+:root {
+  --spectrum-mark: linear-gradient(148deg, #06b6d4 0%, #2563eb 52%, #22c55e 100%);
+  --spectrum-word: linear-gradient(92deg, #0891b2 0%, #2563eb 46%, #15803d 100%);
+  --spectrum-rule: linear-gradient(90deg, #06b6d4 0%, #2563eb 44%, #22c55e 78%, #84cc16 100%);
 }
 
 /*

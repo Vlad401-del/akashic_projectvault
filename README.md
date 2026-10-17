@@ -13,7 +13,8 @@ Panduan pengerjaan lengkap ada di [`docs/AKASHIC_STARTER.md`](docs/AKASHIC_START
 .
 ├── .gitattributes          # normalisasi line ending (LF) untuk kerja kelompok
 ├── docs/
-│   └── AKASHIC_STARTER.md  # spesifikasi dan prompt pengerjaan
+│   ├── AKASHIC_STARTER.md  # spesifikasi dan prompt pengerjaan
+│   └── design/             # tangkapan layar prototipe + implementasi dan keputusan warna
 └── web/                    # aplikasi Next.js (semua perintah dijalankan dari sini)
     ├── scripts/check-routes.ps1
     └── src/
@@ -23,6 +24,7 @@ Panduan pengerjaan lengkap ada di [`docs/AKASHIC_STARTER.md`](docs/AKASHIC_START
             ├── fixtures/   # DATA CONTOH beserta tipenya
             ├── content.ts  # aturan visibilitas publik
             ├── url.ts      # penyaring tautan http/https
+            ├── labels.ts   # label jenis tugas
             └── text.ts
 ```
 
@@ -65,8 +67,8 @@ Skrip itu memeriksa 10 kasus: halaman awal, tiga profil, profil privat, username
 | Rute | Isi |
 |---|---|
 | `/` | Pengantar singkat + tautan ke contoh portofolio |
-| `/u/[username]` | Profil publik: nama, headline, bio, keterampilan, kontak opsional, daftar proyek |
-| `/u/[username]/p/[slug]` | Detail proyek: header, sampul, Masalah → Proses → Kontribusi saya → Hasil, bukti karya, galeri, proyek lainnya |
+| `/u/[username]` | Profil publik: avatar, nama, headline, program studi, kota, bio, keterampilan, kontak opsional, daftar proyek |
+| `/u/[username]/p/[slug]` | Detail proyek: header + sampul, panel konteks tugas, lalu Masalah → Proses → Kontribusi saya → Hasil → Galeri, bukti karya, dan proyek lainnya |
 
 Alamat lokal contoh: `http://localhost:3000/u/nadia` dan `http://localhost:3000/u/nadia/p/dashboard-penjualan-ritel`.
 
@@ -92,11 +94,33 @@ Semua nama, proyek, dan tautan fiktif. Tautan memakai domain contoh `example.com
 
 ## Tampilan
 
-Palet dan komponen mengikuti arah desain *prismatic minimal* di dokumen spesifikasi: latar `#F8F9FC`, permukaan `#FFFFFF`, teks `#182230`, teks sekunder `#526071`, garis `#DCE2EA`, aksen violet `#6D28D9`. Gradien spektrum hanya dipakai pada tanda merek dan satu garis tipis di bawah nama. Mode gelap otomatis bawaan template dilepas karena paletnya hanya diuji pada tema terang.
+Desain mengikuti **prototipe Figma Make** pemilik produk
+(<https://www.figma.com/make/Yx7iEOVBGA9EYEnVgbI7Qa/HiFi-Prototype-for-Akashic>): bilah atas yang
+menempel, avatar inisial, pemberitahuan prototipe, header profil dengan program studi dan kota,
+kartu proyek bersampul, serta detail proyek berkolom dua dengan panel "Konteks tugas" yang menempel.
+
+Palet tetap *prismatic minimal* seperti spesifikasi, dengan satu perubahan warna: aksen utama
+sekarang **biru `#2563EB`** (bukan violet `#6D28D9`) dan spektrum dekoratif bergerak
+**cyan → biru → hijau**, mengikuti permintaan pemilik produk agar warna mengikuti gradien tulisan
+"dreamer" pada gambar referensi tetapi tetap berkesan prismatic. Netralnya tidak berubah: latar
+`#F8F9FC`, permukaan `#FFFFFF`, teks `#182230`, teks sekunder `#526071`, garis `#DCE2EA`.
+
+Catatan kontras: cyan dan hijau hanya muncul pada prisma merek dan garis tipis (kontras 2,3–2,6:1,
+gagal untuk teks). Tautan/tombol/fokus memakai biru `#2563EB` (5,17:1) dan kata merek memakai
+varian gradien yang lebih gelap (4,4–5,2:1). Rincian lengkap ada di
+[`docs/design/README.md`](docs/design/README.md). Mode gelap otomatis bawaan template dilepas
+karena paletnya hanya diuji pada tema terang.
 
 Sampul dan galeri masih berupa **ilustrasi SVG netral buatan sendiri** yang diberi label "Contoh tampilan", karena unggah gambar baru dikerjakan pada tahap berikutnya. Ilustrasi ini tidak memuat angka atau metrik apa pun.
 
-Diverifikasi: tidak ada scroll horizontal pada lebar 390 px dan 1440 px, grid proyek menjadi satu kolom di ponsel dan dua kolom di desktop, panel bukti karya berpindah ke bawah header di ponsel, dan fokus keyboard tampil sebagai garis ungu 2 px.
+Narasi studi kasus juga dipisah menjadi bagian kecil seperti pada prototipe: pertanyaan yang
+dijawab, langkah proses bernomor, daftar centang pekerjaan sendiri, keputusan desain yang diambil,
+daftar pekerjaan anggota lain, lalu dua kartu hasil. Tujuannya tetap sama: bagian pribadi tidak
+tercampur dengan hasil kelompok.
+
+Tangkapan layar prototipe dan hasil implementasi tersimpan di [`docs/design/`](docs/design/README.md).
+
+Diverifikasi: tidak ada scroll horizontal pada lebar 390 px dan 1440 px, grid proyek menjadi satu kolom di ponsel dan dua kolom di desktop, panel konteks pindah ke bawah sampul di ponsel, dan fokus keyboard tampil sebagai garis biru 2 px.
 
 ## Keputusan teknis yang perlu diketahui kelompok
 
@@ -105,6 +129,7 @@ Diverifikasi: tidak ada scroll horizontal pada lebar 390 px dan 1440 px, grid pr
 | `cacheComponents` dimatikan di `web/next.config.ts` | Dengan Partial Prerender menyala, permintaan pertama untuk username yang belum pernah dibuka membalas **200** (soft-404) dan baru permintaan berikutnya membalas 404. Aturan visibilitas Akashic butuh 404 yang tegas. Bisa dinyalakan kembali bila penanganan soft-404 sudah disepakati. |
 | `generateStaticParams` pada rute publik | Sumber data tahap 1 adalah fixture, jadi semua rute diketahui saat build. Akun privat dan draft tetap didaftarkan agar 404-nya benar-benar teruji. |
 | `.gitattributes` dengan `eol=lf` | Mencegah diff palsu akibat perbedaan line ending antar anggota di Windows. |
+| Bentuk fixture diselaraskan dengan prototipe Figma Make | Narasi tidak lagi satu blok teks panjang, melainkan daftar pertanyaan, langkah proses, daftar centang kontribusi, dan kartu hasil. Skema Supabase tahap 2 sebaiknya mengikuti bentuk ini agar komponen tampilan tidak perlu diubah lagi. |
 
 ## Yang belum ada
 

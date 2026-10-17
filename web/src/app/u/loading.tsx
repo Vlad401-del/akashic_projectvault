@@ -4,12 +4,12 @@
  */
 export default function RootLoading() {
   return (
-    <div className="mx-auto max-w-[1120px] px-4 py-8" aria-busy="true">
+    <div className="mx-auto max-w-[1120px] px-5 py-8 sm:px-8 xl:px-0" aria-busy="true">
       <p className="sr-only" role="status">
         Memuat halaman
       </p>
       <div className="h-6 w-40 animate-pulse rounded-lg bg-surface" />
-      <div className="mt-8 h-52 animate-pulse rounded-2xl border border-line bg-surface" />
+      <div className="mt-8 h-52 animate-pulse rounded-xl border border-line bg-surface" />
     </div>
   );
 }

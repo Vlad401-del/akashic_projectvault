@@ -28,12 +28,19 @@ powershell -File scripts\check-routes.ps1
 ```
 src/
 ├── app/                     # rute App Router (halaman publik + not-found + loading)
-├── components/              # komponen tampilan yang dipakai ulang
+├── components/              # komponen tampilan yang dipakai ulang (termasuk icons.tsx)
 └── lib/
     ├── fixtures/            # DATA CONTOH (fiktif) tahap 1
     ├── content.ts           # aturan visibilitas profil/proyek publik
+    ├── labels.ts            # label jenis tugas
     ├── url.ts               # penyaring tautan http/https
-    └── text.ts
+    └── text.ts              # kalimat pertama, inisial avatar, nama depan
 ```
 
 Sumber data masih berupa fixture di `src/lib/fixtures/`. Penggantinya adalah Supabase pada tahap berikutnya; berkas `src/lib/content.ts` adalah satu-satunya tempat yang perlu diubah menjadi kueri database.
+
+Bentuk tipe di `src/lib/fixtures/types.ts` sudah diselaraskan dengan prototipe Figma Make: narasi
+studi kasus disimpan sebagai bagian-bagian kecil (`problem[]`, `questions[]`, `processSteps[]`,
+`contributionChecklist[]`, `designDecision`, `teammates[]`, `outcomeCards[]`) supaya skema tabel
+tahap 2 bisa mengikuti bentuk yang sama. Tangkapan layar prototipe dan keputusan warna ada di
+[`../docs/design/README.md`](../docs/design/README.md).
