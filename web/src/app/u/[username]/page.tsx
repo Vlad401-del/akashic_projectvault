@@ -5,22 +5,22 @@ import { ProfileHeader } from "@/components/profile-header";
 import { ProjectCard } from "@/components/project-card";
 import { PrototypeNotice } from "@/components/prototype-notice";
 import { OwnerChip, TopBar } from "@/components/site-nav";
-import { getPublicProfile, getPublicProjects } from "@/lib/content";
-import { profiles } from "@/lib/fixtures/fixtures";
+import { countStoredProjects, getPublicProfile, getPublicProjects, listKnownProfileRoutes } from "@/lib/content";
 
 /**
- * Daftar rute profil dibuat saat build karena sumber data tahap 1 adalah
- * fixture. Username yang tidak ada di daftar tetap ditangani `notFound()` di
- * dalam halaman.
+ * Rute ini dibuat saat build dari daftar yang dikenal (fixture dan proyek hasil
+ * editor). Halaman yang sudah pernah dibuka diperbarui setelah editor menyimpan
+ * lewat `revalidatePath` di `src/lib/project-actions.ts`.
+ *
+ * Sengaja tidak memakai `force-dynamic`: pada rute yang dialirkan, `notFound()`
+ * berjalan setelah respons mulai dikirim sehingga permintaan pertama membalas
+ * 200. Dengan dibuat saat build, username yang tidak ada dan profil privat
+ * benar-benar membalas HTTP 404.
  */
 export function generateStaticParams() {
-  return profiles.map((profile) => ({ username: profile.username }));
+  return listKnownProfileRoutes().map((username) => ({ username }));
 }
 
-/**
- * Rute ini tidak memakai prerender parsial supaya `notFound()` benar-benar
- * membalas HTTP 404 (lihat penjelasan di `next.config.ts`).
- */
 export async function generateMetadata({ params }: PageProps<"/u/[username]">) {
   const { username } = await params;
   const profile = getPublicProfile(username);
@@ -46,6 +46,7 @@ export default async function PublicProfilePage({ params }: PageProps<"/u/[usern
   }
 
   const projects = getPublicProjects(profile);
+  const storedCount = countStoredProjects(profile.username);
 
   return (
     <>
@@ -53,7 +54,10 @@ export default async function PublicProfilePage({ params }: PageProps<"/u/[usern
 
       <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
         <PrototypeNotice>
-          Contoh fiktif. Nama, profil, kontak, dan proyek di halaman ini dibuat untuk prototipe.
+          Contoh fiktif. Nama, profil, dan kontak di halaman ini dibuat untuk prototipe.
+          {storedCount > 0
+            ? ` ${storedCount} proyek di halaman ini dibuat lewat editor dan tersimpan di berkas lokal komputer ini, bukan di database.`
+            : ""}
         </PrototypeNotice>
 
         <ProfileHeader profile={profile} />

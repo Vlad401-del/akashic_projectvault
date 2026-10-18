@@ -242,13 +242,23 @@ Sebelum fitur unggah selesai, gunakan tautan sumber sebagai bukti sehingga satu 
 Uji alur akun A membuat draft → preview → publish → terlihat anonim → unpublish → tidak terlihat anonim. Akun B tidak boleh mengeditnya. Jalankan lint, typecheck, dan build; laporkan hasil sebenarnya.
 ```
 
-> **Catatan pelaksanaan (tampilan editor).** Tiga layar editor pada Prompt C sudah dibangun sebagai
-> tampilan, tanpa database maupun autentikasi: `/dashboard`, `/dashboard/projects/new`, dan
-> `/dashboard/projects/[slug]/edit` (status Draft dan Sudah terbit memakai formulir yang sama).
-> Formulir tiga bagian, panel pratinjau ringkas, jendela pratinjau penuh, validasi judul/ringkasan/
-> tautan, dan checklist sebelum menerbitkan sudah mengikuti isi Prompt C. Tombol Simpan, Terbitkan,
-> dan Tarik dari publik masih simulasi di peramban dan diberi keterangan "simulasi". Prompt 3 di atas
-> tetap berlaku penuh dan baru dapat dikerjakan setelah tahap 2 (Supabase Auth) selesai.
+> **Catatan pelaksanaan (editor sudah menyimpan).** Tiga layar editor pada Prompt C sudah dibangun dan
+> sekarang benar-benar menyimpan, tanpa database maupun autentikasi: `/dashboard`,
+> `/dashboard/projects/new`, dan `/dashboard/projects/[slug]/edit` (status Draft dan Sudah terbit
+> memakai formulir yang sama). Formulir tiga bagian, panel pratinjau ringkas, jendela pratinjau penuh,
+> validasi judul/ringkasan/tautan, dan checklist sebelum menerbitkan sudah mengikuti isi Prompt C.
+>
+> Penyimpanannya sementara: satu tindakan server (`src/lib/project-actions.ts`) menulis ke berkas
+> lokal `web/.data/projects.json` lewat `src/lib/local-store.ts`, lalu `src/lib/content.ts`
+> menggabungkan berkas itu dengan fixture. Karena itu bagian alur Prompt 3 yang **sudah teruji
+> sungguhan** adalah: buat draft → pratinjau → terbitkan → terlihat oleh pengunjung anonim →
+> tarik dari publik → tidak terlihat lagi (404), termasuk peringatan meninggalkan perubahan dan
+> penyegaran halaman publik lewat `revalidatePath`.
+>
+> Yang **belum** dapat dikerjakan dan masih menunggu tahap 2 (Supabase Auth): pemisahan akun
+> (akun B tidak boleh mengedit proyek akun A), pembatasan jumlah proyek per pemilik, penghapusan
+> proyek dari dalam editor, serta penyimpanan bersama. Selama berkasnya masih lokal, "pemilik"
+> proyek selalu akun contoh di `src/lib/content.ts`.
 
 ### Prompt 4 — gambar sampul dan galeri
 

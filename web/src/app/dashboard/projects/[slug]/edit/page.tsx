@@ -6,8 +6,13 @@ import { ProjectEditor } from "@/components/editor/project-editor";
 import { getDemoOwner, getOwnedProject, listOwnedProjects } from "@/lib/content";
 
 /**
- * Daftar rute editor dibuat saat build dari proyek milik akun contoh. Slug yang
- * tidak dikenal tetap ditangani `notFound()` di dalam halaman.
+ * Rute ini dibuat saat build dari proyek yang sudah ada, lalu diperbarui
+ * setelah editor menyimpan (`revalidatePath` di `src/lib/project-actions.ts`).
+ *
+ * Sengaja tidak memakai `force-dynamic`: pada rute yang dialirkan, `notFound()`
+ * berjalan setelah respons mulai dikirim sehingga permintaan pertama membalas
+ * 200. Dengan dibuat saat build, slug yang tidak dikenal benar-benar membalas
+ * HTTP 404.
  */
 export function generateStaticParams() {
   return listOwnedProjects().map((project) => ({ slug: project.slug }));

@@ -7,6 +7,13 @@ import { SkillList } from "@/components/skill-list";
 import { TopBar } from "@/components/site-nav";
 import { getDemoOwner, getPublicProjects, listPublicProfiles } from "@/lib/content";
 
+/**
+ * Halaman ini menampilkan proyek yang sedang tampil publik, termasuk proyek
+ * yang baru diterbitkan dari editor. Karena itu isinya dibaca setiap permintaan
+ * dan tidak diprerender saat build.
+ */
+export const dynamic = "force-dynamic";
+
 /** Judul bagian dengan deskripsi singkat, dipakai berulang di halaman ini. */
 function Section({
   id,
@@ -77,8 +84,8 @@ const STEPS: { icon: IconName; title: string; body: string }[] = [
  * Halaman awal Akashic.
  *
  * Berisi pengantar singkat, contoh karya, penjelasan alur, dan pintu masuk ke
- * area editor. Karena tahap ini masih memakai fixture, statusnya dinyatakan
- * terbuka: data contoh, tanpa login, dan hanya berjalan di localhost.
+ * area editor. Statusnya dinyatakan terbuka: data contoh, tanpa login,
+ * penyimpanan hanya berkas lokal, dan hanya berjalan di localhost.
  */
 export default function HomePage() {
   const profiles = listPublicProfiles();
@@ -181,15 +188,16 @@ export default function HomePage() {
             <p className="mt-6 flex items-start gap-2 text-[13px] leading-5 text-ink-2">
               <Icon name="info" className="mt-0.5 size-4" />
               <span>
-                Versi pengembangan: seluruh isi adalah data contoh, belum ada login atau database, dan
-                aplikasi hanya berjalan di localhost.
+                Versi pengembangan: berjalan hanya di localhost dan belum ada login atau database. Isi
+                awalnya data contoh; proyek yang Anda isi lewat editor disimpan ke berkas lokal di
+                komputer ini.
               </span>
             </p>
           </div>
 
           <div className="lg:pt-4">
             <p className="mb-3 text-[13px] font-medium uppercase tracking-[0.08em] text-ink-2">
-              Contoh kartu proyek
+              Kartu proyek yang tampil
             </p>
             {featured[0] ? (
               <ProjectCard project={featured[0].project} username={featured[0].profile.username} />
@@ -238,8 +246,8 @@ export default function HomePage() {
 
         <Section
           id="contoh-karya"
-          title="Contoh karya dari data uji"
-          description="Empat proyek di bawah ini berasal dari akun contoh dan memperlihatkan bagian Kontribusi saya yang terpisah dari hasil kelompok."
+          title="Karya yang sudah tampil"
+          description="Diambil dari halaman publik akun contoh, termasuk proyek yang Anda buat sendiri lewat editor di komputer ini. Bagian Kontribusi saya dipisahkan dari hasil kelompok."
         >
           <div className="grid gap-6 md:grid-cols-2">
             {featured.map(({ project, profile }) => (
@@ -260,7 +268,7 @@ export default function HomePage() {
         <Section
           id="area-editor"
           title="Area editor"
-          description="Tiga layar editor dari desain sudah dibangun sebagai tampilan. Formulirnya dapat dicoba sekarang, tetapi belum menyimpan apa pun."
+          description="Tiga layar editor dari desain sudah dibangun dan sekarang benar-benar menyimpan. Isi satu tugas, terbitkan, lalu buka halaman publiknya di localhost ini juga."
         >
           <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {editorScreens.map((screen) => (
@@ -284,8 +292,9 @@ export default function HomePage() {
           <p className="mt-6 flex items-start gap-2 text-[14px] leading-6 text-ink-2">
             <Icon name="info" className="mt-0.5 size-4" />
             <span>
-              Tombol Simpan dan Terbitkan masih simulasi di peramban. Autentikasi, database, dan unggahan
-              gambar masuk tahap berikutnya.
+              Tombol Simpan dan Terbitkan sudah menyimpan sungguhan, tetapi ke berkas lokal di komputer
+              ini (web/.data/projects.json), bukan ke database. Belum ada login dan belum ada unggahan
+              gambar.
             </span>
           </p>
         </Section>

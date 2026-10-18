@@ -4,10 +4,11 @@ Akashic membantu mahasiswa mengubah tugas kuliah menjadi **studi kasus proyek** 
 
 Panduan pengerjaan lengkap ada di [`docs/AKASHIC_STARTER.md`](docs/AKASHIC_STARTER.md). Dokumen itu adalah spesifikasi; README ini mencatat **apa yang benar-benar sudah dikerjakan dan bagaimana menjalankannya**.
 
-> **Status: Tahap 1 selesai, ditambah halaman awal dan tiga layar editor (tampilan saja).**
-> Seluruh isi yang tampil masih berasal dari berkas fixture. Belum ada database, autentikasi, atau
-> unggahan gambar, sehingga tombol **Simpan** dan **Terbitkan** di area editor hanya simulasi di
-> peramban. Aplikasi hanya berjalan di localhost dan **belum diterbitkan ke internet**.
+> **Status: Tahap 1 selesai, ditambah halaman awal dan tiga layar editor yang sudah menyimpan.**
+> Isi awal halaman publik masih berasal dari berkas fixture. Hasil editor disimpan ke **berkas lokal**
+> `web/.data/projects.json`, bukan ke database, dan langsung muncul di halaman publik localhost.
+> Belum ada autentikasi maupun unggahan gambar: siapa pun yang dapat membuka localhost juga dapat
+> mengubah proyek. Aplikasi hanya berjalan di localhost dan **belum diterbitkan ke internet**.
 
 ## Struktur repositori
 
@@ -18,7 +19,10 @@ Panduan pengerjaan lengkap ada di [`docs/AKASHIC_STARTER.md`](docs/AKASHIC_START
 │   ├── AKASHIC_STARTER.md  # spesifikasi dan prompt pengerjaan
 │   └── design/             # tangkapan layar prototipe + implementasi dan keputusan warna
 └── web/                    # aplikasi Next.js (semua perintah dijalankan dari sini)
-    ├── scripts/check-routes.ps1
+    ├── .data/                # PENYIMPANAN LOKAL: proyek hasil editor (tidak masuk Git)
+    ├── scripts/
+    │   ├── check-routes.ps1  # pemeriksa status rute
+    │   └── seed/             # berkas contoh untuk menguji penyimpanan lokal
     └── src/
         ├── app/            # rute halaman
         │   ├── dashboard/  # area pemilik: daftar proyek + tiga layar editor
@@ -28,6 +32,8 @@ Panduan pengerjaan lengkap ada di [`docs/AKASHIC_STARTER.md`](docs/AKASHIC_START
         └── lib/
             ├── fixtures/   # DATA CONTOH beserta tipenya
             ├── content.ts  # aturan visibilitas publik + pemilih data area pemilik
+            ├── local-store.ts     # baca/tulis penyimpanan lokal sementara
+            ├── project-actions.ts # server action: simpan & terbitkan dari editor
             ├── editor-form.ts # model formulir editor dan validasinya
             ├── url.ts      # penyaring tautan http/https
             ├── labels.ts   # label jenis tugas
@@ -66,7 +72,28 @@ npm start                       # terminal pertama
 powershell -File scripts\check-routes.ps1   # terminal kedua
 ```
 
-Skrip itu memeriksa 15 kasus: halaman awal, tiga profil, profil privat, username tak dikenal, proyek publik, proyek draft, proyek milik profil privat, rute contoh dari dokumen, daftar proyek area pemilik, tiga layar editor, dan slug editor yang tidak dikenal. Hasil terakhir: **15 lulus, 0 gagal**, ditambah pemeriksaan isi bahwa draft muncul di area pemilik tetapi tidak muncul di halaman publik.
+Skrip itu memeriksa 33 kasus: status HTTP 15 rute (halaman awal, tiga profil, profil privat, username tak dikenal, proyek publik, proyek draft, proyek milik profil privat, rute contoh dari dokumen, daftar proyek area pemilik, tiga layar editor, dan slug editor yang tidak dikenal), 12 pemeriksaan isi halaman, dan 6 pemeriksaan penyimpanan lokal. Hasil terakhir: **33 lulus, 0 gagal**.
+
+Pemeriksaan penyimpanan lokal bekerja dengan menyalin berkas contoh `scripts/seed/proyek-uji-penyimpanan-lokal.json` ke `web/.data/projects.json`, memeriksa bahwa proyek berstatus terbit muncul di halaman publik sedangkan yang berstatus draft membalas 404, lalu **mengembalikan isi berkas asli**. Isi proyek Anda tidak hilang, tetapi jangan menjalankan skrip ini bersamaan dengan pengeditan di peramban.
+
+## Mencoba satu tugas dari awal sampai terbit
+
+Ini alur yang membuktikan pertanyaan "apakah proyek yang saya isi muncul di alamat lokal":
+
+1. Jalankan `npm run dev` dari folder `web`, lalu buka <http://localhost:3000/dashboard/projects/new>.
+2. Isi bagian **Identitas proyek**, **Cerita proyek**, dan **Bukti karya**. Isian wajib ditandai
+   bintang; checklist di bawah formulir menunjukkan bagian mana yang belum lengkap.
+3. Tekan **Simpan draft**. Alamat akan berubah sendiri menjadi
+   `/dashboard/projects/<slug-judul>/edit` dan muncul pemberitahuan "Draft tersimpan".
+4. Buka <http://localhost:3000/u/nadia> — proyek itu **belum** tampil, karena masih draft.
+5. Centang dua pernyataan pemilik, lalu tekan **Terbitkan**.
+6. Buka tautan halaman publik di panel **Pratinjau ringkas**, atau langsung
+   `http://localhost:3000/u/nadia/p/<slug-judul>`. Isi yang Anda tulis tampil sebagai studi kasus.
+7. Untuk menariknya lagi, tekan **Tarik dari publik**. Halaman publiknya langsung membalas 404.
+
+Hasilnya tersimpan di `web/.data/projects.json` (tidak masuk Git). Untuk mengosongkan seluruh hasil
+editor, hapus berkas itu lalu muat ulang halaman. Menghapus berkas saat server berjalan dapat
+meninggalkan halaman yang masih tersimpan di cache; jalankan ulang server bila itu terjadi.
 
 ## Rute yang tersedia
 
@@ -79,9 +106,11 @@ Skrip itu memeriksa 15 kasus: halaman awal, tiga profil, profil privat, username
 | `/dashboard/projects/new` | Layar editor 1 — **Proyek baru**: formulir kosong dan checklist sebelum terbit |
 | `/dashboard/projects/[slug]/edit` | Layar editor 2 dan 3 — **Draft** atau **Sudah terbit**, tergantung status proyek. Keduanya memakai formulir yang sama; pada proyek terbit tombol simpan bernama "Simpan perubahan publik" |
 
-Alamat lokal contoh: `http://localhost:3000/u/nadia`, `http://localhost:3000/u/nadia/p/dashboard-penjualan-ritel`, dan `http://localhost:3000/dashboard`.
+Alamat lokal contoh: `http://localhost:3000/u/nadia`, `http://localhost:3000/u/nadia/p/dashboard-penjualan-ritel`, dan `http://localhost:3000/dashboard`. Titik masuk editor: `http://localhost:3000/dashboard/projects/new`.
 
-Tiga layar editor dari desain sudah dibangun: formulir dua kolom (formulir + panel pratinjau ringkas), pratinjau penuh dalam jendela sendiri, validasi judul/ringkasan/tautan, checklist terbit, serta simulasi simpan, terbit, dan tarik dari publik. Belum ada penyimpanan.
+Tiga layar editor dari desain sudah dibangun: formulir dua kolom (formulir + panel pratinjau ringkas), pratinjau penuh dalam jendela sendiri, validasi judul/ringkasan/tautan, dan checklist terbit. Tombol **Simpan**, **Terbitkan**, dan **Tarik dari publik** sekarang benar-benar menulis ke penyimpanan lokal, jadi proyek yang selesai diisi punya alamat publik sendiri di `/u/nadia/p/<slug>`.
+
+Proyek yang dibuat lewat editor ditulis sebagai satu berkas JSON di `web/.data/projects.json`. Berkas itu adalah lapisan tambahan di atas fixture: proyek dengan slug yang sama menimpa data contoh, proyek dengan slug baru ditambahkan. Isinya sengaja tidak masuk Git supaya data contoh di repo tetap bersih.
 
 ## Akun contoh (data fiktif)
 
@@ -103,7 +132,10 @@ Semua nama, proyek, dan tautan fiktif. Tautan memakai domain contoh `example.com
 - **Pesannya tidak membedakan** profil privat dan username yang tidak ada, supaya keberadaan profil privat tidak bisa ditebak dari pesan.
 - **Status visibilitas selalu disertai label teks** ("Tampil pada portofolio lokal"), bukan hanya warna.
 - **Area pemilik memakai pemilih data terpisah.** Rute `/dashboard/...` sengaja boleh membaca draft, karena pemilik harus bisa membuka draftnya sendiri; halaman publik tetap memakai penyaring yang sama seperti sebelumnya. Sampai autentikasi tersedia, akun pemilik ditetapkan di `src/lib/content.ts` (`DEMO_OWNER_USERNAME`).
-- **Editor tidak menyimpan apa pun.** Tombol Simpan, Terbitkan, dan Tarik dari publik hanya mengubah tampilan di peramban dan selalu diberi keterangan "simulasi"; belum ada permintaan jaringan maupun penulisan berkas.
+- **Editor menyimpan sungguhan, tetapi ke berkas lokal.** Tombol Simpan, Terbitkan, dan Tarik dari publik mengirim satu tindakan server (`src/lib/project-actions.ts`) yang menulis ke `web/.data/projects.json`. Belum ada database maupun autentikasi, jadi siapa pun yang dapat membuka localhost juga dapat mengubah proyek, dan berkas itu tidak bisa dipakai bersama orang lain.
+- **Validasi dijalankan dua kali.** Aturan yang sama dipakai di peramban dan di server (`saveProjectAction`), supaya permintaan yang dibuat langsung pun tidak bisa menyimpan judul kosong atau tautan berskema aneh.
+- **Slug tidak berubah saat judul diubah.** Slug dibentuk sekali dari judul ketika proyek pertama kali disimpan, supaya alamat publik yang sudah dibagikan tidak mati. Bila judulnya sudah dipakai, ditambahkan angka di belakangnya.
+- **Halaman publik hanya menampilkan proyek terbit.** Proyek hasil editor yang masih draft membalas 404 di `/u/nadia/p/<slug>`, sama seperti draft fixture.
 - **Tautan bukti karya di editor divalidasi dengan aturan yang sama** seperti halaman publik: hanya `http`/`https` yang diterima, dan simpan ditolak bila alamatnya tidak valid.
 
 ## Tampilan
@@ -148,7 +180,10 @@ Diverifikasi: tidak ada scroll horizontal pada lebar 390 px dan 1440 px, grid pr
 | Keputusan | Alasan |
 |---|---|
 | `cacheComponents` dimatikan di `web/next.config.ts` | Dengan Partial Prerender menyala, permintaan pertama untuk username yang belum pernah dibuka membalas **200** (soft-404) dan baru permintaan berikutnya membalas 404. Aturan visibilitas Akashic butuh 404 yang tegas. Bisa dinyalakan kembali bila penanganan soft-404 sudah disepakati. |
-| `generateStaticParams` pada rute publik | Sumber data tahap 1 adalah fixture, jadi semua rute diketahui saat build. Akun privat dan draft tetap didaftarkan agar 404-nya benar-benar teruji. |
+| `generateStaticParams` pada rute publik | Rute yang wajib membalas **404 tegas** (profil privat, username tak dikenal, proyek draft, slug editor tak dikenal) tetap dibuat saat build. Akun privat dan draft ikut didaftarkan supaya 404-nya benar-benar teruji, dan proyek hasil editor didaftarkan lewat `listKnownProjectRoutes()`. |
+| Rute yang selalu 200 memakai `force-dynamic` | Pada rute yang responsnya dialirkan, `notFound()` berjalan setelah status 200 terkirim, sehingga permintaan pertama membalas 200 (soft-404). Karena itu halaman awal dan `/dashboard` — yang tidak pernah 404 dan harus langsung menampilkan proyek baru — dibuat dinamis, sedangkan tiga rute publik tetap dibuat saat build dan diperbarui lewat `revalidatePath` setiap kali editor menyimpan. |
+| Proyek editor disimpan ke berkas JSON, bukan database | Docker Desktop dan Supabase CLI belum tersedia, tetapi alur "isi formulir → muncul di alamat lokal" harus benar-benar jalan. `src/lib/local-store.ts` menulis ke `web/.data/projects.json` (di luar Git) dan `src/lib/content.ts` menggabungkannya dengan fixture. Saat Supabase dipakai, berkas ini dihapus dan isi `content.ts` diganti kueri database; komponen tampilan tidak berubah. |
+| Alamat editor diganti tanpa memuat ulang halaman | Setelah proyek baru disimpan, alamat berubah dari `/dashboard/projects/new` ke `/dashboard/projects/<slug>/edit` memakai `window.history.replaceState` (didukung App Router). Tanpa ini, menekan Simpan dua kali akan membuat dua proyek, dan memuat ulang akan mengembalikan formulir kosong. |
 | `.gitattributes` dengan `eol=lf` | Mencegah diff palsu akibat perbedaan line ending antar anggota di Windows. |
 | Bentuk fixture diselaraskan dengan prototipe Figma Make | Narasi tidak lagi satu blok teks panjang, melainkan daftar pertanyaan, langkah proses, daftar centang kontribusi, dan kartu hasil. Skema Supabase tahap 2 sebaiknya mengikuti bentuk ini agar komponen tampilan tidak perlu diubah lagi. |
 | Pemilih data area pemilik dipisah di `src/lib/content.ts` | Area pemilik perlu membaca draft, sedangkan halaman publik tidak boleh. Keduanya dipisah supaya aturan visibilitas publik tidak ikut longgar. Saat autentikasi tersedia, bagian ini diganti kueri yang dibatasi pemilik yang sedang login. |
@@ -157,13 +192,13 @@ Diverifikasi: tidak ada scroll horizontal pada lebar 390 px dan 1440 px, grid pr
 
 ## Yang belum ada
 
-Sudah dibangun sebagai tampilan: halaman awal, daftar proyek area pemilik, dan tiga layar editor
-(formulir berkelompok, panel pratinjau ringkas, pratinjau penuh, validasi, checklist sebelum
-menerbitkan, serta simulasi simpan/terbit/tarik). Tombol-tombol itu belum menulis ke mana pun.
+Sudah berjalan sungguhan: halaman awal, daftar proyek area pemilik, tiga layar editor (formulir
+berkelompok, panel pratinjau ringkas, pratinjau penuh, validasi, checklist sebelum menerbitkan),
+penyimpanan ke berkas lokal, serta munculnya proyek hasil editor di alamat publiknya.
 
-Belum tersedia dan sengaja ditunda: Supabase (database, autentikasi, penyimpanan), pengaturan profil
-pemilik (`/dashboard/profile`), unggah sampul/galeri, penyambungan data editor ke halaman publik,
-pencarian, analitik, dan hosting. Fixture masih dipakai di jalur produksi halaman publik sampai
+Belum tersedia dan sengaja ditunda: Supabase (database, autentikasi, penyimpanan bersama), pengaturan
+profil pemilik (`/dashboard/profile`), unggah sampul/galeri, penghapusan proyek dari dalam editor,
+pencarian, analitik, dan hosting. Fixture masih dipakai sebagai lapisan dasar halaman publik sampai
 tahap 2 selesai; saat itu isi `src/lib/content.ts` yang diganti menjadi kueri database dan komponen
 tampilan tidak perlu diubah.
 

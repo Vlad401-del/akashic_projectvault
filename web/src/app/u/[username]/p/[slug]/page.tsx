@@ -10,25 +10,29 @@ import { PrototypeNotice } from "@/components/prototype-notice";
 import { OwnerChip, TopBar } from "@/components/site-nav";
 import { SiteBrand } from "@/components/site-brand";
 import { SkillList } from "@/components/skill-list";
-import { getOtherPublicProjects, getPublicProfile, getPublicProject } from "@/lib/content";
-import { profiles } from "@/lib/fixtures/fixtures";
+import {
+  getOtherPublicProjects,
+  getPublicProfile,
+  getPublicProject,
+  isStoredProject,
+  listKnownProjectRoutes,
+} from "@/lib/content";
 import { workTypeLabel } from "@/lib/labels";
 
 /**
- * Daftar rute proyek dibuat saat build dari fixture. Proyek draft dan proyek
- * milik profil privat ikut didaftarkan supaya keduanya benar-benar diuji
- * menghasilkan 404, bukan sekadar tidak pernah dibangun.
+ * Rute ini dibuat saat build dari fixture dan proyek hasil editor, lalu
+ * diperbarui setelah editor menyimpan (`revalidatePath` di
+ * `src/lib/project-actions.ts`).
+ *
+ * Sengaja tidak memakai `force-dynamic`: pada rute yang dialirkan, `notFound()`
+ * berjalan setelah respons mulai dikirim sehingga permintaan pertama membalas
+ * 200. Dengan dibuat saat build, draft, proyek milik profil privat, dan slug
+ * yang tidak dikenal benar-benar membalas HTTP 404.
  */
 export function generateStaticParams() {
-  return profiles.flatMap((profile) =>
-    profile.projects.map((project) => ({ username: profile.username, slug: project.slug })),
-  );
+  return listKnownProjectRoutes().map((route) => ({ username: route.username, slug: route.slug }));
 }
 
-/**
- * Lihat penjelasan di `next.config.ts`: prerender parsial dimatikan agar draft
- * dan proyek milik profil privat benar-benar membalas HTTP 404.
- */
 export async function generateMetadata({ params }: PageProps<"/u/[username]/p/[slug]">) {
   const { username, slug } = await params;
   const profile = getPublicProfile(username);
@@ -60,6 +64,7 @@ export default async function PublicProjectPage({ params }: PageProps<"/u/[usern
   }
 
   const otherProjects = getOtherPublicProjects(profile, slug);
+  const fromEditor = isStoredProject(profile.username, slug);
 
   return (
     <>
@@ -86,7 +91,9 @@ export default async function PublicProjectPage({ params }: PageProps<"/u/[usern
 
       <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
         <PrototypeNotice className="mb-10 sm:mb-12">
-          Contoh fiktif. Proyek dan narasi di halaman ini dibuat untuk prototipe.
+          {fromEditor
+            ? "Proyek ini dibuat lewat editor dan disimpan di berkas lokal komputer ini (web/.data/projects.json), belum ke database. Profil pemiliknya masih data contoh."
+            : "Contoh fiktif. Proyek dan narasi di halaman ini dibuat untuk prototipe."}
         </PrototypeNotice>
 
         {/*

@@ -8,8 +8,8 @@ Folder ini menyimpan tangkapan layar dan keputusan desain tahap 1, sesuai permin
 - **Prototipe Figma Make (rujukan utama):**
   <https://www.figma.com/make/Yx7iEOVBGA9EYEnVgbI7Qa/HiFi-Prototype-for-Akashic>
   Enam layar: Profil, Detail proyek, Profil tanpa proyek, serta tiga layar Editor (Draft, Sudah
-  terbit, Proyek baru). Tiga layar publik sudah diterapkan; sejak pekerjaan area pemilik, tiga layar
-  Editor juga sudah dibangun sebagai tampilan (belum tersambung database maupun login).
+  terbit, Proyek baru). Tiga layar publik sudah diterapkan; tiga layar Editor juga sudah dibangun,
+  sudah menyimpan ke berkas lokal, dan belum tersambung database maupun login.
 - **Referensi warna tambahan (permintaan pemilik produk):**
   gradien tulisan "dreamer" pada `referensi-warna-dreamer.png` — teks gelap dengan gradien cyan →
   biru → hijau, dan tombol biru solid.
@@ -84,7 +84,7 @@ sedikit lebih gelap daripada spektrum dekoratif agar tetap terbaca.
 | Narasi | Textarea biasa, bukan editor dokumen. Paragraf dipisah baris kosong, butir daftar satu per baris, pasangan judul/isi dipisah tanda pisah panjang |
 | Pratinjau | Panel ringkas yang ikut berubah saat mengetik, plus jendela pratinjau penuh yang memakai komponen halaman publik yang sama |
 | Checklist terbit | Tujuh syarat isi dihitung otomatis, ditambah dua pernyataan pemilik (hak membagikan karya dan tidak ada data sensitif). Dinyatakan sebagai pernyataan pengguna, bukan verifikasi platform |
-| Kejujuran | Pemberitahuan "simulasi area pemilik" di atas formulir; tombol simpan dan terbit hanya mengubah tampilan dan tidak mengirim data |
+| Kejujuran | Pemberitahuan di atas formulir menyebut bahwa area pemilik belum punya login dan bahwa isinya disimpan ke berkas lokal di komputer ini, bukan ke database. Setiap tombol simpan/terbit menampilkan konfirmasi berisi waktu penyimpanan |
 
 Tangkapan layar layar editor belum ditambahkan. Jendela peramban pada sesi kerja ini tidak dapat
 menampilkan tab secara terlihat sehingga tangkapan layar gagal diambil; yang tersimpan di sini baru

@@ -7,11 +7,51 @@
  * - Proyek hanya tampil bila profil publik DAN status proyek `published`.
  * - Draft tidak dapat dibuka lewat URL langsung meskipun slug-nya diketahui.
  *
+ * Sejak editor dapat menyimpan, sumber data bukan hanya fixture: proyek hasil
+ * editor disimpan di berkas lokal (lihat `src/lib/local-store.ts`) dan
+ * digabungkan di fungsi `mergeProjects` pada berkas ini.
+ *
  * Saat Supabase dipakai (tahap 2), isi berkas ini diganti kueri ke database
  * dengan aturan yang sama, sedangkan komponen UI tetap tidak berubah.
  */
 import { profiles } from "@/lib/fixtures/fixtures";
 import type { Profile, Project } from "@/lib/fixtures/types";
+import { readStoredProjects } from "@/lib/local-store";
+
+/**
+ * Menggabungkan proyek fixture dengan proyek yang tersimpan di berkas lokal.
+ *
+ * Proyek tersimpan dengan slug yang sama menimpa fixture (jadi hasil edit
+ * langsung terlihat), sedangkan slug yang belum ada ditambahkan di depan supaya
+ * proyek yang baru dibuat mudah ditemukan.
+ */
+function mergeProjects(username: string, fixtureProjects: Project[]): Project[] {
+  const stored = readStoredProjects().filter((item) => item.ownerUsername === username);
+  const fixtureSlugs = new Set(fixtureProjects.map((project) => project.slug));
+
+  const fixtureWithOverrides = fixtureProjects.map(
+    (project) => stored.find((item) => item.project.slug === project.slug)?.project ?? project,
+  );
+
+  const added = stored
+    .filter((item) => !fixtureSlugs.has(item.project.slug))
+    .map((item) => item.project)
+    .reverse();
+
+  return [...added, ...fixtureWithOverrides];
+}
+
+/** Benar bila proyek ini dibuat lewat editor dan tersimpan di berkas lokal. */
+export function isStoredProject(username: string, slug: string): boolean {
+  return readStoredProjects().some(
+    (item) => item.ownerUsername === username && item.project.slug === slug,
+  );
+}
+
+/** Jumlah proyek hasil editor yang tersimpan untuk satu pemilik. */
+export function countStoredProjects(username: string): number {
+  return readStoredProjects().filter((item) => item.ownerUsername === username).length;
+}
 
 export function getPublicProfile(username: string): Profile | null {
   const profile = profiles.find((item) => item.username === username);
@@ -20,7 +60,7 @@ export function getPublicProfile(username: string): Profile | null {
     return null;
   }
 
-  return profile;
+  return { ...profile, projects: mergeProjects(profile.username, profile.projects) };
 }
 
 export function getPublicProjects(profile: Profile): Project[] {
@@ -35,9 +75,52 @@ export function getOtherPublicProjects(profile: Profile, slug: string): Project[
   return getPublicProjects(profile).filter((project) => project.slug !== slug);
 }
 
+/**
+ * Daftar username yang dikenal saat build: fixture ditambah pemilik proyek
+ * hasil editor, supaya `generateStaticParams` tidak melewatkan halaman pemilik.
+ */
+export function listKnownProfileRoutes(): string[] {
+  const usernames = profiles.map((profile) => profile.username);
+
+  for (const item of readStoredProjects()) {
+    if (!usernames.includes(item.ownerUsername)) {
+      usernames.push(item.ownerUsername);
+    }
+  }
+
+  return usernames;
+}
+
+/**
+ * Daftar rute proyek yang dikenal saat build.
+ *
+ * Fixture didaftarkan seluruhnya, termasuk proyek draft, supaya aturan
+ * visibilitas benar-benar diuji menghasilkan 404. Proyek hasil editor
+ * ditambahkan agar halaman publiknya sudah tersedia sejak build.
+ */
+export function listKnownProjectRoutes(): { username: string; slug: string }[] {
+  const routes = profiles.flatMap((profile) =>
+    profile.projects.map((project) => ({ username: profile.username, slug: project.slug })),
+  );
+  const seen = new Set(routes.map((route) => `${route.username}/${route.slug}`));
+
+  for (const item of readStoredProjects()) {
+    const key = `${item.ownerUsername}/${item.project.slug}`;
+
+    if (!seen.has(key)) {
+      routes.push({ username: item.ownerUsername, slug: item.project.slug });
+      seen.add(key);
+    }
+  }
+
+  return routes;
+}
+
 /** Dipakai halaman akar untuk menampilkan daftar portofolio contoh. */
 export function listPublicProfiles(): Profile[] {
-  return profiles.filter((profile) => profile.isPublished);
+  return profiles
+    .filter((profile) => profile.isPublished)
+    .map((profile) => ({ ...profile, projects: mergeProjects(profile.username, profile.projects) }));
 }
 
 /**
@@ -67,7 +150,7 @@ export function getDemoOwner(): Profile {
     throw new Error(`Akun contoh pemilik "${DEMO_OWNER_USERNAME}" tidak ditemukan di fixture.`);
   }
 
-  return owner;
+  return { ...owner, projects: mergeProjects(owner.username, owner.projects) };
 }
 
 /** Seluruh proyek pemilik, termasuk yang masih draft. */

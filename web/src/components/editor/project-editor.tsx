@@ -22,11 +22,15 @@ import {
   type EditorSource,
 } from "@/lib/editor-form";
 import type { Profile, Project, ProjectStatus } from "@/lib/fixtures/types";
+import { saveProjectAction } from "@/lib/project-actions";
 
 const PRIMARY_BUTTON =
   "inline-flex h-11 items-center gap-2 rounded-[10px] bg-accent px-4 text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60";
 const SECONDARY_BUTTON =
   "inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink transition-colors hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60";
+
+/** Aksi yang sedang berjalan; dipakai untuk menonaktifkan tombol dan mengganti label. */
+type BusyKind = null | "save" | "publish" | "unpublish";
 
 function timeNow(): string {
   return new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit" }).format(new Date());
@@ -44,22 +48,28 @@ function focusFirstInvalidField() {
 /**
  * Editor proyek untuk pemilik akun.
  *
- * Ini layar UI tanpa database maupun autentikasi. Tombol Simpan dan Terbitkan
- * menyimulasikan perilakunya di dalam peramban ini saja dan hal itu dinyatakan
- * pada pemberitahuan di atas formulir, supaya tidak disangka data tersimpan.
+ * Isi formulir disimpan sungguhan, tetapi ke penyimpanan lokal di komputer ini
+ * (`web/.data/projects.json`), bukan ke database. Belum ada autentikasi, jadi
+ * pemilik proyek selalu akun contoh; hal itu dinyatakan pada pemberitahuan di
+ * atas formulir.
  *
  * Tiga keadaan layar mengikuti desain: Proyek baru (formulir kosong), Draft
  * (sudah ada isinya tetapi belum tampil publik), dan Sudah terbit.
  */
-export function ProjectEditor({ owner, project = null }: { owner: Profile; project?: Project | null }) {
-  const initialStatus: ProjectStatus = project ? project.status : "draft";
-
+export function ProjectEditor({
+  owner,
+  project = null,
+}: {
+  owner: Profile;
+  project?: Project | null;
+}) {
   const [form, setForm] = useState<EditorFormValue>(() => (project ? projectToForm(project) : emptyForm()));
-  const [status, setStatus] = useState<ProjectStatus>(initialStatus);
+  const [status, setStatus] = useState<ProjectStatus>(project ? project.status : "draft");
+  const [savedSlug, setSavedSlug] = useState<string | null>(project ? project.slug : null);
   const [dirty, setDirty] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [publishing, setPublishing] = useState(false);
+  const [busy, setBusy] = useState<BusyKind>(null);
   const [errors, setErrors] = useState<EditorErrors>({});
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [unpublishConfirm, setUnpublishConfirm] = useState(false);
@@ -69,9 +79,8 @@ export function ProjectEditor({ owner, project = null }: { owner: Profile; proje
   const checklist = useMemo(() => publishChecklist(form), [form]);
   const publishReady = useMemo(() => canPublish(form), [form]);
 
-  const originallyPublished = project !== null && project.status === "published";
-  const publicHref =
-    status === "published" && originallyPublished ? `/u/${owner.username}/p/${project.slug}` : null;
+  // Alamat publik hanya ada setelah proyek benar-benar tersimpan.
+  const publicHref = status === "published" && savedSlug ? `/u/${owner.username}/p/${savedSlug}` : null;
 
   const update = useCallback((patch: Partial<EditorFormValue>) => {
     setForm((current) => ({ ...current, ...patch }));
@@ -129,38 +138,6 @@ export function ProjectEditor({ owner, project = null }: { owner: Profile; proje
     setDirty(true);
   }, []);
 
-  // Simulasi proses menyimpan. Tidak ada permintaan jaringan di sini.
-  useEffect(() => {
-    if (!saving) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      setSaving(false);
-      setDirty(false);
-      setErrors({});
-      setFlash(`Tersimpan pukul ${timeNow()} sebagai simulasi. Belum ada data yang dikirim.`);
-    }, 700);
-
-    return () => window.clearTimeout(timer);
-  }, [saving]);
-
-  // Simulasi penerbitan lokal.
-  useEffect(() => {
-    if (!publishing) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      setPublishing(false);
-      setStatus("published");
-      setDirty(false);
-      setFlash("Status diubah menjadi sudah terbit sebagai simulasi tampilan.");
-    }, 900);
-
-    return () => window.clearTimeout(timer);
-  }, [publishing]);
-
   useEffect(() => {
     if (!flash) {
       return;
@@ -201,9 +178,24 @@ export function ProjectEditor({ owner, project = null }: { owner: Profile; proje
 
   const closePreview = useCallback(() => setPreviewOpen(false), []);
 
-  const handleSave = () => {
+  /**
+   * Menyimpan formulir ke penyimpanan lokal.
+   *
+   * Validasi dijalankan di sini dan sekali lagi di server (`saveProjectAction`),
+   * supaya aturan yang sama tidak hanya bergantung pada sisi peramban.
+   */
+  const save = async ({
+    nextStatus,
+    busyKind,
+    note,
+  }: {
+    nextStatus: ProjectStatus;
+    busyKind: Exclude<BusyKind, null>;
+    note: string;
+  }) => {
     const found = validateForm(form);
     setErrors(found);
+    setSaveError(null);
 
     if (hasErrors(found)) {
       setFlash(null);
@@ -211,7 +203,50 @@ export function ProjectEditor({ owner, project = null }: { owner: Profile; proje
       return;
     }
 
-    setSaving(true);
+    const isNewProject = savedSlug === null;
+    setBusy(busyKind);
+
+    try {
+      const result = await saveProjectAction({ slug: savedSlug, status: nextStatus, form });
+
+      if (!result.ok) {
+        setErrors(result.errors);
+        setSaveError("Penyimpanan lokal menolak isian ini. Periksa bagian yang ditandai, lalu simpan lagi.");
+        setErrorFocusRequest((request) => request + 1);
+        return;
+      }
+
+      setStatus(result.status);
+      setDirty(false);
+      setErrors({});
+
+      if (isNewProject) {
+        /*
+         * Proyek baru dipindahkan ke alamat editornya sendiri tanpa memuat ulang
+         * halaman: pesan konfirmasi tetap terlihat, dan menekan simpan dua kali
+         * tidak membuat proyek kedua. `replaceState` bawaan peramban dipakai
+         * supaya tidak ada permintaan ulang ke server (didukung App Router).
+         */
+        setSavedSlug(result.slug);
+        window.history.replaceState(null, "", `/dashboard/projects/${result.slug}/edit`);
+      }
+
+      setFlash(`${note} Pukul ${timeNow()}.`);
+    } catch {
+      setSaveError(
+        "Gagal menulis ke penyimpanan lokal. Pastikan server masih berjalan, lalu simpan lagi.",
+      );
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const handleSave = () => {
+    void save({
+      nextStatus: status,
+      busyKind: "save",
+      note: status === "published" ? "Perubahan publik tersimpan." : "Draft tersimpan.",
+    });
   };
 
   const handlePublish = () => {
@@ -221,23 +256,31 @@ export function ProjectEditor({ owner, project = null }: { owner: Profile; proje
       return;
     }
 
-    setPublishing(true);
+    void save({
+      nextStatus: "published",
+      busyKind: "publish",
+      note: "Proyek diterbitkan. Tautan halaman publiknya ada di panel pratinjau.",
+    });
   };
 
   const confirmUnpublish = () => {
     setUnpublishConfirm(false);
-    setStatus("draft");
-    setDirty(false);
-    setFlash("Proyek ditarik dari tampilan publik sebagai simulasi.");
+    void save({
+      nextStatus: "draft",
+      busyKind: "unpublish",
+      note: "Proyek ditarik dari tampilan publik.",
+    });
   };
 
   const isPublished = status === "published";
+  const isBusy = busy !== null;
 
   return (
     <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-10 xl:px-0">
       <PrototypeNotice className="mb-8">
-        Simulasi area pemilik. Belum ada login, database, atau unggahan, jadi tombol Simpan dan Terbitkan
-        hanya mengubah tampilan di peramban ini.
+        Area pemilik tanpa login. Isi formulir disimpan ke berkas lokal di komputer ini
+        (web/.data/projects.json), bukan ke database, dan siapa pun yang dapat membuka localhost
+        juga dapat mengubahnya.
       </PrototypeNotice>
 
       <header>
@@ -271,26 +314,26 @@ export function ProjectEditor({ owner, project = null }: { owner: Profile; proje
                 <button
                   type="button"
                   onClick={() => setUnpublishConfirm(true)}
-                  disabled={unpublishConfirm || publishing}
+                  disabled={unpublishConfirm || isBusy}
                   className={SECONDARY_BUTTON}
                 >
                   <Icon name="x" className="size-4" />
-                  Tarik dari publik
+                  {busy === "unpublish" ? "Menarik..." : "Tarik dari publik"}
                 </button>
-                <button type="button" onClick={handleSave} disabled={saving} className={PRIMARY_BUTTON}>
+                <button type="button" onClick={handleSave} disabled={isBusy} className={PRIMARY_BUTTON}>
                   <Icon name="save" className="size-4" />
-                  {saving ? "Menyimpan..." : "Simpan perubahan publik"}
+                  {busy === "save" ? "Menyimpan..." : "Simpan perubahan publik"}
                 </button>
               </>
             ) : (
               <>
-                <button type="button" onClick={handleSave} disabled={saving} className={SECONDARY_BUTTON}>
+                <button type="button" onClick={handleSave} disabled={isBusy} className={SECONDARY_BUTTON}>
                   <Icon name="save" className="size-4" />
-                  {saving ? "Menyimpan..." : "Simpan draft"}
+                  {busy === "save" ? "Menyimpan..." : "Simpan draft"}
                 </button>
-                <button type="button" onClick={handlePublish} disabled={publishing} className={PRIMARY_BUTTON}>
+                <button type="button" onClick={handlePublish} disabled={isBusy} className={PRIMARY_BUTTON}>
                   <Icon name="upload" className="size-4" />
-                  {publishing ? "Menerbitkan..." : "Terbitkan"}
+                  {busy === "publish" ? "Menerbitkan..." : "Terbitkan"}
                 </button>
               </>
             )}
@@ -299,9 +342,8 @@ export function ProjectEditor({ owner, project = null }: { owner: Profile; proje
 
         {isPublished ? (
           <p className="mt-4 max-w-[46rem] text-[13px] leading-5 text-ink-2">
-            {publicHref
-              ? "Simpan perubahan publik langsung mengganti isi halaman publik proyek ini. Tidak ada versi draft kedua pada tahap ini."
-              : "Pada simulasi ini belum ada halaman publik baru. Setelah database tersedia, terbit akan membuat tautan publiknya."}
+            Simpan perubahan publik langsung mengganti isi halaman publik proyek ini. Tidak ada versi
+            draft kedua pada tahap ini.
           </p>
         ) : null}
 
@@ -330,8 +372,21 @@ export function ProjectEditor({ owner, project = null }: { owner: Profile; proje
           </div>
         ) : null}
 
+        {saveError ? (
+          <p
+            role="alert"
+            className="mt-4 flex items-start gap-2 rounded-[10px] border border-danger/20 bg-danger-soft px-4 py-2.5 text-[14px] leading-6 text-ink"
+          >
+            <Icon name="alert" className="mt-0.5 size-4 text-danger" />
+            {saveError}
+          </p>
+        ) : null}
+
         {hasErrors(errors) ? (
-          <p role="alert" className="mt-4 flex items-start gap-2 rounded-[10px] border border-danger/20 bg-danger-soft px-4 py-2.5 text-[14px] leading-6 text-ink">
+          <p
+            role="alert"
+            className="mt-4 flex items-start gap-2 rounded-[10px] border border-danger/20 bg-danger-soft px-4 py-2.5 text-[14px] leading-6 text-ink"
+          >
             <Icon name="alert" className="mt-0.5 size-4 text-danger" />
             Beberapa isian wajib belum lengkap. Isian yang perlu diperbaiki sudah ditandai.
           </p>

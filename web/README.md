@@ -36,19 +36,28 @@ src/
 └── lib/
     ├── fixtures/            # DATA CONTOH (fiktif) tahap 1
     ├── content.ts           # visibilitas publik + pemilih data area pemilik
+    ├── local-store.ts       # baca/tulis .data/projects.json (penyimpanan lokal sementara)
+    ├── project-actions.ts   # server action: simpan, terbitkan, tarik dari publik
     ├── editor-form.ts       # model formulir editor, penguraian teks, validasi, checklist
     ├── labels.ts            # label jenis tugas
     ├── url.ts               # penyaring tautan http/https
     └── text.ts              # kalimat pertama, inisial avatar, nama depan
 ```
 
-Sumber data masih berupa fixture di `src/lib/fixtures/`. Penggantinya adalah Supabase pada tahap berikutnya; berkas `src/lib/content.ts` adalah satu-satunya tempat yang perlu diubah menjadi kueri database.
+Sumber data dasar masih fixture di `src/lib/fixtures/`. Di atasnya ada hasil editor: proyek yang
+disimpan dari area pemilik ditulis ke `.data/projects.json` (folder ini, tidak masuk Git) dan
+digabungkan di `src/lib/content.ts`. Pengganti keduanya adalah Supabase pada tahap berikutnya; berkas
+`src/lib/content.ts` adalah satu-satunya tempat yang perlu diubah menjadi kueri database.
 
-Editor area pemilik belum menyimpan apa pun. Seluruh state formulir hidup di peramban
-(`src/components/editor/project-editor.tsx`) dan sengaja tidak memakai `localStorage`, sesuai aturan
-spesifikasi bahwa data nyata nanti berasal dari database. `src/lib/editor-form.ts` berisi fungsi murni
-(penguraian teks, validasi, checklist) supaya aturan yang sama bisa dipakai lagi sebagai validasi
-server pada tahap 3.
+Editor area pemilik menyimpan sungguhan lewat server action di `src/lib/project-actions.ts`. Server
+action itu memvalidasi ulang isian dengan fungsi yang sama seperti peramban, membentuk slug, menulis
+ke penyimpanan lokal, lalu menyegarkan halaman publik yang terdampak dengan `revalidatePath`. State
+formulir sendiri tetap hidup di peramban (`src/components/editor/project-editor.tsx`) dan sengaja
+tidak memakai `localStorage`, sesuai aturan spesifikasi bahwa data nyata nanti berasal dari database.
+
+Berkas `scripts/seed/proyek-uji-penyimpanan-lokal.json` adalah contoh isi penyimpanan yang dipakai
+`scripts/check-routes.ps1` untuk menguji bahwa proyek terbit muncul di halaman publik dan proyek draft
+tetap 404.
 
 Bentuk tipe di `src/lib/fixtures/types.ts` sudah diselaraskan dengan prototipe Figma Make: narasi
 studi kasus disimpan sebagai bagian-bagian kecil (`problem[]`, `questions[]`, `processSteps[]`,

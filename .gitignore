@@ -17,3 +17,6 @@ desktop.ini
 # Cadangan editor
 *.swp
 *~
+
+# Penyimpanan lokal sementara untuk proyek hasil editor (bukan database).
+web/.data/
