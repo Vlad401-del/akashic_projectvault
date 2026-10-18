@@ -242,6 +242,14 @@ Sebelum fitur unggah selesai, gunakan tautan sumber sebagai bukti sehingga satu 
 Uji alur akun A membuat draft → preview → publish → terlihat anonim → unpublish → tidak terlihat anonim. Akun B tidak boleh mengeditnya. Jalankan lint, typecheck, dan build; laporkan hasil sebenarnya.
 ```
 
+> **Catatan pelaksanaan (tampilan editor).** Tiga layar editor pada Prompt C sudah dibangun sebagai
+> tampilan, tanpa database maupun autentikasi: `/dashboard`, `/dashboard/projects/new`, dan
+> `/dashboard/projects/[slug]/edit` (status Draft dan Sudah terbit memakai formulir yang sama).
+> Formulir tiga bagian, panel pratinjau ringkas, jendela pratinjau penuh, validasi judul/ringkasan/
+> tautan, dan checklist sebelum menerbitkan sudah mengikuti isi Prompt C. Tombol Simpan, Terbitkan,
+> dan Tarik dari publik masih simulasi di peramban dan diberi keterangan "simulasi". Prompt 3 di atas
+> tetap berlaku penuh dan baru dapat dikerjakan setelah tahap 2 (Supabase Auth) selesai.
+
 ### Prompt 4 — gambar sampul dan galeri
 
 ```text

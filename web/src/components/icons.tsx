@@ -173,6 +173,56 @@ const PATHS = {
     </>
   ),
   dot: <circle cx="12" cy="12" r="3.5" fill="currentColor" stroke="none" />,
+  save: (
+    <>
+      <path d="M19.5 21.5h-15a1 1 0 0 1-1-1v-17a1 1 0 0 1 1-1h11.6l4.4 4.4v13.6a1 1 0 0 1-1 1Z" />
+      <path d="M7.5 2.5v6h8v-6" />
+      <path d="M8 21.5v-8h8v8" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2.5 12S6.4 5.5 12 5.5 21.5 12 21.5 12 17.6 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  pencil: (
+    <>
+      <path d="M4 20h4L20.5 7.5a2.1 2.1 0 0 0-3-3L5 17v3Z" />
+      <path d="m14.5 6.5 3 3" />
+    </>
+  ),
+  plus: (
+    <>
+      <path d="M12 5.5v13" />
+      <path d="M5.5 12h13" />
+    </>
+  ),
+  trash: (
+    <>
+      <path d="M4 7h16" />
+      <path d="M9.5 7V4.5h5V7" />
+      <path d="m6.5 7 1 13h9l1-13" />
+      <path d="M10.5 11v6" />
+      <path d="M13.5 11v6" />
+    </>
+  ),
+  x: (
+    <>
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </>
+  ),
+  folder: (
+    <path d="M3 6.5a2 2 0 0 1 2-2h3.4l2 2.5H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+  ),
+  upload: (
+    <>
+      <path d="M21 15v3.5a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 18.5V15" />
+      <path d="m7.5 8.5 4.5-4.5 4.5 4.5" />
+      <path d="M12 4v11.5" />
+    </>
+  ),
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof PATHS;

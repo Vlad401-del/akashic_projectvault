@@ -4,8 +4,10 @@ Akashic membantu mahasiswa mengubah tugas kuliah menjadi **studi kasus proyek** 
 
 Panduan pengerjaan lengkap ada di [`docs/AKASHIC_STARTER.md`](docs/AKASHIC_STARTER.md). Dokumen itu adalah spesifikasi; README ini mencatat **apa yang benar-benar sudah dikerjakan dan bagaimana menjalankannya**.
 
-> **Status: Tahap 1 — fondasi dan halaman publik dari data contoh.**
-> Seluruh isi yang tampil masih berasal dari berkas fixture. Belum ada database, autentikasi, unggah gambar, atau editor. Aplikasi hanya berjalan di localhost dan **belum diterbitkan ke internet**.
+> **Status: Tahap 1 selesai, ditambah halaman awal dan tiga layar editor (tampilan saja).**
+> Seluruh isi yang tampil masih berasal dari berkas fixture. Belum ada database, autentikasi, atau
+> unggahan gambar, sehingga tombol **Simpan** dan **Terbitkan** di area editor hanya simulasi di
+> peramban. Aplikasi hanya berjalan di localhost dan **belum diterbitkan ke internet**.
 
 ## Struktur repositori
 
@@ -19,10 +21,14 @@ Panduan pengerjaan lengkap ada di [`docs/AKASHIC_STARTER.md`](docs/AKASHIC_START
     ├── scripts/check-routes.ps1
     └── src/
         ├── app/            # rute halaman
+        │   ├── dashboard/  # area pemilik: daftar proyek + tiga layar editor
+        │   └── u/          # halaman publik
         ├── components/     # komponen tampilan yang dipakai ulang
+        │   └── editor/     # komponen area editor (formulir, pratinjau, checklist)
         └── lib/
             ├── fixtures/   # DATA CONTOH beserta tipenya
-            ├── content.ts  # aturan visibilitas publik
+            ├── content.ts  # aturan visibilitas publik + pemilih data area pemilik
+            ├── editor-form.ts # model formulir editor dan validasinya
             ├── url.ts      # penyaring tautan http/https
             ├── labels.ts   # label jenis tugas
             └── text.ts
@@ -60,17 +66,22 @@ npm start                       # terminal pertama
 powershell -File scripts\check-routes.ps1   # terminal kedua
 ```
 
-Skrip itu memeriksa 10 kasus: halaman awal, tiga profil, profil privat, username tak dikenal, proyek publik, proyek draft, proyek milik profil privat, dan rute contoh dari dokumen. Hasil terakhir: **10 lulus, 0 gagal**.
+Skrip itu memeriksa 15 kasus: halaman awal, tiga profil, profil privat, username tak dikenal, proyek publik, proyek draft, proyek milik profil privat, rute contoh dari dokumen, daftar proyek area pemilik, tiga layar editor, dan slug editor yang tidak dikenal. Hasil terakhir: **15 lulus, 0 gagal**, ditambah pemeriksaan isi bahwa draft muncul di area pemilik tetapi tidak muncul di halaman publik.
 
 ## Rute yang tersedia
 
 | Rute | Isi |
 |---|---|
-| `/` | Pengantar singkat + tautan ke contoh portofolio |
+| `/` | Halaman awal: pengantar, contoh karya, penjelasan alur, dan pintu masuk ke area editor |
 | `/u/[username]` | Profil publik: avatar, nama, headline, program studi, kota, bio, keterampilan, kontak opsional, daftar proyek |
 | `/u/[username]/p/[slug]` | Detail proyek: header + sampul, panel konteks tugas, lalu Masalah → Proses → Kontribusi saya → Hasil → Galeri, bukti karya, dan proyek lainnya |
+| `/dashboard` | Area pemilik: daftar seluruh proyek beserta status Draft/Sudah terbit dan tombol menuju editor |
+| `/dashboard/projects/new` | Layar editor 1 — **Proyek baru**: formulir kosong dan checklist sebelum terbit |
+| `/dashboard/projects/[slug]/edit` | Layar editor 2 dan 3 — **Draft** atau **Sudah terbit**, tergantung status proyek. Keduanya memakai formulir yang sama; pada proyek terbit tombol simpan bernama "Simpan perubahan publik" |
 
-Alamat lokal contoh: `http://localhost:3000/u/nadia` dan `http://localhost:3000/u/nadia/p/dashboard-penjualan-ritel`.
+Alamat lokal contoh: `http://localhost:3000/u/nadia`, `http://localhost:3000/u/nadia/p/dashboard-penjualan-ritel`, dan `http://localhost:3000/dashboard`.
+
+Tiga layar editor dari desain sudah dibangun: formulir dua kolom (formulir + panel pratinjau ringkas), pratinjau penuh dalam jendela sendiri, validasi judul/ringkasan/tautan, checklist terbit, serta simulasi simpan, terbit, dan tarik dari publik. Belum ada penyimpanan.
 
 ## Akun contoh (data fiktif)
 
@@ -91,6 +102,9 @@ Semua nama, proyek, dan tautan fiktif. Tautan memakai domain contoh `example.com
 - **Hanya tautan `http`/`https` yang dirender.** Skema seperti `javascript:` dan `data:` dibuang sebelum masuk DOM (`src/lib/url.ts`), dan isi tautan selalu dirender sebagai teks, bukan HTML.
 - **Pesannya tidak membedakan** profil privat dan username yang tidak ada, supaya keberadaan profil privat tidak bisa ditebak dari pesan.
 - **Status visibilitas selalu disertai label teks** ("Tampil pada portofolio lokal"), bukan hanya warna.
+- **Area pemilik memakai pemilih data terpisah.** Rute `/dashboard/...` sengaja boleh membaca draft, karena pemilik harus bisa membuka draftnya sendiri; halaman publik tetap memakai penyaring yang sama seperti sebelumnya. Sampai autentikasi tersedia, akun pemilik ditetapkan di `src/lib/content.ts` (`DEMO_OWNER_USERNAME`).
+- **Editor tidak menyimpan apa pun.** Tombol Simpan, Terbitkan, dan Tarik dari publik hanya mengubah tampilan di peramban dan selalu diberi keterangan "simulasi"; belum ada permintaan jaringan maupun penulisan berkas.
+- **Tautan bukti karya di editor divalidasi dengan aturan yang sama** seperti halaman publik: hanya `http`/`https` yang diterima, dan simpan ditolak bila alamatnya tidak valid.
 
 ## Tampilan
 
@@ -120,6 +134,13 @@ tercampur dengan hasil kelompok.
 
 Tangkapan layar prototipe dan hasil implementasi tersimpan di [`docs/design/`](docs/design/README.md).
 
+Halaman awal dan tiga layar editor memakai sistem visual yang sama. Editor disusun dua kolom seperti
+desain: formulir dibagi menjadi **Identitas proyek**, **Cerita proyek**, dan **Bukti karya**, dengan
+panel **Pratinjau ringkas** yang menempel di kanan pada layar besar. Header editor memuat tautan
+kembali, penanda status, tombol **Pratinjau**, tombol simpan (nama berubah menjadi "Simpan perubahan
+publik" pada proyek terbit), dan tombol **Terbitkan** yang baru aktif setelah checklist dan dua
+pernyataan pemilik terisi.
+
 Diverifikasi: tidak ada scroll horizontal pada lebar 390 px dan 1440 px, grid proyek menjadi satu kolom di ponsel dan dua kolom di desktop, panel konteks pindah ke bawah sampul di ponsel, dan fokus keyboard tampil sebagai garis biru 2 px.
 
 ## Keputusan teknis yang perlu diketahui kelompok
@@ -130,10 +151,21 @@ Diverifikasi: tidak ada scroll horizontal pada lebar 390 px dan 1440 px, grid pr
 | `generateStaticParams` pada rute publik | Sumber data tahap 1 adalah fixture, jadi semua rute diketahui saat build. Akun privat dan draft tetap didaftarkan agar 404-nya benar-benar teruji. |
 | `.gitattributes` dengan `eol=lf` | Mencegah diff palsu akibat perbedaan line ending antar anggota di Windows. |
 | Bentuk fixture diselaraskan dengan prototipe Figma Make | Narasi tidak lagi satu blok teks panjang, melainkan daftar pertanyaan, langkah proses, daftar centang kontribusi, dan kartu hasil. Skema Supabase tahap 2 sebaiknya mengikuti bentuk ini agar komponen tampilan tidak perlu diubah lagi. |
+| Pemilih data area pemilik dipisah di `src/lib/content.ts` | Area pemilik perlu membaca draft, sedangkan halaman publik tidak boleh. Keduanya dipisah supaya aturan visibilitas publik tidak ikut longgar. Saat autentikasi tersedia, bagian ini diganti kueri yang dibatasi pemilik yang sedang login. |
+| Rute editor memakai `[slug]`, bukan `[id]` | Belum ada database, jadi belum ada id. Slug sudah unik di dalam satu pemilik dan stabil di fixture. Saat skema Supabase dibuat, rute bisa diganti ke id tanpa mengubah komponen formulir. |
+| Narasi formulir disimpan sebagai teks berpisah sederhana | Editor memakai textarea biasa sesuai spesifikasi. Paragraf dipisah baris kosong, butir daftar satu butir per baris, dan pasangan judul/isi dipisah tanda pisah panjang. Semuanya diurai di `src/lib/editor-form.ts` sehingga bisa dipakai ulang sebagai validasi server nanti. |
 
 ## Yang belum ada
 
-Belum tersedia dan sengaja ditunda: Supabase (database, autentikasi, penyimpanan), halaman dashboard dan editor, unggah sampul/galeri, pratinjau pemilik, tombol terbitkan/tarik, pencarian, analitik, dan hosting. Fixture dipakai di jalur produksi halaman publik sampai tahap 2 selesai; saat itu isi `src/lib/content.ts` yang diganti menjadi kueri database dan komponen tampilan tidak perlu diubah.
+Sudah dibangun sebagai tampilan: halaman awal, daftar proyek area pemilik, dan tiga layar editor
+(formulir berkelompok, panel pratinjau ringkas, pratinjau penuh, validasi, checklist sebelum
+menerbitkan, serta simulasi simpan/terbit/tarik). Tombol-tombol itu belum menulis ke mana pun.
+
+Belum tersedia dan sengaja ditunda: Supabase (database, autentikasi, penyimpanan), pengaturan profil
+pemilik (`/dashboard/profile`), unggah sampul/galeri, penyambungan data editor ke halaman publik,
+pencarian, analitik, dan hosting. Fixture masih dipakai di jalur produksi halaman publik sampai
+tahap 2 selesai; saat itu isi `src/lib/content.ts` yang diganti menjadi kueri database dan komponen
+tampilan tidak perlu diubah.
 
 ## Langkah berikutnya
 

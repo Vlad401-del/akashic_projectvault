@@ -27,17 +27,28 @@ powershell -File scripts\check-routes.ps1
 
 ```
 src/
-├── app/                     # rute App Router (halaman publik + not-found + loading)
+├── app/                     # rute App Router
+│   ├── dashboard/           # area pemilik: daftar proyek, editor baru, editor [slug]
+│   ├── u/                   # halaman publik: profil dan detail proyek
+│   └── not-found.tsx, loading.tsx
 ├── components/              # komponen tampilan yang dipakai ulang (termasuk icons.tsx)
+│   └── editor/              # field, formulir, pratinjau, checklist, baris proyek
 └── lib/
     ├── fixtures/            # DATA CONTOH (fiktif) tahap 1
-    ├── content.ts           # aturan visibilitas profil/proyek publik
+    ├── content.ts           # visibilitas publik + pemilih data area pemilik
+    ├── editor-form.ts       # model formulir editor, penguraian teks, validasi, checklist
     ├── labels.ts            # label jenis tugas
     ├── url.ts               # penyaring tautan http/https
     └── text.ts              # kalimat pertama, inisial avatar, nama depan
 ```
 
 Sumber data masih berupa fixture di `src/lib/fixtures/`. Penggantinya adalah Supabase pada tahap berikutnya; berkas `src/lib/content.ts` adalah satu-satunya tempat yang perlu diubah menjadi kueri database.
+
+Editor area pemilik belum menyimpan apa pun. Seluruh state formulir hidup di peramban
+(`src/components/editor/project-editor.tsx`) dan sengaja tidak memakai `localStorage`, sesuai aturan
+spesifikasi bahwa data nyata nanti berasal dari database. `src/lib/editor-form.ts` berisi fungsi murni
+(penguraian teks, validasi, checklist) supaya aturan yang sama bisa dipakai lagi sebagai validasi
+server pada tahap 3.
 
 Bentuk tipe di `src/lib/fixtures/types.ts` sudah diselaraskan dengan prototipe Figma Make: narasi
 studi kasus disimpan sebagai bagian-bagian kecil (`problem[]`, `questions[]`, `processSteps[]`,

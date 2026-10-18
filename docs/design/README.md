@@ -8,7 +8,8 @@ Folder ini menyimpan tangkapan layar dan keputusan desain tahap 1, sesuai permin
 - **Prototipe Figma Make (rujukan utama):**
   <https://www.figma.com/make/Yx7iEOVBGA9EYEnVgbI7Qa/HiFi-Prototype-for-Akashic>
   Enam layar: Profil, Detail proyek, Profil tanpa proyek, serta tiga layar Editor (Draft, Sudah
-  terbit, Proyek baru). Tahap 1 baru menerapkan tiga layar publik; layar Editor baru masuk tahap 3.
+  terbit, Proyek baru). Tiga layar publik sudah diterapkan; sejak pekerjaan area pemilik, tiga layar
+  Editor juga sudah dibangun sebagai tampilan (belum tersambung database maupun login).
 - **Referensi warna tambahan (permintaan pemilik produk):**
   gradien tulisan "dreamer" pada `referensi-warna-dreamer.png` — teks gelap dengan gradien cyan →
   biru → hijau, dan tombol biru solid.
@@ -71,3 +72,20 @@ sedikit lebih gelap daripada spektrum dekoratif agar tetap terbaca.
 | Bagian narasi | Bernomor 01–05 dengan ikon di kotak bergaris: Masalah, Proses, Kontribusi saya, Hasil, Galeri |
 | Kontribusi saya | Kartu dengan kepala berwarna aksen lembut, daftar centang pekerjaan sendiri, kotak "Keputusan desain yang saya ambil", lalu daftar "Dikerjakan anggota lain" |
 | Tambahan kami | Lencana "Contoh tampilan" pada setiap ilustrasi dan catatan bahwa semua tautan bukti karya mengarah ke `example.com`; prototipe tidak memilikinya, tetapi aturan kejujuran data contoh di spesifikasi kami memerlukannya |
+
+## Keputusan layar editor
+
+| Bagian | Keputusan |
+|---|---|
+| Susunan | Dua kolom di layar besar: formulir di kiri, panel "Pratinjau ringkas" yang menempel (sticky) di kanan. Di ponsel pratinjau turun ke bawah formulir |
+| Header | Tautan kembali, penanda status (Draft / Sudah terbit), penanda "Ada perubahan belum disimpan", lalu tombol Pratinjau, Simpan, dan Terbitkan |
+| Nama tombol simpan | Proyek draft dan proyek baru memakai "Simpan draft"; proyek terbit memakai "Simpan perubahan publik" dengan keterangan bahwa perubahan langsung mengganti halaman publik |
+| Kelompok isian | Tiga bagian seperti desain: Identitas proyek, Cerita proyek, Bukti karya |
+| Narasi | Textarea biasa, bukan editor dokumen. Paragraf dipisah baris kosong, butir daftar satu per baris, pasangan judul/isi dipisah tanda pisah panjang |
+| Pratinjau | Panel ringkas yang ikut berubah saat mengetik, plus jendela pratinjau penuh yang memakai komponen halaman publik yang sama |
+| Checklist terbit | Tujuh syarat isi dihitung otomatis, ditambah dua pernyataan pemilik (hak membagikan karya dan tidak ada data sensitif). Dinyatakan sebagai pernyataan pengguna, bukan verifikasi platform |
+| Kejujuran | Pemberitahuan "simulasi area pemilik" di atas formulir; tombol simpan dan terbit hanya mengubah tampilan dan tidak mengirim data |
+
+Tangkapan layar layar editor belum ditambahkan. Jendela peramban pada sesi kerja ini tidak dapat
+menampilkan tab secara terlihat sehingga tangkapan layar gagal diambil; yang tersimpan di sini baru
+tangkapan prototipe dan tiga layar publik.

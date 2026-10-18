@@ -1,4 +1,4 @@
-# Pemeriksaan cepat tahap 1: pastikan setiap rute memberi status yang benar.
+# Pemeriksaan cepat: pastikan setiap rute (publik dan area pemilik) memberi status yang benar.
 # Jalankan setelah `npm run build` dan `npm start` (localhost:3000).
 
 $base = "http://localhost:3000"
@@ -31,7 +31,12 @@ $cases = @(
     @("/u/nadia/p/dashboard-penjualan-ritel", 200, "proyek published"),
     @("/u/nadia/p/analisis-sentimen-ulasan-aplikasi", 404, "proyek draft harus 404"),
     @("/u/sekar/aplikasi-kasir-umkm", 404, "proyek milik profil privat harus 404"),
-    @("/u/darryl/p/dashboard-penjualan", 200, "rute contoh dari dokumen")
+    @("/u/darryl/p/dashboard-penjualan", 200, "rute contoh dari dokumen"),
+    @("/dashboard", 200, "area pemilik: daftar proyek"),
+    @("/dashboard/projects/new", 200, "editor: proyek baru"),
+    @("/dashboard/projects/dashboard-penjualan-ritel/edit", 200, "editor: proyek sudah terbit"),
+    @("/dashboard/projects/analisis-sentimen-ulasan-aplikasi/edit", 200, "editor: proyek draft"),
+    @("/dashboard/projects/tidak-ada/edit", 404, "editor: slug tidak dikenal harus 404")
 )
 
 $lulus = 0
@@ -75,3 +80,23 @@ Write-Output "Daftar proyek Nadia memuat judul draft      : $adaDraft (harus Fal
 # Pemeriksaan keamanan: tidak boleh ada javascript: pada tautan yang diretur.
 $detail = (Invoke-WebRequest -Uri "$base/u/nadia/p/dashboard-penjualan-ritel" -UseBasicParsing).Content
 Write-Output "Halaman detail memuat skema javascript:     : $($detail -match 'javascript:') (harus False)"
+
+# Pemeriksaan area pemilik: draft harus tampil di daftar pemilik, bukan di publik.
+$dashboard = (Invoke-WebRequest -Uri "$base/dashboard" -UseBasicParsing).Content
+Write-Output "Daftar pemilik memuat judul draft           : $($dashboard -match 'Analisis Sentimen Ulasan Aplikasi') (harus True)"
+Write-Output "Daftar pemilik memuat tautan editor         : $($dashboard -match '/dashboard/projects/dashboard-penjualan-ritel/edit') (harus True)"
+
+# Tiga layar editor harus menunjukkan status yang sesuai.
+$editorDraft = (Invoke-WebRequest -Uri "$base/dashboard/projects/analisis-sentimen-ulasan-aplikasi/edit" -UseBasicParsing).Content
+Write-Output "Editor draft memuat penanda Draft            : $($editorDraft -match 'Draft') (harus True)"
+Write-Output "Editor draft memuat tombol Simpan draft      : $($editorDraft -match 'Simpan draft') (harus True)"
+Write-Output "Editor draft memuat checklist terbit         : $($editorDraft -match 'Checklist sebelum menerbitkan') (harus True)"
+
+$editorTerbit = (Invoke-WebRequest -Uri "$base/dashboard/projects/dashboard-penjualan-ritel/edit" -UseBasicParsing).Content
+Write-Output "Editor terbit memuat penanda Sudah terbit    : $($editorTerbit -match 'Sudah terbit') (harus True)"
+Write-Output "Editor terbit memuat simpan perubahan publik : $($editorTerbit -match 'Simpan perubahan publik') (harus True)"
+Write-Output "Editor terbit memuat tombol tarik publik     : $($editorTerbit -match 'Tarik dari publik') (harus True)"
+
+$editorBaru = (Invoke-WebRequest -Uri "$base/dashboard/projects/new" -UseBasicParsing).Content
+Write-Output "Editor baru memuat judul Proyek tanpa judul  : $($editorBaru -match 'Proyek tanpa judul') (harus True)"
+Write-Output "Editor baru tidak memuat tombol simpan publik: $($editorBaru -match 'Simpan perubahan publik') (harus False)"
