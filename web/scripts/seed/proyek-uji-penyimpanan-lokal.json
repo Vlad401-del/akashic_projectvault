@@ -1,0 +1,98 @@
+[
+  {
+    "ownerUsername": "nadia",
+    "savedAt": "2026-01-01T00:00:00.000Z",
+    "project": {
+      "slug": "uji-penyimpanan-lokal",
+      "title": "Uji Penyimpanan Lokal",
+      "summary": "Proyek uji untuk memastikan hasil editor benar-benar muncul di halaman publik localhost. Isinya dipasang oleh skrip pemeriksaan rute, bukan diketik lewat formulir.",
+      "category": "Pengujian",
+      "workType": "individu",
+      "period": "Januari 2026",
+      "course": null,
+      "role": "Penulis dan penguji",
+      "teamSize": null,
+      "skills": ["Pengujian alur"],
+      "tools": ["Next.js"],
+      "problem": ["Skrip pemeriksaan perlu membuktikan bahwa berkas penyimpanan lokal benar-benar dibaca oleh halaman publik."],
+      "questions": ["Apakah proyek hasil editor muncul di halaman publik?", "Apakah proyek draft tetap tersembunyi?"],
+      "processIntro": "Proyek ini ditulis langsung sebagai berkas JSON, bukan lewat formulir editor.",
+      "processSteps": [
+        {
+          "title": "Memasang berkas uji",
+          "body": "Skrip menyalin berkas seed ke web/.data/projects.json sebelum memeriksa rute."
+        }
+      ],
+      "processNote": "Berkas ini hanya untuk pengujian dan dihapus lagi setelah pemeriksaan selesai.",
+      "contributionIntro": "Seluruh pemeriksaan pada berkas ini dikerjakan oleh skrip.",
+      "contributionChecklist": [
+        "Menyalin berkas seed ke penyimpanan lokal",
+        "Memeriksa status HTTP halaman publik"
+      ],
+      "designDecision": null,
+      "teammates": [],
+      "outcomeIntro": "Proyek tampil di halaman publik selama statusnya published.",
+      "outcomeNote": null,
+      "outcomeCards": [
+        {
+          "title": "Keterbatasan",
+          "body": "Berkas ini bukan data sungguhan dan tidak menggantikan pengujian lewat formulir editor."
+        }
+      ],
+      "cover": {
+        "alt": "Ilustrasi contoh sampul untuk pengujian penyimpanan lokal.",
+        "variant": "laporan",
+        "caption": "Sampul contoh untuk pengujian."
+      },
+      "gallery": [],
+      "sources": [
+        {
+          "label": "Lihat contoh tautan",
+          "url": "https://example.com/uji-penyimpanan-lokal"
+        }
+      ],
+      "status": "published"
+    }
+  },
+  {
+    "ownerUsername": "nadia",
+    "savedAt": "2026-01-01T00:00:00.000Z",
+    "project": {
+      "slug": "uji-penyimpanan-lokal-draft",
+      "title": "Uji Penyimpanan Lokal Draft",
+      "summary": "Proyek uji berstatus draft untuk memastikan proyek yang belum diterbitkan tetap tidak dapat dibuka pengunjung meskipun slug-nya diketahui.",
+      "category": "Pengujian",
+      "workType": "individu",
+      "period": "Januari 2026",
+      "course": null,
+      "role": "Penulis dan penguji",
+      "teamSize": null,
+      "skills": ["Pengujian alur"],
+      "tools": ["Next.js"],
+      "problem": ["Draft di penyimpanan lokal harus tetap tersembunyi dari halaman publik."],
+      "questions": ["Apakah draft hasil editor membalas 404?"],
+      "processIntro": "Proyek ini sengaja dibiarkan berstatus draft.",
+      "processSteps": [
+        {
+          "title": "Memeriksa status",
+          "body": "Skrip meminta alamat publik proyek ini dan mengharapkan 404."
+        }
+      ],
+      "processNote": null,
+      "contributionIntro": "Pemeriksaan dilakukan oleh skrip.",
+      "contributionChecklist": ["Memeriksa halaman publik proyek draft"],
+      "designDecision": null,
+      "teammates": [],
+      "outcomeIntro": "Permintaan terhadap alamat publik proyek ini harus gagal.",
+      "outcomeNote": null,
+      "outcomeCards": [],
+      "cover": {
+        "alt": "Ilustrasi contoh sampul untuk pengujian draft.",
+        "variant": "alur"
+      },
+      "gallery": [],
+      "sources": [],
+      "status": "draft"
+    }
+  }
+]

@@ -1,0 +1,22 @@
+# Berkas runtime dan rahasia yang tidak boleh masuk Git.
+node_modules/
+.next/
+out/
+build/
+
+# Variabel lingkungan: hanya .env.example yang disimpan.
+.env
+.env.local
+.env*.local
+
+# Berkas sistem
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Cadangan editor
+*.swp
+*~
+
+# Penyimpanan lokal sementara untuk proyek hasil editor (bukan database).
+web/.data/

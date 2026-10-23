@@ -46,8 +46,16 @@ Nama produk adalah **Akashic**. Dalam identitas produk ini, namanya dimaknai seb
 | Teks utama | #182230 |
 | Teks sekunder | #526071 |
 | Garis | #DCE2EA |
-| Tombol utama, link, fokus | Violet #6D28D9 dengan teks putih pada tombol |
-| Spektrum dekoratif | Violet #6D28D9 → biru #2563EB → cyan #0891B2; coral #E87979 sangat terbatas |
+| Tombol utama, link, fokus | Biru #2563EB dengan teks putih pada tombol |
+| Spektrum dekoratif | Cyan #06B6D4 → biru #2563EB → hijau #22C55E → lime #84CC16 pada prisma merek dan garis tipis saja |
+
+> **Revisi warna (permintaan pemilik produk).** Aksen utama semula violet #6D28D9 dengan spektrum
+> violet → biru → cyan. Setelah prototipe Figma Make selesai, pemilik produk meminta warna
+> mengikuti gradien tulisan "dreamer" pada gambar referensi (cyan → biru → hijau, tombol biru
+> solid) dengan tetap mempertahankan kesan prismatic. Aksen utama kini biru #2563EB dan spektrum
+> dekoratif bergerak cyan → biru → hijau. Catatan: cyan dan hijau tidak lolos kontras untuk teks,
+> jadi keduanya hanya dipakai pada tanda merek dan garis tipis. Rincian pengukuran kontras ada di
+> [`design/README.md`](design/README.md).
 
 Sebagian besar layar tetap netral; kira-kira 5–10% area boleh membawa aksen warna. Gradient cukup pada tanda merek, garis tipis, atau ornamen kecil. Jangan memakai teks bergradient pada paragraf, latar pelangi penuh, kilau bergerak, atau kartu berwarna berbeda tanpa makna. Status draft/published tetap memiliki label teks; warna bukan satu-satunya penanda. Gunakan focus ring yang jelas dan periksa kontras teks pada setiap pasangan warna.
 
@@ -136,6 +144,11 @@ Sediakan simulasi pratinjau dan tombol kembali. Tandai penerbitan sebagai simula
 ```
 
 Selesai desain: simpan tangkapan layar ketiga tampilan ke `docs/design/` di repo, tambahkan tautan Figma dan keputusan warna/komponen ke README atau dokumen desain. Jangan mengekspor seluruh aplikasi prototipe lalu menimpa repo secara membabi buta. AI di IDE memakai gambar sebagai referensi dan menerapkan pola Next.js yang dipilih.
+
+> **Catatan pelaksanaan.** Prototipe Figma Make sudah selesai dan tangkapan layarnya disimpan di
+> [`design/`](design/README.md) beserta tautan Figma dan keputusan warna/komponen. Kalimat warna
+> pada prompt A di atas dibiarkan seperti aslinya sebagai catatan prompt yang benar-benar dipakai;
+> palet yang berlaku sekarang ada pada tabel di bagian 2.
 
 ## 5. Mulai dari repo yang sudah dibuat
 
@@ -228,6 +241,24 @@ Sebelum fitur unggah selesai, gunakan tautan sumber sebagai bukti sehingga satu 
 
 Uji alur akun A membuat draft → preview → publish → terlihat anonim → unpublish → tidak terlihat anonim. Akun B tidak boleh mengeditnya. Jalankan lint, typecheck, dan build; laporkan hasil sebenarnya.
 ```
+
+> **Catatan pelaksanaan (editor sudah menyimpan).** Tiga layar editor pada Prompt C sudah dibangun dan
+> sekarang benar-benar menyimpan, tanpa database maupun autentikasi: `/dashboard`,
+> `/dashboard/projects/new`, dan `/dashboard/projects/[slug]/edit` (status Draft dan Sudah terbit
+> memakai formulir yang sama). Formulir tiga bagian, panel pratinjau ringkas, jendela pratinjau penuh,
+> validasi judul/ringkasan/tautan, dan checklist sebelum menerbitkan sudah mengikuti isi Prompt C.
+>
+> Penyimpanannya sementara: satu tindakan server (`src/lib/project-actions.ts`) menulis ke berkas
+> lokal `web/.data/projects.json` lewat `src/lib/local-store.ts`, lalu `src/lib/content.ts`
+> menggabungkan berkas itu dengan fixture. Karena itu bagian alur Prompt 3 yang **sudah teruji
+> sungguhan** adalah: buat draft → pratinjau → terbitkan → terlihat oleh pengunjung anonim →
+> tarik dari publik → tidak terlihat lagi (404), termasuk peringatan meninggalkan perubahan dan
+> penyegaran halaman publik lewat `revalidatePath`.
+>
+> Yang **belum** dapat dikerjakan dan masih menunggu tahap 2 (Supabase Auth): pemisahan akun
+> (akun B tidak boleh mengedit proyek akun A), pembatasan jumlah proyek per pemilik, penghapusan
+> proyek dari dalam editor, serta penyimpanan bersama. Selama berkasnya masih lokal, "pemilik"
+> proyek selalu akun contoh di `src/lib/content.ts`.
 
 ### Prompt 4 — gambar sampul dan galeri
 
