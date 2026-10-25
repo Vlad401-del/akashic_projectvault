@@ -11,8 +11,7 @@
  * editor disimpan di berkas lokal (lihat `src/lib/local-store.ts`) dan
  * digabungkan di fungsi `mergeProjects` pada berkas ini.
  *
- * Saat Supabase dipakai (tahap 2), isi berkas ini diganti kueri ke database
- * dengan aturan yang sama, sedangkan komponen UI tetap tidak berubah.
+ * Versi aktif tetap memakai fixture dan berkas JSON lokal.
  */
 import { profiles } from "@/lib/fixtures/fixtures";
 import type { Profile, Project } from "@/lib/fixtures/types";
@@ -126,9 +125,7 @@ export function listPublicProfiles(): Profile[] {
 /**
  * Akun yang dipakai sebagai pemilik pada tahap UI.
  *
- * Autentikasi baru masuk tahap 2, jadi sampai saat itu area pemilik memakai
- * akun contoh Nadia Putri. Saat Supabase dipakai, nilai ini diganti dengan
- * identitas pengguna yang sedang login.
+ * Belum ada autentikasi, sehingga area pemilik memakai profil contoh Nadia Putri.
  */
 export const DEMO_OWNER_USERNAME = "nadia";
 
@@ -140,8 +137,8 @@ export const DEMO_OWNER_USERNAME = "nadia";
  * JANGAN dipakai pada rute publik. Rute publik tetap memakai `getPublicProfile`
  * dan `getPublicProject` yang menyaring profil privat dan proyek draft.
  *
- * Saat database siap, isi berkas ini diganti kueri yang dibatasi pemilik yang
- * sedang login, bukan sekadar username tetap.
+ * Bila kelak ada akun sungguhan, pemilihan pemilik wajib dibatasi oleh identitas
+ * pengguna yang masuk, bukan sekadar username tetap.
  */
 export function getDemoOwner(): Profile {
   const owner = profiles.find((profile) => profile.username === DEMO_OWNER_USERNAME);

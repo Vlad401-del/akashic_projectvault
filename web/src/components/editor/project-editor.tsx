@@ -1,14 +1,15 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { EditorForm } from "@/components/editor/editor-form";
 import { EditorPreview } from "@/components/editor/editor-preview";
 import { PreviewDialog } from "@/components/editor/preview-dialog";
 import { PublishChecklist } from "@/components/editor/publish-checklist";
 import { StatusChip } from "@/components/editor/status-chip";
+import { DemoNotice } from "@/components/demo-notice";
 import { Icon } from "@/components/icons";
-import { PrototypeNotice } from "@/components/prototype-notice";
 import {
   canPublish,
   emptyForm,
@@ -23,6 +24,7 @@ import {
 } from "@/lib/editor-form";
 import type { Profile, Project, ProjectStatus } from "@/lib/fixtures/types";
 import { saveProjectAction } from "@/lib/project-actions";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 const PRIMARY_BUTTON =
   "inline-flex h-11 items-center gap-2 rounded-[10px] bg-accent px-4 text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60";
@@ -31,6 +33,15 @@ const SECONDARY_BUTTON =
 
 /** Aksi yang sedang berjalan; dipakai untuk menonaktifkan tombol dan mengganti label. */
 type BusyKind = null | "save" | "publish" | "unpublish";
+type GuidedStep = 0 | 1 | 2 | 3;
+
+const GUIDED_STEPS = ["Identitas", "Cerita proyek", "Bukti karya", "Siap terbit"] as const;
+const STEP_HELP = [
+  "Mulai dari judul dan ringkasan. Dua isian ini diperlukan untuk menyimpan draft pertama.",
+  "Jelaskan masalah, proses, kontribusi pribadi, dan hasil proyek.",
+  "Pilih ilustrasi contoh dan tambahkan tautan karya jika tersedia.",
+  "Periksa kelengkapan dan pernyataan sebelum proyek diterbitkan.",
+] as const;
 
 function timeNow(): string {
   return new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit" }).format(new Date());
@@ -48,10 +59,9 @@ function focusFirstInvalidField() {
 /**
  * Editor proyek untuk pemilik akun.
  *
- * Isi formulir disimpan sungguhan, tetapi ke penyimpanan lokal di komputer ini
- * (`web/.data/projects.json`), bukan ke database. Belum ada autentikasi, jadi
- * pemilik proyek selalu akun contoh; hal itu dinyatakan pada pemberitahuan di
- * atas formulir.
+ * Dengan konfigurasi Supabase, isi formulir disimpan pada akun pengguna.
+ * Tanpa konfigurasi itu, mode pengembangan tetap memakai penyimpanan demo
+ * lokal (`web/.data/projects.json`).
  *
  * Tiga keadaan layar mengikuti desain: Proyek baru (formulir kosong), Draft
  * (sudah ada isinya tetapi belum tampil publik), dan Sudah terbit.
@@ -74,6 +84,13 @@ export function ProjectEditor({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [unpublishConfirm, setUnpublishConfirm] = useState(false);
   const [errorFocusRequest, setErrorFocusRequest] = useState(0);
+  const [currentStep, setCurrentStep] = useState<GuidedStep>(0);
+  const saveInFlight = useRef(false);
+  const cloudMode = isSupabaseConfigured();
+
+  // Proyek baru dan draft memakai alur terpandu. Proyek yang sudah terbit tetap
+  // dapat diedit sebagai satu formulir agar perubahan publik tidak tersimpan otomatis.
+  const isGuided = project?.status !== "published";
 
   const previewProject = useMemo(() => formToProject(form, status), [form, status]);
   const checklist = useMemo(() => publishChecklist(form), [form]);
@@ -179,7 +196,7 @@ export function ProjectEditor({
   const closePreview = useCallback(() => setPreviewOpen(false), []);
 
   /**
-   * Menyimpan formulir ke penyimpanan lokal.
+   * Menyimpan formulir ke Supabase atau ke penyimpanan demo lokal.
    *
    * Validasi dijalankan di sini dan sekali lagi di server (`saveProjectAction`),
    * supaya aturan yang sama tidak hanya bergantung pada sisi peramban.
@@ -192,7 +209,11 @@ export function ProjectEditor({
     nextStatus: ProjectStatus;
     busyKind: Exclude<BusyKind, null>;
     note: string;
-  }) => {
+  }): Promise<boolean> => {
+    if (saveInFlight.current) {
+      return false;
+    }
+
     const found = validateForm(form);
     setErrors(found);
     setSaveError(null);
@@ -200,10 +221,11 @@ export function ProjectEditor({
     if (hasErrors(found)) {
       setFlash(null);
       setErrorFocusRequest((request) => request + 1);
-      return;
+      return false;
     }
 
     const isNewProject = savedSlug === null;
+    saveInFlight.current = true;
     setBusy(busyKind);
 
     try {
@@ -211,9 +233,9 @@ export function ProjectEditor({
 
       if (!result.ok) {
         setErrors(result.errors);
-        setSaveError("Penyimpanan lokal menolak isian ini. Periksa bagian yang ditandai, lalu simpan lagi.");
+        setSaveError("Isian belum dapat disimpan. Periksa bagian yang ditandai, lalu simpan lagi.");
         setErrorFocusRequest((request) => request + 1);
-        return;
+        return false;
       }
 
       setStatus(result.status);
@@ -232,11 +254,14 @@ export function ProjectEditor({
       }
 
       setFlash(`${note} Pukul ${timeNow()}.`);
+      return true;
     } catch {
       setSaveError(
-        "Gagal menulis ke penyimpanan lokal. Pastikan server masih berjalan, lalu simpan lagi.",
+        cloudMode ? "Gagal menyimpan ke Supabase. Periksa koneksi, lalu coba lagi." : "Gagal menulis ke penyimpanan lokal. Pastikan server masih berjalan, lalu simpan lagi.",
       );
+      return false;
     } finally {
+      saveInFlight.current = false;
       setBusy(null);
     }
   };
@@ -247,6 +272,37 @@ export function ProjectEditor({
       busyKind: "save",
       note: status === "published" ? "Perubahan publik tersimpan." : "Draft tersimpan.",
     });
+  };
+
+  const moveToStep = async (target: GuidedStep) => {
+    if (busy) {
+      return;
+    }
+
+    // Kembali tetap bisa dilakukan ketika pengguna baru mengisi sebagian
+    // tautan. Isinya tetap ada di state formulir, dengan status belum disimpan.
+    if (target < currentStep && hasErrors(validateForm(form))) {
+      setCurrentStep(target);
+      document.getElementById("editor-langkah")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+
+    // Berpindah langkah menyimpan draft, bukan sekadar menahan
+    // isi formulir di memori browser. Jika gagal, tetap di langkah saat ini.
+    if (status === "draft" && (dirty || !savedSlug)) {
+      const saved = await save({
+        nextStatus: "draft",
+        busyKind: "save",
+        note: "Draft tersimpan.",
+      });
+
+      if (!saved) {
+        return;
+      }
+    }
+
+    setCurrentStep(target);
+    document.getElementById("editor-langkah")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   const handlePublish = () => {
@@ -274,14 +330,28 @@ export function ProjectEditor({
 
   const isPublished = status === "published";
   const isBusy = busy !== null;
+  const activeSection = isGuided
+    ? currentStep === 0
+      ? "identity"
+      : currentStep === 1
+        ? "story"
+        : currentStep === 2
+          ? "evidence"
+          : undefined
+    : undefined;
 
   return (
-    <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-10 xl:px-0">
-      <PrototypeNotice className="mb-8">
-        Area pemilik tanpa login. Isi formulir disimpan ke berkas lokal di komputer ini
-        (web/.data/projects.json), bukan ke database, dan siapa pun yang dapat membuka localhost
-        juga dapat mengubahnya.
-      </PrototypeNotice>
+    <div className="mx-auto max-w-[1120px] px-5 pb-36 pt-8 sm:px-8 sm:pb-28 sm:pt-10 xl:px-0">
+      {cloudMode ? (
+        <p className="mb-8 rounded-xl border border-line bg-surface px-4 py-3 text-sm leading-6 text-ink-2">
+          Proyek tersimpan di akunmu. Draft hanya terlihat olehmu; proyek terbit tampil setelah profilmu diterbitkan.
+        </p>
+      ) : (
+        <DemoNotice className="mb-8">
+          Isi formulir disimpan di berkas lokal komputer ini. Siapa pun yang membuka aplikasi lokal
+          dapat mengubah proyek akun contoh.
+        </DemoNotice>
+      )}
 
       <header>
         <div className="flex flex-wrap items-start justify-between gap-5">
@@ -310,33 +380,16 @@ export function ProjectEditor({
             </button>
 
             {isPublished ? (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setUnpublishConfirm(true)}
-                  disabled={unpublishConfirm || isBusy}
-                  className={SECONDARY_BUTTON}
-                >
-                  <Icon name="x" className="size-4" />
-                  {busy === "unpublish" ? "Menarik..." : "Tarik dari publik"}
-                </button>
-                <button type="button" onClick={handleSave} disabled={isBusy} className={PRIMARY_BUTTON}>
-                  <Icon name="save" className="size-4" />
-                  {busy === "save" ? "Menyimpan..." : "Simpan perubahan publik"}
-                </button>
-              </>
-            ) : (
-              <>
-                <button type="button" onClick={handleSave} disabled={isBusy} className={SECONDARY_BUTTON}>
-                  <Icon name="save" className="size-4" />
-                  {busy === "save" ? "Menyimpan..." : "Simpan draft"}
-                </button>
-                <button type="button" onClick={handlePublish} disabled={isBusy} className={PRIMARY_BUTTON}>
-                  <Icon name="upload" className="size-4" />
-                  {busy === "publish" ? "Menerbitkan..." : "Terbitkan"}
-                </button>
-              </>
-            )}
+              <button
+                type="button"
+                onClick={() => setUnpublishConfirm(true)}
+                disabled={unpublishConfirm || isBusy}
+                className={SECONDARY_BUTTON}
+              >
+                <Icon name="x" className="size-4" />
+                {busy === "unpublish" ? "Menarik..." : "Tarik dari publik"}
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -402,18 +455,91 @@ export function ProjectEditor({
         </p>
       </header>
 
+      {isGuided ? (
+        <section id="editor-langkah" aria-label="Langkah pengisian proyek" className="mt-8 scroll-mt-24 rounded-xl border border-line bg-surface p-4 sm:p-5">
+          <p className="text-[13px] font-semibold text-accent">Langkah {currentStep + 1} dari 4</p>
+          <h2 className="mt-1 text-[20px] font-semibold text-ink">{GUIDED_STEPS[currentStep]}</h2>
+          <p className="mt-1 text-[14px] leading-6 text-ink-2">{STEP_HELP[currentStep]}</p>
+          <ol className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {GUIDED_STEPS.map((label, index) => (
+              <li
+                key={label}
+                aria-current={index === currentStep ? "step" : undefined}
+                className={`flex min-h-10 items-center gap-2 rounded-[10px] border px-3 text-[13px] font-medium ${
+                  index === currentStep
+                    ? "border-accent bg-accent-soft text-accent"
+                    : index < currentStep
+                      ? "border-line bg-canvas text-ink"
+                      : "border-line bg-surface text-ink-2"
+                }`}
+              >
+                <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-current text-[11px]">
+                  {index + 1}
+                </span>
+                {label}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ) : (
+        <nav aria-label="Bagian editor proyek" className="mt-8 rounded-xl border border-line bg-surface p-4">
+          <p className="text-[13px] font-medium text-ink-2">Lompat ke bagian yang ingin diubah</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {[
+              { href: "#identitas-proyek", label: "Identitas" },
+              { href: "#cerita-proyek", label: "Cerita" },
+              { href: "#bukti-karya", label: "Bukti karya" },
+            ].map((section) => (
+              <a
+                key={section.href}
+                href={section.href}
+                className="inline-flex min-h-9 items-center rounded-full border border-line bg-canvas px-3 text-[13px] font-medium text-ink transition-colors hover:border-accent/40 hover:text-accent"
+              >
+                {section.label}
+              </a>
+            ))}
+          </div>
+        </nav>
+      )}
+
       <div className="mt-9 grid gap-9 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12">
         <div className="min-w-0">
-          <EditorForm
-            form={form}
-            errors={errors}
-            onChange={update}
-            onSourceChange={changeSource}
-            onAddSource={addSource}
-            onRemoveSource={removeSource}
-          />
+          {isGuided && currentStep === 3 ? (
+            isPublished && publicHref ? (
+              <section className="rounded-xl border border-accent/20 bg-accent-soft p-6">
+                <Icon name="checkCircle" className="size-8 text-accent" />
+                <h2 className="mt-4 text-[22px] font-semibold text-ink">Proyek sudah terbit</h2>
+                <p className="mt-2 text-[15px] leading-6 text-ink-2">
+                  Halaman publik proyek sudah dapat dibuka. Anda tetap bisa meninjau isinya dari sini.
+                </p>
+                <Link href={publicHref} className={`${PRIMARY_BUTTON} mt-5`}>
+                  Buka proyek publik
+                  <Icon name="arrowRight" className="size-4" />
+                </Link>
+              </section>
+            ) : (
+              <PublishChecklist
+                id="checklist-terbit"
+                items={checklist}
+                consentRights={form.consentRights}
+                consentNoSensitive={form.consentNoSensitive}
+                onConsentRightsChange={(value) => update({ consentRights: value })}
+                onConsentNoSensitiveChange={(value) => update({ consentNoSensitive: value })}
+              />
+            )
+          ) : (
+            <EditorForm
+              form={form}
+              errors={errors}
+              activeSection={activeSection}
+              onChange={update}
+              onSourceChange={changeSource}
+              onAddSource={addSource}
+              onRemoveSource={removeSource}
+            />
+          )}
 
-          {isPublished ? null : (
+          {!isGuided && !isPublished ? (
             <PublishChecklist
               id="checklist-terbit"
               className="mt-10"
@@ -423,7 +549,7 @@ export function ProjectEditor({
               onConsentRightsChange={(value) => update({ consentRights: value })}
               onConsentNoSensitiveChange={(value) => update({ consentNoSensitive: value })}
             />
-          )}
+          ) : null}
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
@@ -439,6 +565,74 @@ export function ProjectEditor({
         ownerName={owner.displayName}
         publicHref={publicHref}
       />
+
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-surface/95 px-5 py-3 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur sm:px-8">
+        <div className="mx-auto flex max-w-[1120px] flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="flex items-center justify-between gap-3 text-[13px] leading-5 text-ink-2 sm:justify-start">
+            <span aria-live="polite">
+              {saveError
+                ? "Gagal menyimpan"
+                : hasErrors(errors)
+                  ? "Periksa isian yang ditandai"
+                  : isBusy
+                    ? "Sedang menyimpan..."
+                    : dirty || !savedSlug
+                      ? "Perubahan belum disimpan"
+                      : "Semua perubahan tersimpan"}
+            </span>
+            {isGuided ? <span className="font-medium sm:hidden">{currentStep + 1}/4</span> : null}
+          </div>
+
+          <div className="flex w-full gap-2 sm:w-auto sm:shrink-0">
+            {isGuided && currentStep > 0 ? (
+              <button
+                type="button"
+                onClick={() => void moveToStep((currentStep - 1) as GuidedStep)}
+                disabled={isBusy}
+                className={`${SECONDARY_BUTTON} flex-1 justify-center sm:flex-none`}
+              >
+                Kembali
+              </button>
+            ) : null}
+
+            {!(isGuided && isPublished && currentStep === 3) ? (
+              <button
+                type="button"
+                onClick={handleSave}
+                disabled={isBusy}
+                className={`${isPublished ? PRIMARY_BUTTON : SECONDARY_BUTTON} flex-1 justify-center sm:flex-none`}
+              >
+                <Icon name="save" className="hidden size-4 sm:block" />
+                {busy === "save" ? "Menyimpan..." : isPublished ? "Simpan perubahan publik" : "Simpan draft"}
+              </button>
+            ) : null}
+
+            {isGuided && !isPublished && currentStep < 3 ? (
+              <button
+                type="button"
+                onClick={() => void moveToStep((currentStep + 1) as GuidedStep)}
+                disabled={isBusy}
+                className={`${PRIMARY_BUTTON} flex-1 justify-center sm:flex-none`}
+              >
+                Berikutnya
+                <Icon name="arrowRight" className="hidden size-4 sm:block" />
+              </button>
+            ) : null}
+
+            {!isPublished && (!isGuided || currentStep === 3) ? (
+              <button
+                type="button"
+                onClick={handlePublish}
+                disabled={isBusy}
+                className={`${PRIMARY_BUTTON} flex-1 justify-center sm:flex-none`}
+              >
+                <Icon name="upload" className="hidden size-4 sm:block" />
+                {busy === "publish" ? "Menerbitkan..." : "Terbitkan"}
+              </button>
+            ) : null}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

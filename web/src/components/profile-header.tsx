@@ -18,7 +18,7 @@ const CONTACT_ICON: Record<ContactKind, IconName> = {
  * Tidak ada tombol edit atau penanda status draft di sini karena halaman ini
  * dilihat pengunjung, bukan pemilik akun.
  */
-export function ProfileHeader({ profile }: { profile: Profile }) {
+export function ProfileHeader({ profile, projectCount }: { profile: Profile; projectCount: number }) {
   const contacts = profile.contacts
     .map((contact) => ({ ...contact, safeUrl: toSafeExternalUrl(contact.url) }))
     .filter((contact): contact is typeof contact & { safeUrl: string } => contact.safeUrl !== null);
@@ -33,6 +33,14 @@ export function ProfileHeader({ profile }: { profile: Profile }) {
         </h1>
         <p className="mt-2 text-[17px] font-medium leading-snug text-ink sm:text-[18px]">{profile.headline}</p>
 
+        <a
+          href="#daftar-proyek"
+          className="mt-4 inline-flex min-h-10 items-center gap-2 text-[14px] font-semibold text-accent hover:text-accent-hover"
+        >
+          Lihat {projectCount > 0 ? `${projectCount} proyek` : "bagian proyek"}
+          <Icon name="arrowRight" className="size-4 rotate-90" />
+        </a>
+
         <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[14px] text-ink-2">
           <span className="inline-flex items-center gap-1.5">
             <Icon name="graduationCap" className="size-4" />
@@ -44,15 +52,15 @@ export function ProfileHeader({ profile }: { profile: Profile }) {
           </span>
         </p>
 
-        <p className="mt-5 max-w-[37.5rem] text-[17px] leading-[1.7] text-ink-2">{profile.bio}</p>
+        <p className="mt-4 max-w-[37.5rem] text-[16px] leading-[1.65] text-ink-2">{profile.bio}</p>
 
-        <div className="mt-8">
+        <div className="mt-6">
           <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-2">Keterampilan</h2>
           <SkillList skills={profile.skills} className="mt-3" />
         </div>
 
         {contacts.length > 0 ? (
-          <div className="mt-8">
+          <div className="mt-6">
             <h2 className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-2">Kontak</h2>
             <ul className="mt-3 flex flex-wrap gap-2.5">
               {contacts.map((contact) => (

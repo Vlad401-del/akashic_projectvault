@@ -3,6 +3,8 @@ import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { OwnerChip, TopBar } from "@/components/site-nav";
 import type { Profile } from "@/lib/fixtures/types";
+import { signOutAction } from "@/lib/auth-actions";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
  * Bilah atas area pemilik.
@@ -30,7 +32,12 @@ export function OwnerTopBar({
           {backLabel}
         </Link>
       }
-      right={<OwnerChip profile={owner} />}
+      right={
+        <div className="flex items-center gap-3">
+          <OwnerChip profile={owner} />
+          {isSupabaseConfigured() ? <form action={signOutAction}><button type="submit" className="text-sm font-medium text-ink-2 hover:text-accent">Keluar</button></form> : null}
+        </div>
+      }
     />
   );
 }

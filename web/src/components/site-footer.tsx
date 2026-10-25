@@ -1,5 +1,6 @@
 import { PrismMark, Wordmark } from "@/components/site-brand";
 import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
  * Catatan kecil di bawah setiap halaman.
@@ -15,9 +16,15 @@ export function SiteFooter() {
           <Wordmark className="text-[15px] font-semibold tracking-tight" />
         </p>
         <p>
-          Ruang rekam karya mahasiswa. Seluruh isi saat ini adalah{" "}
-          <strong className="font-medium text-ink">data contoh</strong>.
-          {isLocalDemoEditorEnabled() ? " Editor demo berjalan lokal." : ""}
+          {isSupabaseConfigured() ? (
+            <>Ruang rekam karya mahasiswa. Portofolio contoh diberi label pada halamannya.</>
+          ) : (
+            <>
+              Ruang rekam karya mahasiswa. Seluruh isi saat ini adalah{" "}
+              <strong className="font-medium text-ink">data contoh</strong>.
+              {isLocalDemoEditorEnabled() ? " Editor demo berjalan lokal." : ""}
+            </>
+          )}
         </p>
       </div>
     </footer>

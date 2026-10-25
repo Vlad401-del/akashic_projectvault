@@ -18,8 +18,8 @@ export function ProjectRow({ project, username }: { project: Project; username: 
 
   return (
     <article className="rounded-xl border border-line bg-surface p-4 sm:p-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:gap-5">
-        <div className="w-full sm:w-44 sm:shrink-0">
+      <div className="flex gap-4 sm:gap-5">
+        <div className="w-20 shrink-0 sm:w-44">
           <ProjectCover
             variant={project.cover.variant}
             alt={project.cover.alt}

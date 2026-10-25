@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, type ReactNode } from "react";
+import { useId, useState, type ReactNode } from "react";
 
 import { Field, SelectInput, TextArea, TextInput } from "@/components/editor/field";
 import { Icon, type IconName } from "@/components/icons";
@@ -9,12 +9,14 @@ import type { CoverVariant, WorkType } from "@/lib/fixtures/types";
 
 /** Judul bagian formulir dengan ikon dan penjelasan singkat. */
 function Section({
+  id,
   icon,
   title,
   description,
   first = false,
   children,
 }: {
+  id: string;
   icon: IconName;
   title: string;
   description: string;
@@ -22,7 +24,7 @@ function Section({
   children: ReactNode;
 }) {
   return (
-    <section className={first ? "" : "mt-10 border-t border-line pt-10"}>
+    <section id={id} className={`${first ? "" : "mt-10 border-t border-line pt-10"} scroll-mt-24`}>
       <div className="mb-6 flex items-start gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-[10px] border border-line bg-surface text-ink-2">
           <Icon name={icon} className="size-[18px]" />
@@ -34,6 +36,34 @@ function Section({
       </div>
       <div className="space-y-5">{children}</div>
     </section>
+  );
+}
+
+/** Isian pelengkap dapat dibuka saat dibutuhkan; proyek lama yang berisi tetap terbuka. */
+function ExtraDetails({
+  title,
+  defaultOpen,
+  children,
+}: {
+  title: string;
+  defaultOpen: boolean;
+  children: ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <details
+      open={isOpen}
+      onToggle={(event) => setIsOpen(event.currentTarget.open)}
+      className="group rounded-xl border border-line bg-surface"
+    >
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-[14px] font-medium text-ink marker:hidden [&::-webkit-details-marker]:hidden">
+        {title}
+        <span className="shrink-0 text-[13px] font-normal text-accent group-open:hidden">Tampilkan</span>
+        <span className="hidden shrink-0 text-[13px] font-normal text-accent group-open:inline">Sembunyikan</span>
+      </summary>
+      <div className="space-y-5 border-t border-line px-4 py-5">{children}</div>
+    </details>
   );
 }
 
@@ -55,6 +85,7 @@ const COVER_OPTIONS: { value: CoverVariant; label: string }[] = [
 export function EditorForm({
   form,
   errors,
+  activeSection,
   onChange,
   onSourceChange,
   onAddSource,
@@ -62,6 +93,7 @@ export function EditorForm({
 }: {
   form: EditorFormValue;
   errors: EditorErrors;
+  activeSection?: "identity" | "story" | "evidence";
   onChange: (patch: Partial<EditorFormValue>) => void;
   onSourceChange: (index: number, patch: Partial<EditorSource>) => void;
   onAddSource: () => void;
@@ -72,7 +104,9 @@ export function EditorForm({
 
   return (
     <div>
+      {(!activeSection || activeSection === "identity") && (
       <Section
+        id="identitas-proyek"
         first
         icon="pencil"
         title="Identitas proyek"
@@ -169,6 +203,10 @@ export function EditorForm({
           ) : null}
         </div>
 
+        <ExtraDetails
+          title="Periode, peran, dan keterampilan"
+          defaultOpen={Boolean(form.period || form.role || form.skills || form.tools)}
+        >
         <Field label="Periode" htmlFor={id("periode")} hint="Misalnya: Februari – Mei 2026.">
           <TextInput
             id={id("periode")}
@@ -214,15 +252,21 @@ export function EditorForm({
             />
           </Field>
         </div>
+        </ExtraDetails>
       </Section>
+      )}
 
+      {(!activeSection || activeSection === "story") && (
       <Section
+        id="cerita-proyek"
         icon="route"
+        first={activeSection === "story"}
         title="Cerita proyek"
         description="Urutan masalah, proses, kontribusi pribadi, dan hasil. Bagian ini yang paling banyak dibaca perekrut."
       >
         <Field
           label="Masalah"
+          publishRequired
           htmlFor={id("masalah")}
           hint="Pisahkan paragraf dengan satu baris kosong."
         >
@@ -235,6 +279,10 @@ export function EditorForm({
           />
         </Field>
 
+        <ExtraDetails
+          title="Pertanyaan dan pengantar proses"
+          defaultOpen={Boolean(form.questions || form.processIntro)}
+        >
         <Field
           label="Pertanyaan yang saya jawab"
           htmlFor={id("pertanyaan")}
@@ -257,11 +305,12 @@ export function EditorForm({
             onChange={(event) => onChange({ processIntro: event.target.value })}
           />
         </Field>
+        </ExtraDetails>
 
         <Field
           label="Langkah proses"
           htmlFor={id("langkah")}
-          hint="Satu langkah per baris, dipisah tanda pisah panjang: Judul langkah — penjelasan."
+          hint="Untuk terbit, isi langkah di sini atau pengantar proses di atas. Satu langkah per baris: Judul — penjelasan."
         >
           <TextArea
             id={id("langkah")}
@@ -272,6 +321,10 @@ export function EditorForm({
           />
         </Field>
 
+        <ExtraDetails
+          title="Catatan proses dan pengantar kontribusi"
+          defaultOpen={Boolean(form.processNote || form.contributionIntro)}
+        >
         <Field
           label="Catatan pada bagian Proses"
           htmlFor={id("proses-catatan")}
@@ -297,11 +350,12 @@ export function EditorForm({
             onChange={(event) => onChange({ contributionIntro: event.target.value })}
           />
         </Field>
+        </ExtraDetails>
 
         <Field
           label="Kontribusi saya"
           htmlFor={id("kontribusi-daftar")}
-          hint="Satu pekerjaan per baris. Bagian mana yang benar-benar Anda kerjakan sendiri?"
+          hint="Untuk terbit, isi pekerjaan Anda di sini atau pengantar kontribusi di atas. Satu pekerjaan per baris."
         >
           <TextArea
             id={id("kontribusi-daftar")}
@@ -312,6 +366,10 @@ export function EditorForm({
           />
         </Field>
 
+        <ExtraDetails
+          title="Keputusan dan pembagian kerja tim"
+          defaultOpen={Boolean(form.designDecision || form.teammates)}
+        >
         <Field
           label="Keputusan desain yang saya ambil"
           htmlFor={id("keputusan")}
@@ -338,8 +396,9 @@ export function EditorForm({
             placeholder="Raka Aditya — Halaman perbandingan cabang"
           />
         </Field>
+        </ExtraDetails>
 
-        <Field label="Pengantar bagian Hasil" htmlFor={id("hasil-intro")} hint="Sebutkan keluaran tugasnya.">
+        <Field label="Hasil proyek" publishRequired htmlFor={id("hasil-intro")} hint="Sebutkan keluaran tugasnya.">
           <TextArea
             id={id("hasil-intro")}
             value={form.outcomeIntro}
@@ -348,6 +407,10 @@ export function EditorForm({
           />
         </Field>
 
+        <ExtraDetails
+          title="Catatan dan rincian hasil"
+          defaultOpen={Boolean(form.outcomeNote || form.outcomeCards)}
+        >
         <Field
           label="Catatan hasil"
           htmlFor={id("hasil-catatan")}
@@ -373,10 +436,15 @@ export function EditorForm({
             onChange={(event) => onChange({ outcomeCards: event.target.value })}
           />
         </Field>
+        </ExtraDetails>
       </Section>
+      )}
 
+      {(!activeSection || activeSection === "evidence") && (
       <Section
+        id="bukti-karya"
         icon="image"
+        first={activeSection === "evidence"}
         title="Bukti karya"
         description="Tautan dan keterangan gambar yang membuktikan proyek ini benar ada."
       >
@@ -506,6 +574,7 @@ export function EditorForm({
           </button>
         </div>
       </Section>
+      )}
     </div>
   );
 }

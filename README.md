@@ -2,7 +2,7 @@
 
 Akashic membantu mahasiswa mengubah tugas kuliah menjadi **studi kasus proyek** yang bisa dibaca calon perekrut, lalu menampilkannya pada satu tautan portofolio.
 
-Panduan pengerjaan lengkap ada di [`docs/AKASHIC_STARTER.md`](docs/AKASHIC_STARTER.md). Dokumen itu adalah spesifikasi; README ini mencatat **apa yang benar-benar sudah dikerjakan dan bagaimana menjalankannya**.
+**Status 25 Oktober 2026:** versi untuk rilis memakai Next.js dan Supabase Cloud tanpa Docker atau WSL. Panduan menjalankan aplikasi ada di [`web/README.md`](web/README.md); langkah menuju Vercel ada di [`docs/AKASHIC_DEPLOY_CHECKLIST.md`](docs/AKASHIC_DEPLOY_CHECKLIST.md). Bagian di bawah merekam fase demo lokal sebelumnya dan tetap berguna sebagai rujukan desain.
 
 > **Status: Tahap 1 selesai, ditambah halaman awal dan tiga layar editor yang sudah menyimpan.**
 > Isi awal halaman publik masih berasal dari berkas fixture. Hasil editor disimpan ke **berkas lokal**
@@ -42,15 +42,17 @@ Panduan pengerjaan lengkap ada di [`docs/AKASHIC_STARTER.md`](docs/AKASHIC_START
 
 Dependensi aplikasi berada di `web/package.json`. Root repo tidak memiliki `package.json`.
 
-## Menjalankan di laptop
+## Menjalankan demo lokal tanpa Supabase
 
-Prasyarat: Node.js LTS (dokumentasi Next.js mencantumkan minimum 20.9; diuji dengan Node 22) dan npm. Tahap ini **belum** memerlukan Docker atau Supabase.
+Prasyarat: Node.js dan npm. Demo lokal tanpa akun tidak memerlukan Docker, WSL, atau Supabase. Bila terminal masih di folder `Final Project`, masuk dahulu ke `akashic_projectvault\web`. Untuk mode Cloud, isi `web/.env.local` sesuai [`web/README.md`](web/README.md).
 
 ```powershell
-cd web
+cd .\akashic_projectvault\web  # jika mulai dari folder Final Project
 npm ci            # atau `npm install` bila lockfile baru berubah
 npm run dev       # buka http://localhost:3000
 ```
+
+Jika terminal sudah berada di root repositori `akashic_projectvault`, gunakan `cd web`. Untuk mode produksi lokal, jalankan `npm run build` lalu `npm start` dari folder `web`.
 
 Hentikan server dengan `Ctrl+C`.
 
@@ -72,7 +74,7 @@ npm start                       # terminal pertama
 powershell -File scripts\check-routes.ps1   # terminal kedua
 ```
 
-Skrip itu memeriksa 33 kasus: status HTTP 15 rute (halaman awal, tiga profil, profil privat, username tak dikenal, proyek publik, proyek draft, proyek milik profil privat, rute contoh dari dokumen, daftar proyek area pemilik, tiga layar editor, dan slug editor yang tidak dikenal), 12 pemeriksaan isi halaman, dan 6 pemeriksaan penyimpanan lokal. Hasil terakhir: **33 lulus, 0 gagal**.
+Skrip itu memeriksa 33 kasus: status HTTP 15 rute, 12 pemeriksaan isi halaman, dan 6 pemeriksaan penyimpanan lokal. Branch sumber mencatat hasil **33 lulus, 0 gagal**; jalankan ulang di komputer ini sebelum memakai angka tersebut sebagai hasil pemeriksaan terbaru.
 
 Pemeriksaan penyimpanan lokal bekerja dengan menyalin berkas contoh `scripts/seed/proyek-uji-penyimpanan-lokal.json` ke `web/.data/projects.json`, memeriksa bahwa proyek berstatus terbit muncul di halaman publik sedangkan yang berstatus draft membalas 404, lalu **mengembalikan isi berkas asli**. Isi proyek Anda tidak hilang, tetapi jangan menjalankan skrip ini bersamaan dengan pengeditan di peramban.
 
@@ -182,10 +184,10 @@ Diverifikasi: tidak ada scroll horizontal pada lebar 390 px dan 1440 px, grid pr
 | `cacheComponents` dimatikan di `web/next.config.ts` | Dengan Partial Prerender menyala, permintaan pertama untuk username yang belum pernah dibuka membalas **200** (soft-404) dan baru permintaan berikutnya membalas 404. Aturan visibilitas Akashic butuh 404 yang tegas. Bisa dinyalakan kembali bila penanganan soft-404 sudah disepakati. |
 | `generateStaticParams` pada rute publik | Rute yang wajib membalas **404 tegas** (profil privat, username tak dikenal, proyek draft, slug editor tak dikenal) tetap dibuat saat build. Akun privat dan draft ikut didaftarkan supaya 404-nya benar-benar teruji, dan proyek hasil editor didaftarkan lewat `listKnownProjectRoutes()`. |
 | Rute yang selalu 200 memakai `force-dynamic` | Pada rute yang responsnya dialirkan, `notFound()` berjalan setelah status 200 terkirim, sehingga permintaan pertama membalas 200 (soft-404). Karena itu halaman awal dan `/dashboard` — yang tidak pernah 404 dan harus langsung menampilkan proyek baru — dibuat dinamis, sedangkan tiga rute publik tetap dibuat saat build dan diperbarui lewat `revalidatePath` setiap kali editor menyimpan. |
-| Proyek editor disimpan ke berkas JSON, bukan database | Docker Desktop dan Supabase CLI belum tersedia, tetapi alur "isi formulir → muncul di alamat lokal" harus benar-benar jalan. `src/lib/local-store.ts` menulis ke `web/.data/projects.json` (di luar Git) dan `src/lib/content.ts` menggabungkannya dengan fixture. Saat Supabase dipakai, berkas ini dihapus dan isi `content.ts` diganti kueri database; komponen tampilan tidak berubah. |
+| Proyek editor disimpan ke berkas JSON, bukan database | `src/lib/local-store.ts` menulis ke `web/.data/projects.json` (di luar Git) dan `src/lib/content.ts` menggabungkannya dengan fixture. Ini menjaga alur editor berjalan hanya dengan Node.js dan Next.js. |
 | Alamat editor diganti tanpa memuat ulang halaman | Setelah proyek baru disimpan, alamat berubah dari `/dashboard/projects/new` ke `/dashboard/projects/<slug>/edit` memakai `window.history.replaceState` (didukung App Router). Tanpa ini, menekan Simpan dua kali akan membuat dua proyek, dan memuat ulang akan mengembalikan formulir kosong. |
 | `.gitattributes` dengan `eol=lf` | Mencegah diff palsu akibat perbedaan line ending antar anggota di Windows. |
-| Bentuk fixture diselaraskan dengan prototipe Figma Make | Narasi tidak lagi satu blok teks panjang, melainkan daftar pertanyaan, langkah proses, daftar centang kontribusi, dan kartu hasil. Skema Supabase tahap 2 sebaiknya mengikuti bentuk ini agar komponen tampilan tidak perlu diubah lagi. |
+| Bentuk fixture diselaraskan dengan prototipe Figma Make | Narasi dipisah menjadi daftar pertanyaan, langkah proses, daftar centang kontribusi, dan kartu hasil agar studi kasus mudah dibaca. |
 | Pemilih data area pemilik dipisah di `src/lib/content.ts` | Area pemilik perlu membaca draft, sedangkan halaman publik tidak boleh. Keduanya dipisah supaya aturan visibilitas publik tidak ikut longgar. Saat autentikasi tersedia, bagian ini diganti kueri yang dibatasi pemilik yang sedang login. |
 | Rute editor memakai `[slug]`, bukan `[id]` | Belum ada database, jadi belum ada id. Slug sudah unik di dalam satu pemilik dan stabil di fixture. Saat skema Supabase dibuat, rute bisa diganti ke id tanpa mengubah komponen formulir. |
 | Narasi formulir disimpan sebagai teks berpisah sederhana | Editor memakai textarea biasa sesuai spesifikasi. Paragraf dipisah baris kosong, butir daftar satu butir per baris, dan pasangan judul/isi dipisah tanda pisah panjang. Semuanya diurai di `src/lib/editor-form.ts` sehingga bisa dipakai ulang sebagai validasi server nanti. |
@@ -196,12 +198,10 @@ Sudah berjalan sungguhan: halaman awal, daftar proyek area pemilik, tiga layar e
 berkelompok, panel pratinjau ringkas, pratinjau penuh, validasi, checklist sebelum menerbitkan),
 penyimpanan ke berkas lokal, serta munculnya proyek hasil editor di alamat publiknya.
 
-Belum tersedia dan sengaja ditunda: Supabase (database, autentikasi, penyimpanan bersama), pengaturan
+Belum tersedia dan sengaja ditunda: database, autentikasi, penyimpanan bersama, pengaturan
 profil pemilik (`/dashboard/profile`), unggah sampul/galeri, penghapusan proyek dari dalam editor,
-pencarian, analitik, dan hosting. Fixture masih dipakai sebagai lapisan dasar halaman publik sampai
-tahap 2 selesai; saat itu isi `src/lib/content.ts` yang diganti menjadi kueri database dan komponen
-tampilan tidak perlu diubah.
+pencarian, analitik, dan hosting. Fixture tetap menjadi lapisan dasar halaman publik, sementara hasil editor hanya tersimpan di komputer ini.
 
 ## Langkah berikutnya
 
-Tahap 2 pada dokumen spesifikasi: Supabase Auth (surel/kata sandi), migration untuk tabel `profiles`, `projects`, `project_sources`, `project_images`, serta kebijakan RLS. Memerlukan Docker Desktop dan Supabase CLI; perintah dijalankan dari folder `web`.
+Tinjau dan gabungkan PR integrasi Supabase, lalu ikuti [`checklist rilis`](docs/AKASHIC_DEPLOY_CHECKLIST.md). URL callback Supabase dan variabel Vercel baru bisa diselesaikan setelah domain deploy final diketahui. Unggah gambar asli masih di luar demo; bukti karya memakai tautan HTTPS.
