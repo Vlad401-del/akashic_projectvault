@@ -8,6 +8,8 @@
 - Next.js memakai `@supabase/ssr` dan publishable key. Secret/service-role key tidak ada di kode.
 - Supabase Cloud memiliki `profiles`, `projects`, `project_sources`, `project_images`, RLS, dan
   pemicu profil privat untuk akun baru. Dua migration tersimpan di `web/supabase/migrations/`.
+- Preview Vercel untuk branch `feat/akashic-supabase-cloud` dilewati sampai PR ditinjau; saat
+  perubahan masuk ke `main`, build reguler Vercel berjalan.
 - Halaman masuk, daftar, lupa kata sandi, callback, dashboard pribadi, editor proyek, pengaturan
   profil, dan halaman publik telah dihubungkan dalam kode lokal.
 - Build produksi, lint, dan pemeriksaan tipe lulus. Rute privat/draft membalas HTTP 404 pada uji
