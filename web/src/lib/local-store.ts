@@ -20,6 +20,7 @@ import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "
 import path from "node:path";
 
 import type { Project } from "@/lib/fixtures/types";
+import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
 
 /** Satu proyek tersimpan beserta pemiliknya. */
 export type StoredProject = {
@@ -62,6 +63,10 @@ function isStoredProject(value: unknown): value is StoredProject {
  * dibuat tidak seolah hilang.
  */
 export function readStoredProjects(): StoredProject[] {
+  if (!isLocalDemoEditorEnabled()) {
+    return [];
+  }
+
   if (!existsSync(DATA_FILE)) {
     return [];
   }
@@ -93,6 +98,10 @@ export function readStoredProjects(): StoredProject[] {
 
 /** Menyimpan atau memperbarui satu proyek (kunci: pemilik + slug). */
 export function saveStoredProject(entry: StoredProject): void {
+  if (!isLocalDemoEditorEnabled()) {
+    throw new Error("Penyimpanan editor demo hanya tersedia saat pengembangan lokal.");
+  }
+
   const current = readStoredProjects();
   const index = current.findIndex(
     (item) => item.ownerUsername === entry.ownerUsername && item.project.slug === entry.project.slug,

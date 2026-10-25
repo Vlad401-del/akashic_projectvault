@@ -6,6 +6,7 @@ import { PrismMark, SiteBrand, SpectrumRule } from "@/components/site-brand";
 import { SkillList } from "@/components/skill-list";
 import { TopBar } from "@/components/site-nav";
 import { getDemoOwner, getPublicProjects, listPublicProfiles } from "@/lib/content";
+import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
 
 /**
  * Halaman ini menampilkan proyek yang sedang tampil publik, termasuk proyek
@@ -83,11 +84,11 @@ const STEPS: { icon: IconName; title: string; body: string }[] = [
 /**
  * Halaman awal Akashic.
  *
- * Berisi pengantar singkat, contoh karya, penjelasan alur, dan pintu masuk ke
- * area editor. Statusnya dinyatakan terbuka: data contoh, tanpa login,
- * penyimpanan hanya berkas lokal, dan hanya berjalan di localhost.
+ * Berisi pengantar singkat, contoh karya, dan penjelasan alur. Pintu masuk
+ * editor demo hanya tampil saat pengembangan lokal.
  */
 export default function HomePage() {
+  const demoEditorEnabled = isLocalDemoEditorEnabled();
   const profiles = listPublicProfiles();
   const featured = profiles
     .flatMap((profile) => getPublicProjects(profile).map((project) => ({ profile, project })))
@@ -138,13 +139,15 @@ export default function HomePage() {
             >
               Contoh portofolio
             </Link>
-            <Link
-              href="/dashboard"
-              className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-line bg-surface px-3 text-[14px] font-medium text-ink transition-colors hover:border-accent/40 hover:text-accent"
-            >
-              <Icon name="folder" className="size-4" />
-              Area editor
-            </Link>
+            {demoEditorEnabled ? (
+              <Link
+                href="/dashboard"
+                className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-line bg-surface px-3 text-[14px] font-medium text-ink transition-colors hover:border-accent/40 hover:text-accent"
+              >
+                <Icon name="folder" className="size-4" />
+                Area editor
+              </Link>
+            ) : null}
           </>
         }
       />
@@ -177,20 +180,22 @@ export default function HomePage() {
                 Lihat contoh portofolio
                 <Icon name="arrowRight" className="size-4" />
               </Link>
-              <Link
-                href="/dashboard"
-                className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink transition-colors hover:border-line-strong"
-              >
-                Coba area editor
-              </Link>
+              {demoEditorEnabled ? (
+                <Link
+                  href="/dashboard"
+                  className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink transition-colors hover:border-line-strong"
+                >
+                  Coba area editor
+                </Link>
+              ) : null}
             </div>
 
             <p className="mt-6 flex items-start gap-2 text-[13px] leading-5 text-ink-2">
               <Icon name="info" className="mt-0.5 size-4" />
               <span>
-                Versi pengembangan: berjalan hanya di localhost dan belum ada login atau database. Isi
-                awalnya data contoh; proyek yang Anda isi lewat editor disimpan ke berkas lokal di
-                komputer ini.
+                {demoEditorEnabled
+                  ? "Editor demo berjalan di komputer ini tanpa login. Proyek yang Anda isi tersimpan di berkas lokal, belum di database."
+                  : "Versi publik ini menampilkan data contoh. Pembuatan akun dan penyimpanan proyek sedang disiapkan."}
               </span>
             </p>
           </div>
@@ -247,7 +252,9 @@ export default function HomePage() {
         <Section
           id="contoh-karya"
           title="Karya yang sudah tampil"
-          description="Diambil dari halaman publik akun contoh, termasuk proyek yang Anda buat sendiri lewat editor di komputer ini. Bagian Kontribusi saya dipisahkan dari hasil kelompok."
+          description={demoEditorEnabled
+            ? "Diambil dari halaman publik akun contoh, termasuk proyek yang Anda buat sendiri lewat editor di komputer ini. Bagian Kontribusi saya dipisahkan dari hasil kelompok."
+            : "Diambil dari halaman publik akun contoh. Bagian Kontribusi saya dipisahkan dari hasil kelompok."}
         >
           <div className="grid gap-6 md:grid-cols-2">
             {featured.map(({ project, profile }) => (
@@ -265,39 +272,41 @@ export default function HomePage() {
           </p>
         </Section>
 
-        <Section
-          id="area-editor"
-          title="Area editor"
-          description="Tiga layar editor dari desain sudah dibangun dan sekarang benar-benar menyimpan. Isi satu tugas, terbitkan, lalu buka halaman publiknya di localhost ini juga."
-        >
-          <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {editorScreens.map((screen) => (
-              <li key={screen.href} className="flex flex-col rounded-xl border border-line bg-surface p-5">
-                <span className="flex size-10 items-center justify-center rounded-[10px] border border-line bg-canvas text-ink-2">
-                  <Icon name={screen.icon} className="size-[18px]" />
-                </span>
-                <h3 className="mt-4 text-[17px] font-semibold text-ink">{screen.title}</h3>
-                <p className="mt-2 text-[15px] leading-[1.65] text-ink-2">{screen.body}</p>
-                <Link
-                  href={screen.href}
-                  className="mt-4 inline-flex w-fit items-center gap-1.5 rounded text-[14px] font-medium text-accent hover:text-accent-hover"
-                >
-                  Buka layar
-                  <Icon name="arrowRight" className="size-4" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+        {demoEditorEnabled ? (
+          <Section
+            id="area-editor"
+            title="Area editor"
+            description="Tiga layar editor dari desain sudah dibangun dan sekarang benar-benar menyimpan. Isi satu tugas, terbitkan, lalu buka halaman publiknya di localhost ini juga."
+          >
+            <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {editorScreens.map((screen) => (
+                <li key={screen.href} className="flex flex-col rounded-xl border border-line bg-surface p-5">
+                  <span className="flex size-10 items-center justify-center rounded-[10px] border border-line bg-canvas text-ink-2">
+                    <Icon name={screen.icon} className="size-[18px]" />
+                  </span>
+                  <h3 className="mt-4 text-[17px] font-semibold text-ink">{screen.title}</h3>
+                  <p className="mt-2 text-[15px] leading-[1.65] text-ink-2">{screen.body}</p>
+                  <Link
+                    href={screen.href}
+                    className="mt-4 inline-flex w-fit items-center gap-1.5 rounded text-[14px] font-medium text-accent hover:text-accent-hover"
+                  >
+                    Buka layar
+                    <Icon name="arrowRight" className="size-4" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
 
-          <p className="mt-6 flex items-start gap-2 text-[14px] leading-6 text-ink-2">
-            <Icon name="info" className="mt-0.5 size-4" />
-            <span>
-              Tombol Simpan dan Terbitkan sudah menyimpan sungguhan, tetapi ke berkas lokal di komputer
-              ini (web/.data/projects.json), bukan ke database. Belum ada login dan belum ada unggahan
-              gambar.
-            </span>
-          </p>
-        </Section>
+            <p className="mt-6 flex items-start gap-2 text-[14px] leading-6 text-ink-2">
+              <Icon name="info" className="mt-0.5 size-4" />
+              <span>
+                Tombol Simpan dan Terbitkan sudah menyimpan sungguhan, tetapi ke berkas lokal di komputer
+                ini (web/.data/projects.json), bukan ke database. Belum ada login dan belum ada unggahan
+                gambar.
+              </span>
+            </p>
+          </Section>
+        ) : null}
 
         <Section
           id="akun-contoh"

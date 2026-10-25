@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { DEMO_OWNER_USERNAME, listOwnedProjects } from "@/lib/content";
+import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
 import {
   formToProject,
   hasErrors,
@@ -60,6 +61,11 @@ function uniqueSlug(title: string): string {
  * akun contoh; dan database, jadi penyimpanannya berkas lokal, bukan Supabase.
  */
 export async function saveProjectAction(input: SaveProjectInput): Promise<SaveProjectResult> {
+  // Aksi server bisa dipanggil langsung, jadi batas akses wajib diulang di sini.
+  if (!isLocalDemoEditorEnabled()) {
+    throw new Error("Editor demo tidak tersedia pada aplikasi yang di-host.");
+  }
+
   const errors = validateForm(input.form);
 
   if (hasErrors(errors)) {

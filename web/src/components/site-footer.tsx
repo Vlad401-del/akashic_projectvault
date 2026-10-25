@@ -1,10 +1,10 @@
 import { PrismMark, Wordmark } from "@/components/site-brand";
+import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
 
 /**
  * Catatan kecil di bawah setiap halaman.
  *
- * Tahap 1 masih memakai data contoh dan berjalan di localhost, jadi status ini
- * ditulis terang-terangan agar tidak disangka aplikasi daring.
+ * Tahap ini masih memakai data contoh, jadi statusnya dinyatakan terang-terangan.
  */
 export function SiteFooter() {
   return (
@@ -15,8 +15,9 @@ export function SiteFooter() {
           <Wordmark className="text-[15px] font-semibold tracking-tight" />
         </p>
         <p>
-          Ruang rekam karya mahasiswa. Versi pengembangan: seluruh isi adalah{" "}
-          <strong className="font-medium text-ink">data contoh</strong> dan berjalan lokal.
+          Ruang rekam karya mahasiswa. Seluruh isi saat ini adalah{" "}
+          <strong className="font-medium text-ink">data contoh</strong>.
+          {isLocalDemoEditorEnabled() ? " Editor demo berjalan lokal." : ""}
         </p>
       </div>
     </footer>
