@@ -5,7 +5,8 @@ import { ProfileHeader } from "@/components/profile-header";
 import { ProjectCard } from "@/components/project-card";
 import { PrototypeNotice } from "@/components/prototype-notice";
 import { OwnerChip, TopBar } from "@/components/site-nav";
-import { countStoredProjects, getPublicProfile, getPublicProjects, listKnownProfileRoutes } from "@/lib/content";
+import { countStoredProjects, getPublicProjects, listKnownProfileRoutes } from "@/lib/content";
+import { getVisibleProfile } from "@/lib/public-content";
 
 /**
  * Rute ini dibuat saat build dari daftar yang dikenal (fixture dan proyek hasil
@@ -23,7 +24,7 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/u/[username]">) {
   const { username } = await params;
-  const profile = getPublicProfile(username);
+  const profile = (await getVisibleProfile(username))?.profile;
 
   if (!profile) {
     return { title: "Profil tidak ditemukan" };
@@ -37,7 +38,8 @@ export async function generateMetadata({ params }: PageProps<"/u/[username]">) {
 
 export default async function PublicProfilePage({ params }: PageProps<"/u/[username]">) {
   const { username } = await params;
-  const profile = getPublicProfile(username);
+  const result = await getVisibleProfile(username);
+  const profile = result?.profile;
 
   // Profil yang belum aktif tampil publik atau username yang salah sama-sama
   // menghasilkan not-found, supaya keberadaan profil privat tidak bocor.
@@ -46,23 +48,25 @@ export default async function PublicProfilePage({ params }: PageProps<"/u/[usern
   }
 
   const projects = getPublicProjects(profile);
-  const storedCount = countStoredProjects(profile.username);
+  const storedCount = result.demo ? countStoredProjects(profile.username) : 0;
 
   return (
     <>
       <TopBar left={<OwnerChip profile={profile} />} />
 
       <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
-        <PrototypeNotice>
-          Contoh fiktif. Nama, profil, dan kontak di halaman ini dibuat untuk prototipe.
-          {storedCount > 0
-            ? ` ${storedCount} proyek di halaman ini dibuat lewat editor dan tersimpan di berkas lokal komputer ini, bukan di database.`
-            : ""}
-        </PrototypeNotice>
+        {result.demo ? (
+          <PrototypeNotice>
+            Contoh fiktif. Nama, profil, dan kontak di halaman ini dibuat untuk prototipe.
+            {storedCount > 0
+              ? ` ${storedCount} proyek di halaman ini dibuat lewat editor dan tersimpan di berkas lokal komputer ini, bukan di database.`
+              : ""}
+          </PrototypeNotice>
+        ) : null}
 
-        <ProfileHeader profile={profile} />
+        <ProfileHeader profile={profile} projectCount={projects.length} />
 
-        <section aria-labelledby="daftar-proyek" className="mt-12 border-t border-line pt-10 sm:mt-14">
+        <section aria-labelledby="daftar-proyek" className="mt-10 scroll-mt-24 border-t border-line pt-8 sm:mt-12">
           <div className="flex flex-wrap items-baseline justify-between gap-4">
             <h2 id="daftar-proyek" className="text-[24px] font-semibold tracking-tight text-ink">
               Proyek

@@ -1,5 +1,7 @@
 # Akashic — Panduan Mulai dan Prompt Pengerjaan
 
+> **Pembaruan 25 Oktober 2026:** panduan ini adalah spesifikasi awal. Versi rilis memakai Next.js dan Supabase Cloud tanpa Docker/WSL. Login, profil, dan proyek telah dihubungkan dalam kode lokal; Storage belum dipakai karena demo memakai tautan bukti HTTPS. Status terbaru ada di `web/README.md` dan `docs/AKASHIC_DEPLOY_CHECKLIST.md`.
+
 Dokumen kerja kelompok • 17 Oktober 2026
 
 ## 1. Keputusan: hifi singkat dahulu, kemudian implementasi di IDE

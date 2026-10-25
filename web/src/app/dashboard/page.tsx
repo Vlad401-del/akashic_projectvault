@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { DemoNotice } from "@/components/demo-notice";
 import { OwnerTopBar } from "@/components/editor/owner-top-bar";
 import { ProjectRow } from "@/components/editor/project-row";
 import { Icon } from "@/components/icons";
-import { PrototypeNotice } from "@/components/prototype-notice";
 import { Avatar } from "@/components/site-nav";
-import { getDemoOwner, listOwnedProjects } from "@/lib/content";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { getCurrentOwner } from "@/lib/owner";
 
 export const metadata: Metadata = {
   title: "Proyek saya",
@@ -24,9 +25,10 @@ export const dynamic = "force-dynamic";
  * Ini pintu masuk area editor. Belum ada autentikasi, jadi pemilik yang dipakai
  * adalah akun contoh; hal itu dinyatakan pada pemberitahuan di atas daftar.
  */
-export default function DashboardPage() {
-  const owner = getDemoOwner();
-  const projects = listOwnedProjects();
+export default async function DashboardPage() {
+  const owner = await getCurrentOwner();
+  if (!owner) return null;
+  const projects = owner.projects;
   const draftCount = projects.filter((project) => project.status === "draft").length;
   const publishedCount = projects.length - draftCount;
 
@@ -35,10 +37,12 @@ export default function DashboardPage() {
       <OwnerTopBar owner={owner} backHref="/" backLabel="Halaman awal" />
 
       <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
-        <PrototypeNotice className="mb-8">
-          Area pemilik tanpa login. Proyek di sini disimpan di berkas lokal komputer ini
-          (web/.data/projects.json), bukan di database, dan berlaku untuk akun contoh.
-        </PrototypeNotice>
+        {!isSupabaseConfigured() ? (
+          <DemoNotice className="mb-8">
+            Semua pengunjung yang membuka aplikasi lokal ini dapat mengubah proyek akun contoh.
+            Proyek tersimpan di berkas lokal komputer ini, belum di database.
+          </DemoNotice>
+        ) : null}
 
         <header className="flex flex-wrap items-start justify-between gap-6">
           <div className="flex min-w-0 items-start gap-4">
@@ -64,6 +68,11 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex flex-wrap gap-2.5">
+            {isSupabaseConfigured() ? (
+              <Link href="/dashboard/profile" className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink hover:border-line-strong">
+                Atur profil
+              </Link>
+            ) : null}
             <Link
               href={`/u/${owner.username}`}
               className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink transition-colors hover:border-line-strong"
@@ -118,13 +127,6 @@ export default function DashboardPage() {
             </ul>
           )}
 
-          <p className="mt-6 flex items-start gap-2 text-[14px] leading-6 text-ink-2">
-            <Icon name="info" className="mt-0.5 size-4" />
-            <span>
-              Penyimpanannya masih berkas lokal, jadi proyek hanya ada di komputer ini dan belum ada
-              autentikasi maupun pengaturan profil pemilik. Keduanya masuk tahap Supabase.
-            </span>
-          </p>
         </section>
       </div>
     </>

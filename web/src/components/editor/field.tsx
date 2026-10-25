@@ -18,6 +18,7 @@ export function Field({
   label,
   hint,
   required = false,
+  publishRequired = false,
   error,
   htmlFor,
   children,
@@ -26,6 +27,7 @@ export function Field({
   label: string;
   hint?: ReactNode;
   required?: boolean;
+  publishRequired?: boolean;
   error?: string;
   htmlFor?: string;
   children: ReactNode;
@@ -39,6 +41,8 @@ export function Field({
           <span className="text-accent" aria-hidden="true">
             *
           </span>
+        ) : publishRequired ? (
+          <span className="text-[13px] font-normal text-ink-2">(untuk terbit)</span>
         ) : (
           <span className="text-[13px] font-normal text-ink-2">(opsional)</span>
         )}

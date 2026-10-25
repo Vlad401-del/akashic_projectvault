@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 
 import { OwnerTopBar } from "@/components/editor/owner-top-bar";
 import { ProjectEditor } from "@/components/editor/project-editor";
-import { getDemoOwner, getOwnedProject, listOwnedProjects } from "@/lib/content";
+import { getCurrentOwner } from "@/lib/owner";
 
 /**
  * Rute ini dibuat saat build dari proyek yang sudah ada, lalu diperbarui
@@ -14,15 +14,14 @@ import { getDemoOwner, getOwnedProject, listOwnedProjects } from "@/lib/content"
  * 200. Dengan dibuat saat build, slug yang tidak dikenal benar-benar membalas
  * HTTP 404.
  */
-export function generateStaticParams() {
-  return listOwnedProjects().map((project) => ({ slug: project.slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
 }: PageProps<"/dashboard/projects/[slug]/edit">): Promise<Metadata> {
   const { slug } = await params;
-  const project = getOwnedProject(slug);
+  const owner = await getCurrentOwner();
+  const project = owner?.projects.find((item) => item.slug === slug);
 
   return { title: project ? `Editor: ${project.title}` : "Proyek tidak ditemukan" };
 }
@@ -35,10 +34,10 @@ export async function generateMetadata({
  */
 export default async function EditProjectPage({ params }: PageProps<"/dashboard/projects/[slug]/edit">) {
   const { slug } = await params;
-  const owner = getDemoOwner();
-  const project = getOwnedProject(slug);
+  const owner = await getCurrentOwner();
+  const project = owner?.projects.find((item) => item.slug === slug);
 
-  if (!project) {
+  if (!owner || !project) {
     notFound();
   }
 

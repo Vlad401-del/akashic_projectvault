@@ -31,11 +31,12 @@ export function PublishChecklist({
   const total = items.length;
   const percent = total > 0 ? Math.round((done / total) * 100) : 0;
   const declarationsReady = consentRights && consentNoSensitive;
+  const headingId = id ? `${id}-judul` : "checklist-terbit-judul";
 
   return (
-    <section id={id} aria-labelledby="checklist-terbit" className={`rounded-xl border border-line bg-surface ${className}`}>
+    <section id={id} aria-labelledby={headingId} className={`scroll-mt-24 rounded-xl border border-line bg-surface ${className}`}>
       <header className="border-b border-line px-5 py-4">
-        <h2 id="checklist-terbit" className="text-[15px] font-semibold text-ink">
+        <h2 id={headingId} className="text-[15px] font-semibold text-ink">
           Checklist sebelum menerbitkan
         </h2>
         <p className="mt-1 text-[13px] leading-5 text-ink-2">

@@ -1,12 +1,15 @@
 import Link from "next/link";
 
+import { DemoNotice } from "@/components/demo-notice";
 import { Icon, type IconName } from "@/components/icons";
 import { ProjectCard } from "@/components/project-card";
 import { PrismMark, SiteBrand, SpectrumRule } from "@/components/site-brand";
 import { SkillList } from "@/components/skill-list";
 import { TopBar } from "@/components/site-nav";
-import { getDemoOwner, getPublicProjects, listPublicProfiles } from "@/lib/content";
+import { getDemoOwner, getPublicProjects } from "@/lib/content";
 import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { listVisibleProfiles } from "@/lib/public-content";
 
 /**
  * Halaman ini menampilkan proyek yang sedang tampil publik, termasuk proyek
@@ -84,13 +87,18 @@ const STEPS: { icon: IconName; title: string; body: string }[] = [
 /**
  * Halaman awal Akashic.
  *
- * Berisi pengantar singkat, contoh karya, dan penjelasan alur. Pintu masuk
- * editor demo hanya tampil saat pengembangan lokal.
+ * Berisi pengantar singkat, contoh karya, penjelasan alur, dan pintu masuk ke
+ * area editor saat pengembangan lokal. Build produksi menampilkan demo publik
+ * baca saja sampai autentikasi dan database siap.
  */
-export default function HomePage() {
-  const demoEditorEnabled = isLocalDemoEditorEnabled();
-  const profiles = listPublicProfiles();
-  const featured = profiles
+export default async function HomePage() {
+  const cloudMode = isSupabaseConfigured();
+  const demoEditorEnabled = isLocalDemoEditorEnabled() && !cloudMode;
+  const { cloud: cloudProfiles, demo: profiles } = await listVisibleProfiles();
+  const realFeatured = cloudProfiles
+    .flatMap((profile) => getPublicProjects(profile).map((project) => ({ profile, project })))
+    .slice(0, 4);
+  const featured = realFeatured.length > 0 ? realFeatured : profiles
     .flatMap((profile) => getPublicProjects(profile).map((project) => ({ profile, project })))
     .slice(0, 4);
 
@@ -101,16 +109,16 @@ export default function HomePage() {
   const editorScreens: { icon: IconName; title: string; body: string; href: string }[] = [
     {
       icon: "plus",
-      title: "Proyek baru",
-      body: "Formulir kosong dengan panduan singkat, langkah proses, dan tautan bukti karya.",
+      title: "Mulai proyek baru",
+      body: "Ubah satu tugas menjadi cerita proyek. Simpan sebagai draft sebelum siap diterbitkan.",
       href: "/dashboard/projects/new",
     },
     ...(draftProject
       ? [
           {
             icon: "pencil" as IconName,
-            title: "Editor draft",
-            body: "Contoh proyek yang belum terbit: ada tombol Terbitkan dan checklist sebelum publikasi.",
+            title: "Lanjutkan draft",
+            body: "Lengkapi cerita dan periksa kesiapan proyek sebelum ditampilkan ke publik.",
             href: `/dashboard/projects/${draftProject.slug}/edit`,
           },
         ]
@@ -119,8 +127,8 @@ export default function HomePage() {
       ? [
           {
             icon: "checkCircle" as IconName,
-            title: "Editor sudah terbit",
-            body: "Contoh proyek terbit: tombol Simpan perubahan publik dan penarikan dari tampilan publik.",
+            title: "Perbarui proyek terbit",
+            body: "Lihat bagaimana perubahan pada proyek yang sudah terbit dikelola.",
             href: `/dashboard/projects/${publishedProject.slug}/edit`,
           },
         ]
@@ -146,6 +154,10 @@ export default function HomePage() {
               >
                 <Icon name="folder" className="size-4" />
                 Area editor
+              </Link>
+            ) : cloudMode ? (
+              <Link href="/dashboard" className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-line bg-surface px-3 text-[14px] font-medium text-ink hover:text-accent">
+                Area saya
               </Link>
             ) : null}
           </>
@@ -187,17 +199,20 @@ export default function HomePage() {
                 >
                   Coba area editor
                 </Link>
+              ) : cloudMode ? (
+                <Link href="/signup" className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink hover:border-line-strong">
+                  Buat portofolio
+                </Link>
               ) : null}
             </div>
 
-            <p className="mt-6 flex items-start gap-2 text-[13px] leading-5 text-ink-2">
-              <Icon name="info" className="mt-0.5 size-4" />
-              <span>
-                {demoEditorEnabled
-                  ? "Editor demo berjalan di komputer ini tanpa login. Proyek yang Anda isi tersimpan di berkas lokal, belum di database."
-                  : "Versi publik ini menampilkan data contoh. Pembuatan akun dan penyimpanan proyek sedang disiapkan."}
-              </span>
-            </p>
+            <DemoNotice className="mt-6 max-w-[38rem]">
+              {cloudMode
+                ? "Buat akun untuk menyimpan proyek di Supabase. Contoh fiktif tetap tersedia sebagai referensi tampilan."
+                : demoEditorEnabled
+                ? "Editor demo berjalan di komputer ini. Proyek yang Anda isi tersimpan di berkas lokal, belum di database atau akun pribadi."
+                : "Versi publik ini menampilkan data contoh. Pembuatan akun dan penyimpanan proyek sedang disiapkan."}
+            </DemoNotice>
           </div>
 
           <div className="lg:pt-4">
@@ -252,9 +267,7 @@ export default function HomePage() {
         <Section
           id="contoh-karya"
           title="Karya yang sudah tampil"
-          description={demoEditorEnabled
-            ? "Diambil dari halaman publik akun contoh, termasuk proyek yang Anda buat sendiri lewat editor di komputer ini. Bagian Kontribusi saya dipisahkan dari hasil kelompok."
-            : "Diambil dari halaman publik akun contoh. Bagian Kontribusi saya dipisahkan dari hasil kelompok."}
+          description={realFeatured.length > 0 ? "Karya yang diterbitkan oleh pengguna Akashic." : "Contoh fiktif untuk melihat bentuk studi kasus sebelum pengguna menerbitkan karya."}
         >
           <div className="grid gap-6 md:grid-cols-2">
             {featured.map(({ project, profile }) => (
@@ -272,11 +285,24 @@ export default function HomePage() {
           </p>
         </Section>
 
+        {cloudProfiles.length > 0 ? (
+          <Section id="portofolio-publik" title="Portofolio pengguna" description="Profil yang sudah dipilih pemiliknya untuk tampil publik.">
+            <ul className="grid gap-5 sm:grid-cols-2">
+              {cloudProfiles.map((profile) => (
+                <li key={profile.username} className="rounded-xl border border-line bg-surface p-5">
+                  <Link href={`/u/${profile.username}`} className="text-[17px] font-semibold text-ink hover:text-accent">{profile.displayName}</Link>
+                  <p className="mt-2 text-sm text-ink-2">{getPublicProjects(profile).length} proyek terbit</p>
+                </li>
+              ))}
+            </ul>
+          </Section>
+        ) : null}
+
         {demoEditorEnabled ? (
           <Section
             id="area-editor"
             title="Area editor"
-            description="Tiga layar editor dari desain sudah dibangun dan sekarang benar-benar menyimpan. Isi satu tugas, terbitkan, lalu buka halaman publiknya di localhost ini juga."
+            description="Mulai dari satu tugas, lanjutkan draft, atau perbarui proyek yang sudah terbit."
           >
             <ul className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {editorScreens.map((screen) => (
@@ -290,28 +316,19 @@ export default function HomePage() {
                     href={screen.href}
                     className="mt-4 inline-flex w-fit items-center gap-1.5 rounded text-[14px] font-medium text-accent hover:text-accent-hover"
                   >
-                    Buka layar
+                    Buka editor
                     <Icon name="arrowRight" className="size-4" />
                   </Link>
                 </li>
               ))}
             </ul>
-
-            <p className="mt-6 flex items-start gap-2 text-[14px] leading-6 text-ink-2">
-              <Icon name="info" className="mt-0.5 size-4" />
-              <span>
-                Tombol Simpan dan Terbitkan sudah menyimpan sungguhan, tetapi ke berkas lokal di komputer
-                ini (web/.data/projects.json), bukan ke database. Belum ada login dan belum ada unggahan
-                gambar.
-              </span>
-            </p>
           </Section>
         ) : null}
 
         <Section
-          id="akun-contoh"
-          title="Akun contoh untuk menguji aturan visibilitas"
-          description="Keempat akun ini dipakai untuk memeriksa perilaku halaman publik sebelum database tersedia."
+          id="profil-contoh"
+          title="Jelajahi portofolio contoh"
+          description="Buka profil dengan karya terbit atau lihat tampilan ketika belum ada proyek."
         >
           <ul className="grid gap-5 sm:grid-cols-2">
             {profiles.map((profile) => {
@@ -339,22 +356,7 @@ export default function HomePage() {
             })}
           </ul>
 
-          <p className="mt-6 flex items-start gap-2 text-[14px] leading-6 text-ink-2">
-            <Icon name="alert" className="mt-0.5 size-4" />
-            <span>
-              Ada satu akun contoh berstatus privat. Profilnya sengaja menghasilkan halaman tidak ditemukan,
-              sama seperti perilaku yang diuji lewat skrip pemeriksaan rute.
-            </span>
-          </p>
         </Section>
-
-        <p className="mt-16 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface px-5 py-4 text-[14px] leading-6 text-ink-2">
-          <PrismMark className="size-4" />
-          <span>
-            Tanda merek Akashic memakai prisma tiga sisi dengan spektrum cyan ke biru ke hijau. Warna terang
-            itu hanya dipakai sebagai aksen; teks dan isi proyek tetap dominan.
-          </span>
-        </p>
       </div>
     </>
   );

@@ -285,6 +285,8 @@ export function validateForm(form: EditorForm): EditorErrors {
 
   if (form.summary.trim().length === 0) {
     errors.summary = "Ringkasan wajib diisi, cukup dua kalimat.";
+  } else if (form.summary.trim().length > 280) {
+    errors.summary = "Ringkasan maksimal 280 karakter.";
   }
 
   const sourceErrors: Record<number, string> = {};
@@ -301,8 +303,8 @@ export function validateForm(form: EditorForm): EditorErrors {
       sourceErrors[index] = "Label tautan wajib diisi.";
     } else if (url.length === 0) {
       sourceErrors[index] = "Alamat tautan wajib diisi.";
-    } else if (!isSafeExternalUrl(url)) {
-      sourceErrors[index] = "Gunakan alamat lengkap yang berawalan https:// atau http://.";
+    } else if (!isSafeExternalUrl(url) || !url.toLowerCase().startsWith("https://")) {
+      sourceErrors[index] = "Gunakan alamat lengkap yang berawalan https://.";
     }
   });
 
@@ -325,8 +327,7 @@ export function hasErrors(errors: EditorErrors): boolean {
  * minimal satu bukti berupa gambar atau tautan.
  */
 export function publishChecklist(form: EditorForm): ChecklistItem[] {
-  const hasSafeSource = form.sources.some((source) => isSafeExternalUrl(source.url));
-  const hasCoverNote = form.coverAlt.trim().length > 0;
+  const hasSafeSource = form.sources.some((source) => isSafeExternalUrl(source.url) && source.url.toLowerCase().startsWith("https://"));
 
   return [
     { id: "judul", label: "Judul proyek terisi", ok: form.title.trim().length > 0 },
@@ -345,8 +346,8 @@ export function publishChecklist(form: EditorForm): ChecklistItem[] {
     { id: "hasil", label: "Bagian Hasil terisi", ok: form.outcomeIntro.trim().length > 0 },
     {
       id: "bukti",
-      label: "Ada minimal satu bukti: tautan atau keterangan sampul",
-      ok: hasSafeSource || hasCoverNote,
+      label: "Ada minimal satu tautan bukti HTTPS",
+      ok: hasSafeSource,
     },
   ];
 }

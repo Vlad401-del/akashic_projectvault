@@ -1,9 +1,9 @@
 /**
  * Penyimpanan lokal sementara untuk proyek yang dibuat di editor.
  *
- * Supabase dan Docker belum tersedia, tetapi proyek yang selesai diisi di
- * editor harus benar-benar muncul di halaman publik localhost. Karena itu hasil
- * editor disimpan sebagai berkas JSON di `web/.data/projects.json`.
+ * Versi ringan berjalan dengan Next.js saja. Agar proyek dari editor muncul di
+ * halaman publik localhost, hasilnya disimpan sebagai berkas JSON di
+ * `web/.data/projects.json`.
  *
  * Sifat penyimpanan ini, supaya tidak disangka lebih dari yang sebenarnya:
  * - Hanya ada di komputer ini, tidak masuk Git (lihat `.gitignore`), dan bukan
@@ -13,8 +13,8 @@
  * - Berkas ini adalah lapisan tambahan di atas fixture: proyek dengan slug yang
  *   sama menimpa fixture, proyek dengan slug baru ditambahkan di depan.
  *
- * Saat Supabase dipakai (tahap 2), berkas ini dihapus dan isi
- * `src/lib/content.ts` diganti kueri database. Komponen tampilan tidak berubah.
+ * Rencana penyimpanan bersama ditunda; berkas ini tetap menjadi sumber data
+ * editor selama versi lokal digunakan.
  */
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -99,7 +99,7 @@ export function readStoredProjects(): StoredProject[] {
 /** Menyimpan atau memperbarui satu proyek (kunci: pemilik + slug). */
 export function saveStoredProject(entry: StoredProject): void {
   if (!isLocalDemoEditorEnabled()) {
-    throw new Error("Penyimpanan editor demo hanya tersedia saat pengembangan lokal.");
+    throw new Error("Editor demo hanya tersedia saat menjalankan aplikasi secara lokal dalam mode pengembangan.");
   }
 
   const current = readStoredProjects();

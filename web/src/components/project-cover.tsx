@@ -6,7 +6,7 @@ import type { CoverVariant } from "@/lib/fixtures/types";
 /**
  * Placeholder bukti karya untuk tahap 1.
  *
- * Belum ada unggahan gambar (Supabase Storage baru masuk tahap 4), jadi sampul
+ * Belum ada unggahan gambar pada versi lokal ini, jadi sampul
  * dan galeri memakai ilustrasi netral yang digambar sendiri. Hak penggunaan
  * jelas karena dibuat di repositori ini, dan setiap ilustrasi diberi label
  * "Contoh tampilan" supaya tidak disangka tangkapan layar proyek sungguhan.
