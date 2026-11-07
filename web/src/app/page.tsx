@@ -134,6 +134,13 @@ export default function HomePage() {
         right={
           <>
             <Link
+              href="/tim"
+              className="inline-flex items-center gap-1.5 rounded text-[14px] font-medium text-ink-2 hover:text-accent"
+            >
+              <Icon name="users" className="size-4" />
+              Cari Tim
+            </Link>
+            <Link
               href="/u/nadia"
               className="hidden items-center gap-1.5 rounded text-[14px] font-medium text-ink-2 hover:text-accent sm:inline-flex"
             >
@@ -145,7 +152,7 @@ export default function HomePage() {
                 className="inline-flex h-9 items-center gap-1.5 rounded-[10px] border border-line bg-surface px-3 text-[14px] font-medium text-ink transition-colors hover:border-accent/40 hover:text-accent"
               >
                 <Icon name="folder" className="size-4" />
-                Area editor
+                Area pemilik
               </Link>
             ) : null}
           </>
@@ -174,18 +181,24 @@ export default function HomePage() {
 
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                href="/u/nadia"
+                href="/tim"
                 className="inline-flex h-11 items-center gap-2 rounded-[10px] bg-accent px-4 text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover"
               >
+                <Icon name="users" className="size-4" />
+                Papan Cari Tim
+              </Link>
+              <Link
+                href="/u/nadia"
+                className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink transition-colors hover:border-line-strong hover:text-accent"
+              >
                 Lihat contoh portofolio
-                <Icon name="arrowRight" className="size-4" />
               </Link>
               {demoEditorEnabled ? (
                 <Link
                   href="/dashboard"
                   className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink transition-colors hover:border-line-strong"
                 >
-                  Coba area editor
+                  Coba area pemilik
                 </Link>
               ) : null}
             </div>
@@ -247,6 +260,36 @@ export default function HomePage() {
               </li>
             ))}
           </ol>
+        </Section>
+
+        <Section
+          id="papan-tim"
+          title="Papan cari tim: Rekan lomba berbasis bukti kerja"
+          description="Pivot Akashic: bukan cuma portofolio pasif, tapi marketplace rekan tim untuk GEMASTIK, PKM, dan hackathon. Lihat studi kasus nyata calon rekan tim, bukan sekadar CV atau 'DM kosong'."
+        >
+          <div className="rounded-xl border border-line bg-surface p-6 sm:p-8">
+            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-accent/10 px-3 py-1 text-[12px] font-semibold text-accent">
+                  <Icon name="users" className="size-3.5" />
+                  Proof-of-Work Team Matching
+                </span>
+                <h3 className="mt-2 text-[20px] font-semibold text-ink">
+                  Bentuk tim kompetisi dengan pembagian peran yang transparan
+                </h3>
+                <p className="mt-1.5 max-w-[40rem] text-[15px] leading-relaxed text-ink-2">
+                  Setiap posting tim mencantumkan peran spesifik, komitmen jam per minggu, serta tautan ke portofolio karya pembuat tim. Pelamar mengajukan diri lewat perkenalan terstruktur.
+                </p>
+              </div>
+              <Link
+                href="/tim"
+                className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-[14px] font-semibold text-white hover:bg-accent-hover"
+              >
+                Buka Papan Cari Tim
+                <Icon name="arrowRight" className="size-4" />
+              </Link>
+            </div>
+          </div>
         </Section>
 
         <Section

@@ -20,3 +20,6 @@ desktop.ini
 
 # Penyimpanan lokal sementara untuk proyek hasil editor (bukan database).
 web/.data/
+
+# Berkas ekspor sesi/chat AI
+ringkasan-proyek-*.json

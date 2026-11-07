@@ -107,6 +107,80 @@ export type Project = {
   status: ProjectStatus;
 };
 
+/**
+ * Status pencarian anggota sebuah tim.
+ *
+ * "open" berarti tim sedang menerima perkenalan; "closed" berarti slot
+ * sudah terisi sehingga formulir perkenalan tidak lagi tersedia.
+ */
+export type TeamSearchStatus = "open" | "closed";
+
+/** Satu peran yang dibutuhkan tim, beserta kemampuan yang diharapkan. */
+export type TeamRole = {
+  /** Peran satu frasa, misalnya "Pengembang frontend". */
+  title: string;
+  /** Kemampuan yang diharapkan; bisa kosong bila perannya terbuka. */
+  skills: string[];
+};
+
+/**
+ * Papan pencarian anggota tim (pivot "cari tim dari bukti kerja").
+ *
+ * Ini objek baru yang berbeda dari `Project`: proyek menceritakan karya yang
+ * sudah selesai, sedangkan `TeamPost` menyatakan ide/tenggat yang sedang
+ * mencari anggota. Bentuk isian pada role sengaja sederhana agar alur
+ * "pasang pencarian → terima perkenalan terstruktur" bisa diuji pada tahap ini,
+ * sebelum matching otomatis dan ruang kerja tim dibangun.
+ */
+export type TeamPost = {
+  /** Pengenal stabil yang dipakai di URL `/tim/<id>`; unik di seluruh posting. */
+  id: string;
+  /** Nama tim atau ide yang sedang dibentuk. */
+  title: string;
+  /** Konteks kompetisi, misalnya "GEMASTIK 2027". */
+  competition: string;
+  /** Ide singkat proyek: masalah yang dihadapi dan sasaran tim. */
+  summary: string;
+  /** Username profil Akashic pemilik pencarian (anggota yang sudah ada). */
+  ownerUsername: string;
+  /** Daftar peran yang masih dicari. */
+  roles: TeamRole[];
+  /** Jumlah anggota yang sudah ada saat ini, termasuk pemilik. */
+  currentMembers: number;
+  /** Ukuran tim yang dituju, termasuk pemilik. */
+  targetMembers: number;
+  /** Komitmen waktu yang diharapkan dari tiap anggota, dalam jam per minggu. */
+  weeklyHours: number;
+  /** Tenggat pendaftaran kompetisi, ditulis bebas, misalnya "10 Desember 2026". */
+  deadline: string;
+  /** Ritme kerja/pertemuan yang dipakai tim, ditulis bebas. */
+  meetingNote: string;
+  status: TeamSearchStatus;
+};
+
+/**
+ * Perkenalan terstruktur dari seseorang kepada tim.
+ *
+ * Menggantikan "DM kosong": pengirim menjawab peran, waktu, apa yang dibawa,
+ * dan apa yang ingin dipelajari, sehingga pemilik tim tidak perlu membuka
+ * percakapan dari nol. Tanpa autentikasi, nama pengirim hanya pernyataan
+ * pengirim sendiri; hal itu dinyatakan di UI.
+ */
+export type TeamIntro = {
+  /** Nama panggilan pengirim; opsional karena belum ada autentikasi. */
+  senderName: string;
+  /** Peran yang diminati; harus salah satu judul role pada posting tim. */
+  role: string;
+  /** Jam kerja per minggu yang mampu dijamin pengirim, dalam teks. */
+  weeklyHours: string;
+  /** "Apa yang saya bawa" — keahlian plus tautan bukti bila ada. */
+  bring: string;
+  /** "Ingin belajar" — audiens yang jujur, opsional. */
+  learn: string;
+  /** Tautan bukti opsional; hanya http/https yang dirender. */
+  proofUrl: string;
+};
+
 export type Profile = {
   username: string;
   displayName: string;

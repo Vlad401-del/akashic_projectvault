@@ -73,7 +73,12 @@ $cases = @(
     @("/dashboard/projects/new", 200, "editor: proyek baru"),
     @("/dashboard/projects/dashboard-penjualan-ritel/edit", 200, "editor: proyek sudah terbit"),
     @("/dashboard/projects/analisis-sentimen-ulasan-aplikasi/edit", 200, "editor: proyek draft"),
-    @("/dashboard/projects/tidak-ada/edit", 404, "editor: slug tidak dikenal harus 404")
+    @("/dashboard/projects/tidak-ada/edit", 404, "editor: slug tidak dikenal harus 404"),
+    @("/tim", 200, "papan cari tim publik"),
+    @("/tim/gemastik-2027-analitik-komplain", 200, "detail pencarian tim fixture 1"),
+    @("/tim/pkm-k-jadwal-shift-lab", 200, "detail pencarian tim fixture 2"),
+    @("/tim/tidak-ada", 404, "pencarian tim tidak dikenal harus 404"),
+    @("/dashboard/tim/baru", 200, "editor: pasang pencarian tim baru")
 )
 
 $lulus = 0
@@ -112,6 +117,15 @@ Tulis-Cek ($editorTerbit -match ">(<!-- -->)?Tarik dari publik<") "editor terbit
 $editorBaru = (Invoke-WebRequest -Uri "$base/dashboard/projects/new" -UseBasicParsing).Content
 Tulis-Cek ($editorBaru -match ">(<!-- -->)?Proyek tanpa judul<") "editor baru memuat judul Proyek tanpa judul"
 Tulis-Cek (-not ($editorBaru -match "Simpan perubahan publik")) "editor baru tidak memuat tombol simpan publik"
+
+# Pemeriksaan papan cari tim
+$timBoard = (Invoke-WebRequest -Uri "$base/tim" -UseBasicParsing).Content
+Tulis-Cek ($timBoard -match "GEMASTIK 2027") "papan tim memuat kompetisi GEMASTIK 2027"
+Tulis-Cek ($timBoard -match "Ajukan diri") "papan tim memuat ajakan ajukan diri"
+
+$timDetail = (Invoke-WebRequest -Uri "$base/tim/gemastik-2027-analitik-komplain" -UseBasicParsing).Content
+Tulis-Cek ($timDetail -match "Ajukan Diri / Kirim Perkenalan") "detail tim memuat formulir perkenalan"
+Tulis-Cek ($timDetail -match "Pengolahan data") "detail tim memuat rincian peran pengolahan data"
 
 # ---------------------------------------------------------------------------
 # Penyimpanan lokal.

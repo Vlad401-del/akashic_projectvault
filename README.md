@@ -4,11 +4,14 @@ Akashic membantu mahasiswa mengubah tugas kuliah menjadi **studi kasus proyek** 
 
 Panduan pengerjaan lengkap ada di [`docs/AKASHIC_STARTER.md`](docs/AKASHIC_STARTER.md). Dokumen itu adalah spesifikasi; README ini mencatat **apa yang benar-benar sudah dikerjakan dan bagaimana menjalankannya**.
 
-> **Status: Tahap 1 selesai, ditambah halaman awal dan tiga layar editor yang sudah menyimpan.**
-> Isi awal halaman publik masih berasal dari berkas fixture. Hasil editor disimpan ke **berkas lokal**
-> `web/.data/projects.json`, bukan ke database, dan langsung muncul di halaman publik localhost.
-> Belum ada autentikasi maupun unggahan gambar: siapa pun yang dapat membuka localhost juga dapat
-> mengubah proyek. Aplikasi hanya berjalan di localhost dan **belum diterbitkan ke internet**.
+> **Status: Tahap 1 Selesai + Pivot Team Finder Fase 1-2.**
+> Selain portofolio studi kasus tugas kuliah, Akashic sekarang dilengkapi **Papan Pencarian Rekan Tim Lomba (Team Finder)** berbasis *Proof of Work*:
+> - Papan pencarian tim publik di `/tim`
+> - Detail tim & pengajuan diri terstruktur di `/tim/[id]`
+> - Pasang pencarian tim baru di `/dashboard/tim/baru`
+> - Inbox perkenalan pelamar tim di `/dashboard`
+>
+> Rangkuman produk & penjelasan lengkap untuk AI/pengembang: [`docs/AKASHIC_SEKARANG.md`](docs/AKASHIC_SEKARANG.md) atau [`AKASHIC_SEKARANG.md`](AKASHIC_SEKARANG.md).
 
 ## Struktur repositori
 
