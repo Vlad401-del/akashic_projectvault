@@ -16,7 +16,7 @@
  */
 import { profiles } from "@/lib/fixtures/fixtures";
 import { teamPosts as fixtureTeams } from "@/lib/fixtures/teams";
-import type { TeamIntro, TeamPost, TeamRole } from "@/lib/fixtures/types";
+import type { IntroReviewStatus, TeamIntro, TeamPost, TeamRole } from "@/lib/fixtures/types";
 import { readStoredTeamIntros, readStoredTeams } from "@/lib/team-store";
 
 import { DEMO_OWNER_USERNAME } from "@/lib/content";
@@ -111,6 +111,8 @@ export type IncomingIntro = {
   teamTitle: string;
   intro: TeamIntro;
   sentAt: string;
+  /** Keputusan pemilik tim; perkenalan lama tanpa kolom ini dianggap "baru". */
+  review: IntroReviewStatus;
 };
 
 /**
@@ -130,6 +132,7 @@ export function listIncomingIntros(): IncomingIntro[] {
       teamTitle: titles.get(item.teamId) ?? item.teamId,
       intro: item.intro,
       sentAt: item.sentAt,
+      review: item.review ?? "baru",
     }));
 }
 

@@ -13,15 +13,16 @@
  * - Hanya ada di komputer ini, tidak masuk Git, dan bukan pengganti database.
  *   Tidak ada autentikasi, sehingga nama pengirim perkenalan hanya pernyataan
  *   pengirim sendiri (dinyatakan juga di UI).
- * - Intros bersifat tambah (append-only), karena perkenalan bukan dokumen
- *   milik si pengirim yang bisa diedit ulang.
+ * - Isi perkenalan bersifat tambah (append-only), karena perkenalan bukan
+ *   dokumen milik si pengirim yang bisa diedit ulang. Satu-satunya kolom yang
+ *   bisa berubah adalah `review`, yaitu keputusan pemilik tim atas perkenalan.
  * - Saat Supabase dipakai, berkas ini dihapus dan fungsi di sini diganti
  *   kueri database dengan kebijakan RLS; komponen tampilan tidak berubah.
  */
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-import type { TeamIntro, TeamPost } from "@/lib/fixtures/types";
+import type { IntroReviewStatus, TeamIntro, TeamPost } from "@/lib/fixtures/types";
 
 /** Satu pencarian anggota tersimpan beserta pemiliknya. */
 export type StoredTeam = {
@@ -38,7 +39,19 @@ export type StoredTeamIntro = {
   intro: TeamIntro;
   /** Waktu kirim dalam format ISO. */
   sentAt: string;
+  /**
+   * Keputusan pemilik tim atas perkenalan ini. Perkenalan lama yang belum
+   * memiliki kolom ini dianggap "baru".
+   */
+  review?: IntroReviewStatus;
 };
+
+const REVIEW_STATUSES: IntroReviewStatus[] = ["baru", "diskusi", "diterima", "ditolak"];
+
+/** Memastikan nilai status review sah sebelum ditulis atau diterima dari klien. */
+export function isIntroReviewStatus(value: unknown): value is IntroReviewStatus {
+  return typeof value === "string" && (REVIEW_STATUSES as string[]).includes(value);
+}
 
 const DATA_DIRECTORY = path.join(process.cwd(), ".data");
 const TEAMS_FILE = path.join(DATA_DIRECTORY, "teams.json");
@@ -108,6 +121,33 @@ export function appendStoredTeamIntro(entry: StoredTeamIntro): void {
   writeArrayFile(INTROS_FILE, next);
 }
 
+/**
+ * Mengubah status review satu perkenalan (kunci: `teamId` + `sentAt`).
+ *
+ * Hanya kolom `review` yang berubah; isi perkenalan tetap utuh karena
+ * perkenalan adalah pernyataan pengirim, bukan dokumen pemilik tim.
+ * Mengembalikan `false` bila perkenalannya tidak ditemukan.
+ */
+export function setStoredTeamIntroReview(
+  teamId: string,
+  sentAt: string,
+  review: IntroReviewStatus,
+): boolean {
+  const current = readStoredTeamIntros();
+  const index = current.findIndex((item) => item.teamId === teamId && item.sentAt === sentAt);
+
+  if (index < 0) {
+    return false;
+  }
+
+  const next = current.map((item, position) =>
+    position === index ? { ...item, review } : item,
+  );
+
+  writeArrayFile(INTROS_FILE, next);
+  return true;
+}
+
 function isStoredTeamIntro(value: unknown): value is StoredTeamIntro {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -121,7 +161,8 @@ function isStoredTeamIntro(value: unknown): value is StoredTeamIntro {
     typeof item.intro === "object" &&
     item.intro !== null &&
     typeof item.intro.role === "string" &&
-    typeof item.intro.bring === "string"
+    typeof item.intro.bring === "string" &&
+    (item.review === undefined || isIntroReviewStatus(item.review))
   );
 }
 

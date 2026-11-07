@@ -26,6 +26,7 @@
    - Menampilkan proyek portofolio, status terbit/draft.
    - Menampilkan **Pencarian Tim Saya** yang sedang aktif.
    - Menampilkan **Perkenalan Masuk (Inbox Pelamar)** dengan rincian peran, komitmen jam, dan tautan bukti karya pelamar.
+   - **Review perkenalan**: tandai "Sedang Diskusi", "Diterima", atau "Ditolak", dan salin kontak pelamar (kontak wajib diisi pada formulir perkenalan).
 5. **Portofolio Studi Kasus (`/u/[username]`, `/u/[username]/p/[slug]`)**:
    - Studi kasus tugas kuliah transparan (Masalah → Proses → Kontribusi Diri vs Kelompok → Hasil → Bukti Karya).
 

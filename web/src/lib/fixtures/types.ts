@@ -179,7 +179,17 @@ export type TeamIntro = {
   learn: string;
   /** Tautan bukti opsional; hanya http/https yang dirender. */
   proofUrl: string;
+  /** Kontak yang bisa dihubungi (email, WhatsApp, LINE, dll.); wajib pada perkenalan baru, perkenalan lama mungkin belum memilikinya. */
+  contact?: string;
 };
+
+/**
+ * Status tinjauan pemilik tim atas satu perkenalan masuk.
+ *
+ * Disimpan terpisah dari isi perkenalan karena perkenalan bersifat append-only
+ * milik pengirim, sedangkan status ini keputusan pemilik tim.
+ */
+export type IntroReviewStatus = "baru" | "diskusi" | "diterima" | "ditolak";
 
 export type Profile = {
   username: string;

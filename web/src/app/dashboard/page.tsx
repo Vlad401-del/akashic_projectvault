@@ -6,6 +6,7 @@ import { ProjectRow } from "@/components/editor/project-row";
 import { Icon } from "@/components/icons";
 import { PrototypeNotice } from "@/components/prototype-notice";
 import { Avatar } from "@/components/site-nav";
+import { IntroReviewControls } from "@/components/team/intro-review-controls";
 import { getDemoOwner, listOwnedProjects } from "@/lib/content";
 import { listIncomingIntros, listOwnedTeamPosts, openSlots } from "@/lib/teams";
 
@@ -27,6 +28,7 @@ export default function DashboardPage() {
 
   const ownedTeams = listOwnedTeamPosts();
   const incomingIntros = listIncomingIntros();
+  const unreviewedCount = incomingIntros.filter((entry) => entry.review === "baru").length;
 
   return (
     <>
@@ -102,14 +104,15 @@ export default function DashboardPage() {
                 <h2 id="perkenalan-masuk-heading" className="text-[22px] font-semibold tracking-tight text-ink">
                   Perkenalan Masuk
                 </h2>
-                {incomingIntros.length > 0 ? (
+                {unreviewedCount > 0 ? (
                   <span className="rounded-full bg-accent/10 px-2.5 py-0.5 text-[12px] font-semibold text-accent">
-                    {incomingIntros.length} baru
+                    {unreviewedCount} belum ditinjau
                   </span>
                 ) : null}
               </div>
               <p className="mt-1 text-[14px] text-ink-2">
                 Pengajuan dari mahasiswa yang ingin bergabung ke tim Anda dengan menyertakan bukti karya nyata.
+                Tandai sebagai sedang diskusi, diterima, atau ditolak, lalu salin kontaknya untuk tindak lanjut.
               </p>
             </div>
           </div>
@@ -126,9 +129,9 @@ export default function DashboardPage() {
             </div>
           ) : (
             <div className="mt-6 space-y-4">
-              {incomingIntros.map((entry, index) => (
+              {incomingIntros.map((entry) => (
                 <div
-                  key={index}
+                  key={`${entry.teamId}-${entry.sentAt}`}
                   className="rounded-xl border border-line bg-surface p-5 shadow-sm transition-colors hover:border-line-strong"
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2 border-b border-line/60 pb-3">
@@ -196,6 +199,13 @@ export default function DashboardPage() {
                       </div>
                     ) : null}
                   </div>
+
+                  <IntroReviewControls
+                    teamId={entry.teamId}
+                    sentAt={entry.sentAt}
+                    initialReview={entry.review}
+                    contact={entry.intro.contact}
+                  />
                 </div>
               ))}
             </div>

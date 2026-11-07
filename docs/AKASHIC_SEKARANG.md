@@ -54,7 +54,7 @@ Akashic menghubungkan dua sisi:
    - Kartu menampilkan: konteks kompetisi, jumlah slot yang dibutuhkan (`openSlots`), ringkasan ide, daftar peran & keahlian yang dicari, komitmen jam/minggu, tenggat, serta kartu profil pembuat tim lengkap dengan tautan ke portofolionya.
 2. **Halaman Detail Tim (`/tim/[id]`)**:
    - Informasi lengkap ide proyek, masalah yang dihadapi, rincian peran, ritme pertemuan, dan profil pencari tim.
-   - **Formulir Perkenalan Terstruktur (Structured Intro)**: Pengunjung mengajukan diri dengan memilih peran, jam komitmen, penjelasan apa yang dibawa, dan tautan bukti karya.
+   - **Formulir Perkenalan Terstruktur (Structured Intro)**: Pengunjung mengajukan diri dengan memilih peran, jam komitmen, penjelasan apa yang dibawa, tautan bukti karya, dan kontak yang bisa dihubungi (wajib, hanya terlihat oleh pemilik tim).
    - Menyimpan pengajuan ke penyimpanan lokal (`web/.data/team-requests.json`) dan menampilkan konfirmasi instan.
 3. **Pasang Pencarian Tim Baru (`/dashboard/tim/baru`)**:
    - Pemilik akun dapat mempublikasikan pencarian tim baru dengan menentukan peran dinamis, jam komitmen, dan tenggat.
@@ -62,6 +62,7 @@ Akashic menghubungkan dua sisi:
    - Menampilkan ringkasan status proyek (terbit vs draft).
    - Menampilkan **Pencarian Tim Saya** yang sedang aktif.
    - Menampilkan **Perkenalan Masuk (Inbox)**: Pemilik dapat melihat siapa saja yang mengajukan diri ke timnya, peran yang dipilih, komitmen waktu, serta memeriksa langsung tautan bukti karya pelamar.
+   - **Review Perkenalan**: Pemilik menandai tiap perkenalan sebagai "Sedang Diskusi", "Diterima", atau "Ditolak" (status tersimpan di kolom `review` pada `team-requests.json`; perkenalan lama tanpa kolom dianggap "Baru"), menghitung yang belum ditinjau, dan menyalin kontak pelamar ke clipboard untuk tindak lanjut.
 5. **Navigasi Global**:
    - Tautan `Cari Tim` tersedia di bilah navigasi atas (TopBar) di seluruh halaman untuk kemudahan eksplorasi.
 
@@ -193,11 +194,9 @@ npm run build        # Build produksi
 ## 6. Rencana Tahap Selanjutnya (Roadmap untuk AI Berikutnya)
 
 Jika Anda ditugaskan melanjutkan Akashic, berikut adalah prioritas berikutnya:
-1. **Status Review Perkenalan di Dasbor**:
-   - Fitur bagi pemilik tim untuk menandai perkenalan: "Diterima", "Ditolak", atau "Sedang Diskusi", serta menyalin kontak pelamar.
-2. **Supabase Database & Authentication**:
-   - Menggantikan `.data/*.json` dengan tabel Supabase: `profiles`, `projects`, `team_posts`, `team_roles`, `team_intros`.
+1. **Supabase Database & Authentication**:
+   - Menggantikan `.data/*.json` dengan tabel Supabase: `profiles`, `projects`, `team_posts`, `team_roles`, `team_intros` (termasuk kolom kontak dan status review perkenalan).
    - Menambahkan login email/kata sandi atau Google OAuth mahasiswa.
    - Menerapkan Row Level Security (RLS) agar hanya pemilik yang bisa melihat inbox timnya.
-3. **Filter & Pencarian di Papan Tim**:
+2. **Filter & Pencarian di Papan Tim**:
    - Filter berdasarkan jenis lomba (GEMASTIK, PKM, Hackathon, Tugas Akhir), keahlian (Figma, Python, React), dan jam komitmen.

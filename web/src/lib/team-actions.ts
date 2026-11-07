@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { DEMO_OWNER_USERNAME } from "@/lib/content";
-import type { TeamIntro, TeamPost, TeamSearchStatus } from "@/lib/fixtures/types";
+import type { IntroReviewStatus, TeamIntro, TeamPost, TeamSearchStatus } from "@/lib/fixtures/types";
 import {
   hasIntroErrors,
   hasTeamErrors,
@@ -15,7 +15,12 @@ import {
   type TeamErrors,
   type TeamPostForm,
 } from "@/lib/team-form";
-import { appendStoredTeamIntro, saveStoredTeam } from "@/lib/team-store";
+import {
+  appendStoredTeamIntro,
+  isIntroReviewStatus,
+  saveStoredTeam,
+  setStoredTeamIntroReview,
+} from "@/lib/team-store";
 import { getTeamPost, listTeamPosts } from "@/lib/teams";
 
 export type SendIntroResult =
@@ -25,6 +30,10 @@ export type SendIntroResult =
 export type CreateTeamPostResult =
   | { ok: true; id: string; savedAt: string }
   | { ok: false; errors: TeamErrors };
+
+export type ReviewIntroResult =
+  | { ok: true; review: IntroReviewStatus }
+  | { ok: false; message: string };
 
 /**
  * Mengirim perkenalan terstruktur dari pengunjung untuk satu pencarian tim.
@@ -67,6 +76,7 @@ export async function sendTeamIntroAction(
     bring: form.bring.trim(),
     learn: form.learn.trim(),
     proofUrl: form.proofUrl.trim(),
+    contact: form.contact.trim(),
   };
 
   appendStoredTeamIntro({
@@ -122,4 +132,38 @@ export async function createTeamPostAction(
   revalidatePath("/dashboard");
 
   return { ok: true, id: team.id, savedAt };
+}
+
+/**
+ * Menandai satu perkenalan masuk sebagai sedang diskusi, diterima, atau ditolak.
+ *
+ * Hanya perkenalan yang ditujukan ke tim milik akun pemilik contoh yang boleh
+ * diubah; sampai autentikasi tersedia, itulah batas "pemilik" yang berlaku.
+ * Status divalidasi ulang di server supaya permintaan langsung tidak bisa
+ * menulis nilai sembarang.
+ */
+export async function reviewTeamIntroAction(
+  teamId: string,
+  sentAt: string,
+  review: IntroReviewStatus,
+): Promise<ReviewIntroResult> {
+  if (!isIntroReviewStatus(review)) {
+    return { ok: false, message: "Status review tidak dikenal." };
+  }
+
+  const teamItem = getTeamPost(teamId);
+
+  if (!teamItem || teamItem.team.ownerUsername !== DEMO_OWNER_USERNAME) {
+    return { ok: false, message: "Perkenalan ini bukan untuk tim Anda." };
+  }
+
+  const updated = setStoredTeamIntroReview(teamId, sentAt, review);
+
+  if (!updated) {
+    return { ok: false, message: "Perkenalan tidak ditemukan; mungkin sudah dihapus dari berkas lokal." };
+  }
+
+  revalidatePath("/dashboard");
+
+  return { ok: true, review };
 }

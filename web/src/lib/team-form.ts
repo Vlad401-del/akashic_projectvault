@@ -50,6 +50,7 @@ export type IntroForm = {
   bring: string;
   learn: string;
   proofUrl: string;
+  contact: string;
 };
 
 export type IntroErrors = {
@@ -57,6 +58,7 @@ export type IntroErrors = {
   weeklyHours?: string;
   bring?: string;
   proofUrl?: string;
+  contact?: string;
 };
 
 function optionalNumber(value: string): number | null {
@@ -186,11 +188,15 @@ export function validateIntroForm(form: IntroForm, roleTitles: string[]): IntroE
     errors.proofUrl = "Gunakan alamat lengkap yang berawalan https:// atau http://.";
   }
 
+  if (form.contact.trim().length < 3) {
+    errors.contact = "Isi kontak yang bisa dihubungi, misalnya email atau nomor WhatsApp.";
+  }
+
   return errors;
 }
 
 export function hasIntroErrors(errors: IntroErrors): boolean {
-  return Boolean(errors.role || errors.weeklyHours || errors.bring || errors.proofUrl);
+  return Boolean(errors.role || errors.weeklyHours || errors.bring || errors.proofUrl || errors.contact);
 }
 
 /** Formulir perkenalan kosong; peran diisi sesuai permintaan papan. */
@@ -202,5 +208,6 @@ export function emptyIntroForm(role: string): IntroForm {
     bring: "",
     learn: "",
     proofUrl: "",
+    contact: "",
   };
 }

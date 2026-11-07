@@ -204,6 +204,28 @@ export function IntroFormComponent({
           </div>
         </div>
 
+        {/* Kontak untuk tindak lanjut */}
+        <div>
+          <label htmlFor="intro-contact" className="block text-[14px] font-semibold text-ink">
+            Kontak yang bisa dihubungi <span className="text-rose-500">*</span>
+          </label>
+          <input
+            id="intro-contact"
+            type="text"
+            value={form.contact}
+            onChange={(e) => handleChange("contact", e.target.value)}
+            placeholder="Contoh: budi@email.com atau 0812-3456-7890 (WhatsApp)"
+            className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-[14px] text-ink transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+          />
+          {errors.contact ? (
+            <p className="mt-1 text-[13px] font-medium text-rose-600">{errors.contact}</p>
+          ) : (
+            <p className="mt-1 text-[12px] text-ink-2">
+              Hanya terlihat oleh pemilik tim di dasbornya, dipakai bila perkenalan Anda ditindaklanjuti.
+            </p>
+          )}
+        </div>
+
         {/* Apa yang saya bawa (Proof of work) */}
         <div>
           <label htmlFor="intro-bring" className="block text-[14px] font-semibold text-ink">
