@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Icon } from "@/components/icons";
 import { Avatar } from "@/components/site-nav";
 import type { TeamPostWithOwner } from "@/lib/teams";
-import { openSlots, roleSkillsLabel } from "@/lib/teams";
+import { openSlots, roleSkillsLabel } from "@/lib/team-utils";
 
 /**
  * Kartu posting pencarian anggota tim untuk papan `/tim`.

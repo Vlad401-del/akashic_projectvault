@@ -17,6 +17,7 @@
 1. **Papan Cari Tim Publik (`/tim`)**:
    - Menampilkan kartu pencarian tim lomba aktif (mis. GEMASTIK 2027, PKM-K).
    - Menampilkan peran spesifik yang dicari, komitmen waktu (jam/minggu), tenggat, dan kartu profil pembuat tim yang terhubung langsung ke portofolio studi kasusnya.
+   - Filter & pencarian: kata kunci, jenis lomba, keahlian yang dicari, dan batas jam komitmen.
 2. **Detail Tim & Perkenalan Terstruktur (`/tim/[id]`)**:
    - Formulir pengajuan diri terstruktur (*Structured Intro*): Pelamar memilih peran, menjamin komitmen jam, menjelaskan apa yang dibawa, dan menyertakan tautan bukti karya (GitHub/Figma/Akashic).
    - Pengajuan tersimpan di `web/.data/team-requests.json`.

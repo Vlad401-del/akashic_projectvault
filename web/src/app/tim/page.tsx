@@ -5,7 +5,7 @@ import { Icon } from "@/components/icons";
 import { PrototypeNotice } from "@/components/prototype-notice";
 import { SiteBrand } from "@/components/site-brand";
 import { TopBar } from "@/components/site-nav";
-import { TeamCard } from "@/components/team/team-card";
+import { TeamBoard } from "@/components/team/team-board";
 import { listOpenTeamPosts } from "@/lib/teams";
 
 export const metadata: Metadata = {
@@ -145,11 +145,7 @@ export default function TeamBoardPage() {
               </div>
             </div>
           ) : (
-            <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
-              {openTeams.map((item) => (
-                <TeamCard key={item.team.id} item={item} />
-              ))}
-            </div>
+            <TeamBoard items={openTeams} />
           )}
         </section>
       </main>

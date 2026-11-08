@@ -52,6 +52,7 @@ Akashic menghubungkan dua sisi:
 1. **Papan Publik Pencarian Tim (`/tim`)**:
    - Menampilkan kartu pencarian tim lomba yang sedang membuka rekrutmen.
    - Kartu menampilkan: konteks kompetisi, jumlah slot yang dibutuhkan (`openSlots`), ringkasan ide, daftar peran & keahlian yang dicari, komitmen jam/minggu, tenggat, serta kartu profil pembuat tim lengkap dengan tautan ke portofolionya.
+   - **Filter & pencarian**: kata kunci (judul/ide/kompetisi/peran), jenis lomba (GEMASTIK, PKM, Hackathon, Tugas Akhir, Lainnya — dikenali dari teks kompetisi), keahlian yang dicari, dan batas maksimum jam komitmen. Logika murni di `web/src/lib/team-filter.ts`, dijalankan di peramban oleh `TeamBoard`.
 2. **Halaman Detail Tim (`/tim/[id]`)**:
    - Informasi lengkap ide proyek, masalah yang dihadapi, rincian peran, ritme pertemuan, dan profil pencari tim.
    - **Formulir Perkenalan Terstruktur (Structured Intro)**: Pengunjung mengajukan diri dengan memilih peran, jam komitmen, penjelasan apa yang dibawa, tautan bukti karya, dan kontak yang bisa dihubungi (wajib, hanya terlihat oleh pemilik tim).
@@ -198,5 +199,3 @@ Jika Anda ditugaskan melanjutkan Akashic, berikut adalah prioritas berikutnya:
    - Menggantikan `.data/*.json` dengan tabel Supabase: `profiles`, `projects`, `team_posts`, `team_roles`, `team_intros` (termasuk kolom kontak dan status review perkenalan).
    - Menambahkan login email/kata sandi atau Google OAuth mahasiswa.
    - Menerapkan Row Level Security (RLS) agar hanya pemilik yang bisa melihat inbox timnya.
-2. **Filter & Pencarian di Papan Tim**:
-   - Filter berdasarkan jenis lomba (GEMASTIK, PKM, Hackathon, Tugas Akhir), keahlian (Figma, Python, React), dan jam komitmen.

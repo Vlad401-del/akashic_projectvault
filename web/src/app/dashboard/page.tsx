@@ -8,7 +8,8 @@ import { PrototypeNotice } from "@/components/prototype-notice";
 import { Avatar } from "@/components/site-nav";
 import { IntroReviewControls } from "@/components/team/intro-review-controls";
 import { getDemoOwner, listOwnedProjects } from "@/lib/content";
-import { listIncomingIntros, listOwnedTeamPosts, openSlots } from "@/lib/teams";
+import { listIncomingIntros, listOwnedTeamPosts } from "@/lib/teams";
+import { openSlots } from "@/lib/team-utils";
 
 export const metadata: Metadata = {
   title: "Dasbor Pemilik — Akashic",

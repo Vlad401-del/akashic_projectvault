@@ -6,7 +6,8 @@ import { PrototypeNotice } from "@/components/prototype-notice";
 import { Avatar, TopBar } from "@/components/site-nav";
 import { IntroFormComponent } from "@/components/team/intro-form-component";
 import { getPublicProfile } from "@/lib/content";
-import { getTeamPost, listKnownTeamIds, openSlots, roleSkillsLabel } from "@/lib/teams";
+import { getTeamPost, listKnownTeamIds } from "@/lib/teams";
+import { openSlots, roleSkillsLabel } from "@/lib/team-utils";
 
 export function generateStaticParams() {
   return listKnownTeamIds().map((id) => ({ id }));

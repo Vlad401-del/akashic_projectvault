@@ -16,7 +16,7 @@
  */
 import { profiles } from "@/lib/fixtures/fixtures";
 import { teamPosts as fixtureTeams } from "@/lib/fixtures/teams";
-import type { IntroReviewStatus, TeamIntro, TeamPost, TeamRole } from "@/lib/fixtures/types";
+import type { IntroReviewStatus, TeamIntro, TeamPost } from "@/lib/fixtures/types";
 import { readStoredTeamIntros, readStoredTeams } from "@/lib/team-store";
 
 import { DEMO_OWNER_USERNAME } from "@/lib/content";
@@ -134,14 +134,4 @@ export function listIncomingIntros(): IncomingIntro[] {
       sentAt: item.sentAt,
       review: item.review ?? "baru",
     }));
-}
-
-/** Label ringkas jumlah slot yang masih dibutuhkan, dipakai di kartu dan detail. */
-export function openSlots(team: TeamPost): number {
-  return Math.max(team.targetMembers - team.currentMembers, 0);
-}
-
-/** Label "wajib ada" kemampuan pada satu peran, dipakai di kartu dan detail. */
-export function roleSkillsLabel(role: TeamRole): string {
-  return role.skills.length > 0 ? role.skills.join(", ") : "Kemampuan bebas";
 }
