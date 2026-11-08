@@ -399,7 +399,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="mt-14 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-14 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {featured.map(({ project, profile }, index) => (
               <div
                 key={`${profile.username}-${project.slug}`}
@@ -502,7 +502,7 @@ export default function HomePage() {
           </div>
 
           {openTeams.length > 0 ? (
-            <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {openTeams.slice(0, 3).map((item, index) => (
                 <div key={item.team.id} data-reveal style={delay(index * 110)}>
                   <TeamCard item={item} />
