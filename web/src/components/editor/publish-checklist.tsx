@@ -75,7 +75,7 @@ export function PublishChecklist({
               type="checkbox"
               checked={consentRights}
               onChange={(event) => onConsentRightsChange(event.target.checked)}
-              className="mt-1 size-4 shrink-0 accent-[#2563EB]"
+              className="mt-1 size-4 shrink-0 accent-accent"
             />
             <span>Saya berhak membagikan karya ini dan sudah memakai data yang boleh ditampilkan.</span>
           </label>
@@ -85,7 +85,7 @@ export function PublishChecklist({
               type="checkbox"
               checked={consentNoSensitive}
               onChange={(event) => onConsentNoSensitiveChange(event.target.checked)}
-              className="mt-1 size-4 shrink-0 accent-[#2563EB]"
+              className="mt-1 size-4 shrink-0 accent-accent"
             />
             <span>Proyek ini tidak memuat data sensitif seperti kontak pribadi orang lain atau berkas rahasia.</span>
           </label>

@@ -7,10 +7,14 @@ import { initials } from "@/lib/text";
 
 /** Lingkaran inisial nama. Dipakai di bilah atas dan header profil. */
 export function Avatar({ displayName, size = "sm" }: { displayName: string; size?: "sm" | "lg" }) {
-  const sizeClass = size === "lg" ? "size-20 text-[26px] sm:size-24 sm:text-[30px]" : "size-8 text-[12px]";
+  const sizeClass =
+    size === "lg" ? "size-20 text-[28px] sm:size-24 sm:text-[32px]" : "size-8 text-[12px]";
 
   return (
-    <span aria-hidden="true" className={`flex shrink-0 items-center justify-center rounded-full bg-ink font-semibold text-white ${sizeClass}`}>
+    <span
+      aria-hidden="true"
+      className={`flex shrink-0 items-center justify-center rounded-full bg-forest font-display font-semibold text-sun ring-2 ring-surface ${sizeClass}`}
+    >
       {initials(displayName)}
     </span>
   );
@@ -32,17 +36,33 @@ export function OwnerChip({ profile }: { profile: Profile }) {
  * Sisi kiri berisi penanda halaman (pemilik atau tautan kembali) dan sisi kanan
  * berisi navigasi dan merek Akashic. Bilah ini menempel di atas saat halaman digulir.
  */
-export function TopBar({ left, right }: { left: ReactNode; right?: ReactNode }) {
+export function TopBar({
+  left,
+  right,
+  tone = "light",
+}: {
+  left: ReactNode;
+  right?: ReactNode;
+  tone?: "light" | "dark";
+}) {
+  const isDark = tone === "dark";
+
   return (
-    <div className="sticky top-0 z-20 border-b border-line bg-surface/95 backdrop-blur-[2px]">
-      <div className="mx-auto flex h-14 max-w-[1120px] items-center justify-between gap-4 px-5 sm:px-8 xl:px-0">
+    <div
+      className={`sticky top-0 z-30 border-b backdrop-blur-md ${
+        isDark
+          ? "on-dark border-cream/10 bg-forest/95 text-cream"
+          : "border-line bg-canvas/90"
+      }`}
+    >
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-5 sm:px-8">
         <div className="flex min-w-0 items-center gap-3">{left}</div>
         <div className="flex items-center gap-4">
           {right ?? (
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-5">
               <Link
                 href="/tim"
-                className="text-[14px] font-medium text-ink-2 transition-colors hover:text-ink"
+                className="link-underline text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink"
               >
                 Cari Tim
               </Link>

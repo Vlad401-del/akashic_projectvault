@@ -17,16 +17,16 @@ export function TeamCard({ item }: { item: TeamPostWithOwner }) {
   const slots = openSlots(team);
 
   return (
-    <article className="group relative flex h-full flex-col overflow-hidden rounded-xl border border-line bg-surface p-5 transition-[border-color,box-shadow] hover:border-line-strong hover:shadow-[0_4px_16px_rgba(24,34,48,0.06)] sm:p-6">
+    <article className="card-lift group relative flex h-full flex-col overflow-hidden rounded-[18px] p-5 sm:p-6">
       {/* Baris Atas: Kompetisi & Slot Tersedia */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="inline-flex items-center rounded-md bg-accent/10 px-2.5 py-1 text-[12px] font-semibold text-accent">
+        <span className="inline-flex items-center rounded-full bg-coral px-2.5 py-1 text-[12px] font-bold text-ink">
           {team.competition}
         </span>
 
         {team.status === "open" ? (
-          <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-emerald-700">
-            <span className="size-2 rounded-full bg-emerald-500" />
+          <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-accent">
+            <span className="size-2 rounded-full bg-accent" />
             {slots > 0 ? `Butuh ${slots} anggota lagi` : "Slot sedang ditinjau"}
           </span>
         ) : (
@@ -38,7 +38,7 @@ export function TeamCard({ item }: { item: TeamPostWithOwner }) {
       </div>
 
       {/* Judul & Tautan */}
-      <h3 className="mt-3 text-[19px] font-semibold leading-snug tracking-tight text-ink group-hover:text-accent">
+      <h3 className="mt-4 text-[22px] font-semibold leading-[1.15] text-ink">
         <Link
           href={`/tim/${team.id}`}
           className="rounded after:absolute after:inset-0 after:content-['']"
@@ -61,7 +61,7 @@ export function TeamCard({ item }: { item: TeamPostWithOwner }) {
           {team.roles.map((role, idx) => (
             <div
               key={idx}
-              className="rounded-lg border border-line bg-canvas px-2.5 py-1 text-[13px]"
+              className="rounded-full border border-ink/15 bg-sun-soft/60 px-2.5 py-1 text-[13px]"
             >
               <span className="font-medium text-ink">{role.title}</span>
               {role.skills.length > 0 ? (

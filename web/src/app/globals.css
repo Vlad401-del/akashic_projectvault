@@ -1,63 +1,65 @@
 @import "tailwindcss";
 
 /*
- * Palet Akashic — "prismatic minimal".
+ * Palet Akashic — "studio lomba".
  *
- * Sebagian besar layar netral; warna spektrum hanya muncul sebagai aksen kecil.
- * Nilai netral (canvas, surface, ink, line) tetap seperti semula. Aksen utama
- * memakai biru #2563EB, dan spektrum dekoratif bergerak cyan -> biru -> hijau
- * (dengan ujung lime) untuk memberi kesan prisma, bukan violet lagi.
+ * DNA dari referensi: hijau hutan, mustard, koral, krem, biru langit, dan mint,
+ * dengan judul serif. Supaya tidak terasa kartun, garis dibuat tipis dan
+ * bayangan offset hanya muncul saat kartu disentuh (hover/fokus).
  *
- * Catatan kontras (diukur terhadap latar putih #FFFFFF):
- *   accent #2563EB        5,17:1  aman untuk tautan dan tombol (teks putih)
- *   ink    #182230       15,2:1
- *   ink-2  #526071        5,9:1
- *   hijau  #22C55E        2,3:1  GAGAL untuk teks, jadi hanya untuk dekorasi
- *   cyan   #06B6D4        2,6:1  GAGAL untuk teks, jadi hanya untuk dekorasi
- * Karena itu cyan, hijau, dan lime hanya dipakai pada prisma dan garis tipis,
- * tidak pernah untuk teks atau tombol.
+ * Catatan kontras:
+ *   ink   #16241E di atas krem #FBF6EA   ~15:1
+ *   ink-2 #4E5A52 di atas krem            ~6,7:1
+ *   putih di atas forest #1F4D3A          ~9,5:1
+ *   ink di atas sun #F2B544 / coral #EE6C4D  >= 5:1
+ * Sun dan coral TIDAK dipakai sebagai warna teks di atas latar terang.
  */
 @theme inline {
-  --color-canvas: #f8f9fc;
-  --color-surface: #ffffff;
-  --color-ink: #182230;
-  --color-ink-2: #526071;
-  --color-line: #dce2ea;
-  --color-line-strong: #c8d0db;
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
-  --color-accent-soft: #eaf1fd;
+  --color-canvas: #fbf6ea;
+  --color-surface: #fffdf8;
+  --color-ink: #16241e;
+  --color-ink-2: #4e5a52;
+  --color-line: #e6dcc6;
+  --color-line-strong: #cdbf9f;
+  --color-accent: #1f4d3a;
+  --color-accent-hover: #163a2b;
+  --color-accent-soft: #e2ede4;
   --color-danger: #b42318;
   --color-danger-soft: #fef3f2;
 
-  --color-spectrum-cyan: #06b6d4;
-  --color-spectrum-blue: #2563eb;
-  --color-spectrum-green: #22c55e;
-  --color-spectrum-lime: #84cc16;
+  --color-forest: #1f4d3a;
+  --color-forest-deep: #143326;
+  --color-night: #111a15;
+  --color-sun: #f2b544;
+  --color-sun-soft: #f9e2a8;
+  --color-coral: #ee6c4d;
+  --color-sky: #d3e8f2;
+  --color-mint: #d7eadb;
+  --color-cream: #fbf6ea;
+  --color-cream-deep: #f4e9cf;
 
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial,
+  /* Dipertahankan untuk komponen lama; nilainya mengikuti palet baru. */
+  --color-spectrum-cyan: #ee6c4d;
+  --color-spectrum-blue: #1f4d3a;
+  --color-spectrum-green: #f2b544;
+  --color-spectrum-lime: #9cc9a8;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial,
     sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, "Times New Roman", serif;
 }
 
-/*
- * Gradien spektrum. Dipakai hanya pada tanda merek, kata merek, dan satu garis
- * tipis. `--spectrum-word` sengaja sedikit lebih gelap daripada ujung spektrum
- * dekoratif supaya tulisan "Akashic" tetap terbaca (cyan 4,4:1, hijau 4,7:1).
- */
 :root {
-  --spectrum-mark: linear-gradient(148deg, #06b6d4 0%, #2563eb 52%, #22c55e 100%);
-  --spectrum-word: linear-gradient(92deg, #0891b2 0%, #2563eb 46%, #15803d 100%);
-  --spectrum-rule: linear-gradient(90deg, #06b6d4 0%, #2563eb 44%, #22c55e 78%, #84cc16 100%);
+  --spectrum-mark: linear-gradient(148deg, #ee6c4d 0%, #f2b544 100%);
+  --spectrum-word: linear-gradient(92deg, #16241e 0%, #16241e 100%);
+  --spectrum-rule: linear-gradient(90deg, #1f4d3a 0%, #1f4d3a 55%, #f2b544 55%, #f2b544 80%, #ee6c4d 80%);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/*
- * Mode gelap bawaan template dilepas dengan sengaja: arah desain Akashic
- * menetapkan satu palet terang dan kontrasnya sudah diperiksa pada palet itu.
- * Menyalakan mode gelap otomatis akan menampilkan teks yang belum diuji.
- */
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
   }
 
   body {
@@ -65,14 +67,254 @@
     color: var(--color-ink);
   }
 
-  /* Fokus keyboard harus selalu terlihat jelas. */
+  /* Judul memakai serif; label kecil berhuruf kapital tetap sans. */
+  :where(h1, h2, h3):not(.uppercase) {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.015em;
+  }
+
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
     border-radius: 6px;
   }
 
+  .on-dark :focus-visible {
+    outline-color: var(--color-sun);
+  }
+
   a {
     text-underline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--color-sun);
+    color: var(--color-ink);
+  }
+}
+
+@layer components {
+  /*
+   * Kartu "taktil": garis tipis saat diam, lalu terangkat dengan bayangan
+   * offset tegas saat disentuh — gema DNA referensi tanpa kesan kartun.
+   */
+  .card-lift {
+    border: 1px solid color-mix(in oklab, var(--color-ink) 16%, transparent);
+    background: var(--color-surface);
+    transition:
+      transform 260ms var(--ease-out-expo),
+      box-shadow 260ms var(--ease-out-expo),
+      border-color 200ms ease;
+  }
+
+  .card-lift:hover,
+  .card-lift:focus-within {
+    border-color: var(--color-ink);
+    box-shadow: 5px 5px 0 0 var(--color-ink);
+    transform: translate(-2px, -2px);
+  }
+
+  /* Label kecil berhuruf kapital dengan penanda kotak. */
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    background: currentColor;
+    transform: rotate(45deg);
+  }
+
+  /* Teks raksasa bergaris (abstraksi ala Riot). */
+  .outline-type {
+    -webkit-text-fill-color: transparent;
+    -webkit-text-stroke: 1px currentColor;
+  }
+
+  /* Grid garis tipis sebagai latar abstrak. */
+  .grid-lines {
+    background-image:
+      linear-gradient(to right, currentColor 1px, transparent 1px),
+      linear-gradient(to bottom, currentColor 1px, transparent 1px);
+    background-size: 72px 72px;
+    mask-image: radial-gradient(ellipse 70% 70% at 60% 40%, #000 20%, transparent 75%);
+  }
+
+  /* Arsiran diagonal. */
+  .hatch {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      currentColor 0 1px,
+      transparent 1px 9px
+    );
+  }
+
+  /* Siku pojok ala bingkai HUD. */
+  .corner-marks {
+    --mark: currentColor;
+    background:
+      linear-gradient(var(--mark), var(--mark)) top left / 18px 1.5px,
+      linear-gradient(var(--mark), var(--mark)) top left / 1.5px 18px,
+      linear-gradient(var(--mark), var(--mark)) top right / 18px 1.5px,
+      linear-gradient(var(--mark), var(--mark)) top right / 1.5px 18px,
+      linear-gradient(var(--mark), var(--mark)) bottom left / 18px 1.5px,
+      linear-gradient(var(--mark), var(--mark)) bottom left / 1.5px 18px,
+      linear-gradient(var(--mark), var(--mark)) bottom right / 18px 1.5px,
+      linear-gradient(var(--mark), var(--mark)) bottom right / 1.5px 18px;
+    background-repeat: no-repeat;
+  }
+
+  .cut-bottom {
+    clip-path: polygon(0 0, 100% 0, 100% calc(100% - var(--cut, 56px)), 0 100%);
+  }
+
+  .cut-top {
+    clip-path: polygon(0 var(--cut, 56px), 100% 0, 100% 100%, 0 100%);
+  }
+
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1.5px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 320ms var(--ease-out-expo);
+  }
+
+  .link-underline:hover,
+  .link-underline:focus-visible {
+    background-size: 100% 1.5px;
+  }
+}
+
+/* ---------- Gerak (ringan, tanpa pustaka) ---------- */
+
+@keyframes line-rise {
+  from {
+    transform: translateY(105%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--tilt, 0deg));
+  }
+  50% {
+    transform: translateY(-8px) rotate(var(--tilt, 0deg));
+  }
+}
+
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.line-mask {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.08em;
+}
+
+.line-mask > span {
+  display: block;
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+}
+
+.drift {
+  transform: rotate(var(--tilt, 0deg));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .line-mask > span {
+    animation: line-rise 1000ms var(--ease-out-expo) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  .fade-up {
+    animation: fade-up 900ms var(--ease-out-expo) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  .marquee-track {
+    animation: marquee 38s linear infinite;
+  }
+
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  .drift {
+    animation: drift 7s ease-in-out infinite;
+    animation-delay: var(--d, 0ms);
+  }
+
+  .spin-slow {
+    animation: spin-slow 40s linear infinite;
+  }
+}
+
+/*
+ * Reveal saat digulir. Keadaan tersembunyi hanya berlaku bila JavaScript aktif
+ * dan pengguna tidak meminta gerak dikurangi, jadi isi tetap terbaca tanpa JS.
+ */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 900ms var(--ease-out-expo),
+      transform 900ms var(--ease-out-expo);
+    transition-delay: var(--d, 0ms);
+  }
+
+  [data-reveal][data-shown] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .card-lift,
+  .card-lift:hover,
+  .card-lift:focus-within {
+    transform: none;
   }
 }

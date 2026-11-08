@@ -11,7 +11,7 @@ import { Icon } from "@/components/icons";
 export function PrototypeNotice({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <p
-      className={`flex items-start gap-2 rounded-[10px] border border-line bg-surface px-4 py-2.5 text-[13px] leading-5 text-ink-2 ${className}`}
+      className={`flex items-start gap-2 rounded-[12px] border border-sun/60 bg-sun-soft/50 px-4 py-2.5 text-[13px] leading-5 text-ink ${className}`}
     >
       <Icon name="info" className="mt-0.5 size-4" />
       <span>{children}</span>

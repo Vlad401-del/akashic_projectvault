@@ -12,17 +12,17 @@ import type { CoverVariant } from "@/lib/fixtures/types";
  * "Contoh tampilan" supaya tidak disangka tangkapan layar proyek sungguhan.
  * Ilustrasi sengaja tidak memuat angka atau metrik apa pun.
  *
- * Warna aksen mengikuti palet terbaru: biru #2563EB, cyan #06B6D4, hijau
- * #22C55E. Hanya dipakai sebagai aksen kecil; sebagian besar ilustrasi netral.
+ * Warna aksen mengikuti palet "studio lomba": forest #1F4D3A, coral #EE6C4D,
+ * sun #F2B544. Hanya dipakai sebagai aksen kecil; sebagian besar ilustrasi netral.
  */
-const SURFACE = "#FFFFFF";
-const CANVAS = "#F8F9FC";
-const LINE = "#DCE2EA";
-const BLOCK = "#E7ECF3";
-const INK_SOFT = "#8A96A6";
-const ACCENT = "#2563EB";
-const CYAN = "#06B6D4";
-const GREEN = "#22C55E";
+const SURFACE = "#FFFDF8";
+const CANVAS = "#F4E9CF";
+const LINE = "#E6DCC6";
+const BLOCK = "#EFE5CF";
+const INK_SOFT = "#8B8F7E";
+const ACCENT = "#1F4D3A";
+const CYAN = "#EE6C4D";
+const GREEN = "#F2B544";
 
 function TextLines({
   x,
@@ -279,7 +279,9 @@ export function ProjectCover({
 }) {
   const Art = ART[variant];
   const frameClass =
-    frame === "card" ? "border-b border-line bg-surface" : "overflow-hidden rounded-xl border border-line bg-surface";
+    frame === "card"
+      ? "overflow-hidden border-b border-ink/10 bg-surface"
+      : "overflow-hidden rounded-[18px] border border-ink/15 bg-surface";
 
   return (
     <div className={`relative w-full ${frameClass} ${aspectClassName}`}>
@@ -288,11 +290,11 @@ export function ProjectCover({
         role="img"
         aria-label={alt}
         preserveAspectRatio="xMidYMid slice"
-        className="h-full w-full"
+        className={`h-full w-full ${frame === "card" ? "transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" : ""}`}
       >
         <Art />
       </svg>
-      <span className="absolute right-3 top-3 rounded-full border border-line bg-surface/85 px-2.5 py-[3px] text-[11px] font-medium text-ink-2 backdrop-blur-[2px]">
+      <span className="absolute right-3 top-3 rounded-full bg-sun px-2.5 py-[3px] text-[11px] font-bold text-ink">
         Contoh tampilan
       </span>
     </div>
