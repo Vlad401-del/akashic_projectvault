@@ -183,12 +183,12 @@ export default function HomePage() {
         <HeroSpotlight />
         <div
           aria-hidden="true"
-          className="spin-slow absolute -right-40 -top-40 -z-10 size-[520px] rounded-full border border-dashed border-sun/25"
+          className="absolute -right-40 -top-40 -z-10 size-[520px] rounded-full border border-dashed border-sun/25"
         />
         <div aria-hidden="true" className="hatch absolute bottom-24 left-0 -z-10 h-40 w-1/3 text-cream/[0.06]" />
         <p
           aria-hidden="true"
-          className="outline-type pointer-events-none absolute -bottom-[0.18em] left-1/2 -z-10 -translate-x-1/2 select-none whitespace-nowrap font-display text-[24vw] font-semibold leading-none text-cream/[0.12]"
+          className="pointer-events-none absolute -bottom-[0.2em] left-1/2 -z-10 -translate-x-1/2 select-none whitespace-nowrap font-display text-[16vw] font-semibold leading-none text-cream/[0.05]"
         >
           karya nyata
         </p>
@@ -374,12 +374,6 @@ export default function HomePage() {
         className="cut-top relative isolate scroll-mt-16 bg-mint pb-32 pt-36"
         style={{ ["--cut" as string]: "64px" }}
       >
-        <p
-          aria-hidden="true"
-          className="outline-type pointer-events-none absolute right-[-2vw] top-16 -z-10 select-none font-display text-[20vw] font-semibold leading-none text-forest/20"
-        >
-          karya
-        </p>
         <div className="mx-auto max-w-[1200px] px-5 sm:px-8">
           <div data-reveal className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
             <div>
@@ -438,7 +432,7 @@ export default function HomePage() {
                 unoptimized
                 className="object-cover grayscale contrast-125"
               />
-              <div aria-hidden="true" className="absolute inset-0 bg-forest mix-blend-multiply" />
+              <div aria-hidden="true" className="absolute inset-0 bg-forest/55" />
               <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-night/70 via-transparent to-transparent" />
               <p className="absolute bottom-5 left-6 right-6 font-display text-[24px] italic leading-tight text-cream">
                 “Siapa mengerjakan apa” harus jelas sejak awal.
@@ -581,7 +575,7 @@ export default function HomePage() {
                 unoptimized
                 className="object-cover grayscale"
               />
-              <div aria-hidden="true" className="absolute inset-0 bg-coral/35 mix-blend-multiply" />
+              <div aria-hidden="true" className="absolute inset-0 bg-coral/25" />
             </div>
             <figcaption className="mt-5 text-center text-[11px] text-ink/60">Foto: Xin Wang / Unsplash</figcaption>
           </figure>

@@ -49,10 +49,10 @@ export function TopBar({
 
   return (
     <div
-      className={`sticky top-0 z-30 border-b backdrop-blur-md ${
+      className={`sticky top-0 z-30 border-b ${
         isDark
-          ? "on-dark border-cream/10 bg-forest/95 text-cream"
-          : "border-line bg-canvas/90"
+          ? "on-dark border-cream/10 bg-forest text-cream"
+          : "border-line bg-canvas"
       }`}
     >
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-5 sm:px-8">

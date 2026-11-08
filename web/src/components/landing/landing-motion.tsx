@@ -6,33 +6,69 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
 import { Icon } from "@/components/icons";
 
 /**
- * Satu IntersectionObserver untuk semua elemen `[data-reveal]` di halaman.
- * Keadaan tersembunyinya diatur di CSS (hanya bila JS aktif dan gerak tidak
- * dikurangi), jadi komponen ini cukup menandai elemen yang sudah terlihat.
+ * Menampilkan elemen `[data-reveal]` saat masuk layar.
+ *
+ * Dibuat "fail-open": elemen hanya disembunyikan setelah komponen ini
+ * berjalan dan menandai `<html data-reveal-ready>`. Elemen yang sudah terlihat
+ * ditandai lebih dulu supaya tidak berkedip. Selain IntersectionObserver ada
+ * pemeriksaan posisi saat scroll sebagai cadangan.
  */
 export function RevealObserver() {
   useEffect(() => {
-    const targets = Array.from(document.querySelectorAll<HTMLElement>("[data-reveal]"));
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    if (!("IntersectionObserver" in window)) {
-      targets.forEach((el) => el.setAttribute("data-shown", ""));
-      return;
+    const root = document.documentElement;
+    const pending = new Set<Element>();
+    const isNearView = (el: Element) => el.getBoundingClientRect().top < window.innerHeight * 0.92;
+
+    for (const el of document.querySelectorAll("[data-reveal]")) {
+      if (isNearView(el)) el.setAttribute("data-shown", "");
+      else pending.add(el);
+    }
+    if (pending.size === 0) return;
+
+    let observer: IntersectionObserver | null = null;
+    let frame = 0;
+
+    const show = (el: Element) => {
+      el.setAttribute("data-shown", "");
+      pending.delete(el);
+      observer?.unobserve(el);
+      if (pending.size === 0) cleanup();
+    };
+
+    const check = () => {
+      frame = 0;
+      for (const el of Array.from(pending)) if (isNearView(el)) show(el);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(check);
+    };
+
+    function cleanup() {
+      observer?.disconnect();
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
     }
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.setAttribute("data-shown", "");
-            observer.unobserve(entry.target);
-          }
-        }
-      },
-      { rootMargin: "0px 0px -8% 0px", threshold: 0.12 },
-    );
+    if ("IntersectionObserver" in window) {
+      observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) if (entry.isIntersecting) show(entry.target);
+        },
+        { rootMargin: "0px 0px -8% 0px" },
+      );
+      pending.forEach((el) => observer?.observe(el));
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    root.setAttribute("data-reveal-ready", "");
 
-    targets.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
+    return () => {
+      cleanup();
+      root.removeAttribute("data-reveal-ready");
+    };
   }, []);
 
   return null;
