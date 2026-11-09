@@ -1,7 +1,9 @@
 import Link from "next/link";
 
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Icon } from "@/components/icons";
 import { OwnerChip, TopBar } from "@/components/site-nav";
+import { getCurrentUser } from "@/lib/auth-session";
 import type { Profile } from "@/lib/fixtures/types";
 
 /**
@@ -9,8 +11,9 @@ import type { Profile } from "@/lib/fixtures/types";
  *
  * Sisi kiri berisi tautan kembali dan sisi kanan berisi penanda akun pemilik,
  * supaya jelas bahwa halaman ini bukan halaman yang dilihat pengunjung.
+ * Bila ada sesi masuk lokal, tombol keluar ikut ditampilkan.
  */
-export function OwnerTopBar({
+export async function OwnerTopBar({
   owner,
   backHref,
   backLabel,
@@ -19,6 +22,8 @@ export function OwnerTopBar({
   backHref: string;
   backLabel: string;
 }) {
+  const user = await getCurrentUser();
+
   return (
     <TopBar
       left={
@@ -30,7 +35,12 @@ export function OwnerTopBar({
           {backLabel}
         </Link>
       }
-      right={<OwnerChip profile={owner} />}
+      right={
+        <div className="flex items-center gap-3">
+          <OwnerChip profile={owner} />
+          {user ? <SignOutButton /> : null}
+        </div>
+      }
     />
   );
 }

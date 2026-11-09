@@ -59,12 +59,24 @@ export function TopBar({
         <div className="flex min-w-0 items-center gap-3">{left}</div>
         <div className="flex items-center gap-4">
           {right ?? (
-            <div className="flex items-center gap-5">
+            <div className="flex items-center gap-4 sm:gap-5">
               <Link
                 href="/tim"
-                className="link-underline text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink"
+                className="link-underline hidden text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink sm:inline"
               >
                 Cari Tim
+              </Link>
+              <Link
+                href="/login"
+                className="link-underline text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink"
+              >
+                Masuk
+              </Link>
+              <Link
+                href="/register"
+                className="inline-flex h-9 items-center rounded-full bg-sun px-4 text-[13px] font-bold text-ink transition-transform hover:-translate-y-0.5"
+              >
+                Daftar
               </Link>
               <SiteBrand />
             </div>

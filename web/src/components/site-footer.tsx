@@ -20,6 +20,13 @@ export function SiteFooter() {
         { label: "Cara kerja", href: "/#cara-kerja" },
       ],
     },
+    {
+      title: "Akun",
+      links: [
+        { label: "Masuk", href: "/login" },
+        { label: "Daftar", href: "/register" },
+      ],
+    },
     ...(demoEditorEnabled
       ? [
           {
