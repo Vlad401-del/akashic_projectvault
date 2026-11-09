@@ -33,6 +33,32 @@ export function toSafeExternalUrl(value: string | null | undefined): string | nu
 }
 
 /**
+ * Sumber gambar yang boleh dirender.
+ *
+ * Menerima jalur lokal di dalam `public` (diawali satu garis miring, misalnya
+ * `/images/projects/dashboard.jpg`) atau URL http/https. Skema seperti
+ * `javascript:` dan `data:` ditolak, begitu juga `//host` yang bisa
+ * membajak domain.
+ */
+export function toSafeImageSrc(value: string | null | undefined): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const trimmed = value.trim();
+
+  if (trimmed.length === 0) {
+    return null;
+  }
+
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//")) {
+    return trimmed;
+  }
+
+  return toSafeExternalUrl(trimmed);
+}
+
+/**
  * Seperti toSafeExternalUrl, tetapi juga menolak domain placeholder
  * `example.com` agar tautan mati tidak tampil sebagai tombol kontak/bukti karya.
  */

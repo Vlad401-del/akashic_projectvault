@@ -141,7 +141,7 @@ export function PreviewDialog({
             </header>
 
             <figure className="lg:col-span-2 lg:row-start-2">
-              <ProjectCover variant={project.cover.variant} alt={project.cover.alt} />
+              <ProjectCover variant={project.cover.variant} alt={project.cover.alt} src={project.cover.src} />
               {project.cover.caption ? (
                 <ProjectCoverCaption text={project.cover.caption} className="mt-3" />
               ) : null}
@@ -157,7 +157,8 @@ export function PreviewDialog({
           </div>
 
           <p className="mt-12 border-t border-line pt-6 text-[13px] leading-5 text-ink-2">
-            Pratinjau ini hanya tampilan di peramban. Belum ada data yang dikirim atau disimpan ke database.
+            Pratinjau ini memperlihatkan bagaimana halaman publik proyek Anda akan tampil setelah
+            diterbitkan.
           </p>
         </div>
       </div>

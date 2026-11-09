@@ -174,7 +174,7 @@ export function ProjectStory({ project, ownerName }: { project: Project; ownerNa
           <div className="grid gap-6 sm:grid-cols-2">
             {project.gallery.map((image) => (
               <figure key={image.alt}>
-                <ProjectCover variant={image.variant} alt={image.alt} />
+                <ProjectCover variant={image.variant} alt={image.alt} src={image.src} />
                 {image.caption ? <ProjectCoverCaption text={image.caption} className="mt-3" /> : null}
               </figure>
             ))}

@@ -20,7 +20,7 @@ import type {
   Teammate,
   WorkType,
 } from "@/lib/fixtures/types";
-import { isSafeExternalUrl } from "@/lib/url";
+import { isSafeExternalUrl, toSafeImageSrc } from "@/lib/url";
 
 /** Satu baris tautan bukti karya di dalam formulir. */
 export type EditorSource = {
@@ -53,6 +53,8 @@ export type EditorForm = {
   outcomeNote: string;
   outcomeCards: string;
   coverVariant: CoverVariant;
+  /** Alamat gambar sampul asli; kosong berarti memakai ilustrasi `coverVariant`. */
+  coverImageUrl: string;
   coverAlt: string;
   coverCaption: string;
   sources: EditorSource[];
@@ -65,6 +67,7 @@ export type EditorForm = {
 export type EditorErrors = {
   title?: string;
   summary?: string;
+  coverImageUrl?: string;
   sources?: Record<number, string>;
 };
 
@@ -179,6 +182,7 @@ export function emptyForm(): EditorForm {
     outcomeNote: "",
     outcomeCards: "",
     coverVariant: "dashboard",
+    coverImageUrl: "",
     coverAlt: "",
     coverCaption: "",
     sources: [{ label: "", url: "" }],
@@ -217,6 +221,7 @@ export function projectToForm(project: Project): EditorForm {
       .map((card) => `${card.title} ${PAIR_SEPARATOR} ${card.body}`)
       .join("\n"),
     coverVariant: project.cover.variant,
+    coverImageUrl: project.cover.src ?? "",
     coverAlt: project.cover.alt,
     coverCaption: project.cover.caption ?? "",
     sources: project.sources.length > 0 ? project.sources.map((source) => ({ ...source })) : [{ label: "", url: "" }],
@@ -237,6 +242,7 @@ export function formToProject(form: EditorForm, status: ProjectStatus): Project 
     name: item.title,
     task: item.body,
   }));
+  const coverImage = toSafeImageSrc(form.coverImageUrl);
 
   return {
     slug: slugify(form.title) || "proyek-baru",
@@ -263,8 +269,9 @@ export function formToProject(form: EditorForm, status: ProjectStatus): Project 
     outcomeNote: optional(form.outcomeNote),
     outcomeCards: toLabelledItems(form.outcomeCards).map((item) => ({ title: item.title, body: item.body })),
     cover: {
-      alt: form.coverAlt.trim() || "Ilustrasi contoh sampul proyek.",
+      alt: form.coverAlt.trim() || "Ilustrasi sampul proyek.",
       variant: form.coverVariant,
+      ...(coverImage ? { src: coverImage } : {}),
       ...(form.coverCaption.trim() ? { caption: form.coverCaption.trim() } : {}),
     },
     gallery: [],
@@ -285,6 +292,10 @@ export function validateForm(form: EditorForm): EditorErrors {
 
   if (form.summary.trim().length === 0) {
     errors.summary = "Ringkasan wajib diisi, cukup dua kalimat.";
+  }
+
+  if (form.coverImageUrl.trim().length > 0 && !toSafeImageSrc(form.coverImageUrl)) {
+    errors.coverImageUrl = "Gunakan alamat gambar berawalan https:// atau http://, atau jalur di dalam situs seperti /images/...";
   }
 
   const sourceErrors: Record<number, string> = {};
@@ -314,7 +325,7 @@ export function validateForm(form: EditorForm): EditorErrors {
 }
 
 export function hasErrors(errors: EditorErrors): boolean {
-  return Boolean(errors.title || errors.summary || errors.sources);
+  return Boolean(errors.title || errors.summary || errors.coverImageUrl || errors.sources);
 }
 
 /**

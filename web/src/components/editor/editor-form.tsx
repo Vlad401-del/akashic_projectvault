@@ -38,11 +38,11 @@ function Section({
 }
 
 const COVER_OPTIONS: { value: CoverVariant; label: string }[] = [
-  { value: "dashboard", label: "Contoh tampilan dasbor" },
-  { value: "aplikasi", label: "Contoh tampilan aplikasi" },
-  { value: "riset", label: "Contoh catatan riset" },
-  { value: "laporan", label: "Contoh halaman laporan" },
-  { value: "alur", label: "Contoh bagan alur" },
+  { value: "dashboard", label: "Ilustrasi dasbor" },
+  { value: "aplikasi", label: "Ilustrasi aplikasi" },
+  { value: "riset", label: "Catatan riset" },
+  { value: "laporan", label: "Halaman laporan" },
+  { value: "alur", label: "Bagan alur" },
 ];
 
 /**
@@ -383,12 +383,29 @@ export function EditorForm({
         <p className="flex items-start gap-2 rounded-[10px] border border-line bg-canvas px-4 py-3 text-[13px] leading-5 text-ink-2">
           <Icon name="info" className="mt-0.5 size-4" />
           <span>
-            Unggah gambar baru masuk tahap berikutnya. Untuk sekarang sampul memakai ilustrasi contoh
-            yang dapat Anda pilih, dan bukti karya ditambahkan sebagai tautan.
+            Tempel alamat gambar asli proyek Anda pada isian di bawah. Bila dikosongkan, ilustrasi
+            cadangan yang dipakai.
           </span>
         </p>
 
-        <Field label="Jenis sampul" htmlFor={id("sampul-jenis")} hint="Sampul tidak memuat angka atau metrik.">
+        <Field
+          label="Gambar sampul (URL)"
+          htmlFor={id("sampul-gambar")}
+          error={errors.coverImageUrl}
+          hint="Tautan gambar berawalan https://, atau jalur di dalam situs seperti /images/projects/nama.jpg."
+        >
+          <TextInput
+            id={id("sampul-gambar")}
+            value={form.coverImageUrl}
+            invalid={Boolean(errors.coverImageUrl)}
+            onChange={(event) => onChange({ coverImageUrl: event.target.value })}
+            placeholder="/images/projects/dashboard-penjualan-ritel.jpg"
+            autoComplete="off"
+            inputMode="url"
+          />
+        </Field>
+
+        <Field label="Ilustrasi cadangan" htmlFor={id("sampul-jenis")} hint="Dipakai bila gambar sampul kosong.">
           <SelectInput
             id={id("sampul-jenis")}
             value={form.coverVariant}
@@ -411,7 +428,7 @@ export function EditorForm({
             id={id("sampul-keterangan")}
             value={form.coverAlt}
             onChange={(event) => onChange({ coverAlt: event.target.value })}
-            placeholder="Contoh tampilan halaman ringkasan penjualan per kategori."
+            placeholder="Halaman ringkasan penjualan per kategori."
             autoComplete="off"
           />
         </Field>
@@ -425,7 +442,7 @@ export function EditorForm({
             id={id("sampul-catatan")}
             value={form.coverCaption}
             onChange={(event) => onChange({ coverCaption: event.target.value })}
-            placeholder="Halaman Ringkasan. Tampilan contoh dasbor."
+            placeholder="Halaman ringkasan, tampilan ilustrasi dasbor."
             autoComplete="off"
           />
         </Field>
@@ -467,7 +484,7 @@ export function EditorForm({
                         value={source.url}
                         invalid={Boolean(rowError)}
                         onChange={(event) => onSourceChange(index, { url: event.target.value })}
-                        placeholder="https://example.com/demo/dashboard"
+                        placeholder="https://..."
                         className="mt-1.5"
                         autoComplete="off"
                         inputMode="url"

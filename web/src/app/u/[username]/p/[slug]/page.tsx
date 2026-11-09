@@ -117,7 +117,7 @@ export default async function PublicProjectPage({ params }: PageProps<"/u/[usern
           </header>
 
           <figure className="lg:col-span-2 lg:row-start-2">
-            <ProjectCover variant={project.cover.variant} alt={project.cover.alt} />
+            <ProjectCover variant={project.cover.variant} alt={project.cover.alt} src={project.cover.src} />
             {project.cover.caption ? (
               <ProjectCoverCaption text={project.cover.caption} className="mt-3" />
             ) : null}

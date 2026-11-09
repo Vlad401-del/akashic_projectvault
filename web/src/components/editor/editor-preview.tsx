@@ -38,7 +38,13 @@ export function EditorPreview({
         <p className="mt-1 text-[13px] leading-5 text-ink-2">Ikut berubah saat Anda mengetik.</p>
       </header>
 
-      <ProjectCover variant={project.cover.variant} alt={project.cover.alt} frame="card" aspectClassName="aspect-[16/9]" />
+      <ProjectCover
+        variant={project.cover.variant}
+        alt={project.cover.alt}
+        src={project.cover.src}
+        frame="card"
+        aspectClassName="aspect-[16/9]"
+      />
 
       <div className="p-5">
         <p className="text-[13px] font-medium text-ink-2">

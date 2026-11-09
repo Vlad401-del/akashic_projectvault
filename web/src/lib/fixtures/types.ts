@@ -26,7 +26,17 @@ export type CoverVariant = "dashboard" | "aplikasi" | "riset" | "laporan" | "alu
 export type ProjectImage = {
   /** Alt text yang dibaca pembaca layar. */
   alt: string;
+  /**
+   * Ilustrasi cadangan yang dipakai bila `src` kosong. Tetap disimpan supaya
+   * tampilan tidak hilang ketika gambar asli dikosongkan kembali.
+   */
   variant: CoverVariant;
+  /**
+   * Gambar asli: jalur lokal di dalam `public` (misalnya
+   * `/images/projects/dashboard.jpg`) atau URL http/https. Bila kosong,
+   * ilustrasi `variant` yang dipakai.
+   */
+  src?: string;
   /** Keterangan singkat di bawah gambar; opsional. */
   caption?: string;
 };

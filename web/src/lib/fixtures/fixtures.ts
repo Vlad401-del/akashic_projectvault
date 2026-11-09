@@ -15,6 +15,12 @@
  * | darryl   | Profil publik, 2 proyek        | Pengguna kedua membuktikan konten per URL    |
  * | rangga   | Profil publik, 0 proyek        | Empty state profil                           |
  * | sekar    | Profil privat, 1 proyek        | Profil privat menyembunyikan seluruh proyek  |
+ *
+ * Selain empat akun di atas, berkas ini menambahkan beberapa profil publik
+ * dengan portofolio kosong (fajar, alya, bima, citra, deva). Profil tersebut
+ * dipakai sebagai pemilik pencarian tim pada `fixtures/teams.ts` agar papan
+ * cari tim menampilkan lebih dari satu pembuat; portofolionya sengaja kosong
+ * karena fokus data contoh ada pada papan pencarian anggota tim.
  */
 import type { Profile } from "./types";
 
@@ -108,9 +114,10 @@ export const profiles: Profile[] = [
           },
         ],
         cover: {
-          alt: "Contoh tampilan halaman ringkasan penjualan per kategori.",
+          alt: "Seseorang mengetik di laptop pada meja kerja di ruang rumah.",
           variant: "dashboard",
-          caption: "Halaman Ringkasan. Tampilan contoh dasbor; angka pada gambar bukan data sungguhan.",
+          src: "/images/projects/dashboard-penjualan-ritel.jpg",
+          caption: "Ilustrasi suasana kerja analisis data. Foto: Shixart1985 (CC BY 2.0) via Wikimedia Commons.",
         },
         gallery: [
           {
@@ -203,9 +210,10 @@ export const profiles: Profile[] = [
           },
         ],
         cover: {
-          alt: "Contoh tampilan daftar barang pada prototipe aplikasi.",
+          alt: "Deretan barang bekas yang ditata pada kios pasar beratap.",
           variant: "aplikasi",
-          caption: "Halaman daftar barang. Tampilan contoh prototipe low-fidelity.",
+          src: "/images/projects/nextuse-platform-berbagi-barang.jpg",
+          caption: "Ilustrasi barang yang siap dipertukarkan. Foto: PattayaPatrol (CC BY-SA 4.0) via Wikimedia Commons.",
         },
         gallery: [
           {
@@ -290,9 +298,10 @@ export const profiles: Profile[] = [
           },
         ],
         cover: {
-          alt: "Contoh catatan lapangan hasil wawancara.",
+          alt: "Ruang baca perpustakaan dengan meja panjang dan pencahayaan hangat.",
           variant: "riset",
-          caption: "Catatan lapangan. Tampilan contoh; isi kutipan pada gambar bukan data sungguhan.",
+          src: "/images/projects/riset-pengalaman-pengguna-perpustakaan.jpg",
+          caption: "Ilustrasi ruang baca tempat pengamatan berlangsung. Foto: Carol M. Highsmith (domain publik) via Wikimedia Commons.",
         },
         gallery: [
           {
@@ -343,8 +352,10 @@ export const profiles: Profile[] = [
         outcomeNote: "Bagian ini akan diperbarui sebelum proyek diaktifkan tampil publik.",
         outcomeCards: [],
         cover: {
-          alt: "Contoh tabel data ulasan untuk latihan.",
+          alt: "Seseorang memegang ponsel pintar di atas latar terang.",
           variant: "laporan",
+          src: "/images/projects/analisis-sentimen-ulasan-aplikasi.jpg",
+          caption: "Ilustrasi ulasan aplikasi dari layar ponsel. Foto: Rodion Kutsaev (CC0) via Wikimedia Commons.",
         },
         gallery: [],
         sources: [],
@@ -432,9 +443,10 @@ export const profiles: Profile[] = [
           },
         ],
         cover: {
-          alt: "Contoh tampilan daftar pesanan pada dashboard.",
+          alt: "Seseorang bekerja di laptop di ruang kerja rumah.",
           variant: "dashboard",
-          caption: "Halaman daftar pesanan. Tampilan contoh; isi tabel pada gambar bukan data sungguhan.",
+          src: "/images/projects/dashboard-penjualan.jpg",
+          caption: "Ilustrasi suasana penyusunan dasbor. Foto: Shixart1985 (CC BY 2.0) via Wikimedia Commons.",
         },
         gallery: [
           {
@@ -525,9 +537,10 @@ export const profiles: Profile[] = [
           },
         ],
         cover: {
-          alt: "Contoh struktur endpoint layanan pemesanan.",
+          alt: "Pertandingan sepak bola kecil berlangsung di lapangan dalam ruangan.",
           variant: "alur",
-          caption: "Struktur endpoint. Tampilan contoh alur pemesanan jadwal.",
+          src: "/images/projects/api-pemesanan-lapangan-futsal.jpg",
+          caption: "Ilustrasi lapangan futsal yang jadwalnya dipesan lewat layanan ini. Foto: Globetrotter19 (CC BY-SA 4.0) via Wikimedia Commons.",
         },
         gallery: [
           {
@@ -594,11 +607,76 @@ export const profiles: Profile[] = [
         outcomeIntro: "Contoh isi untuk menguji aturan visibilitas tingkat profil.",
         outcomeNote: null,
         outcomeCards: [],
-        cover: { alt: "Contoh tampilan aplikasi kasir.", variant: "aplikasi" },
+        cover: {
+          alt: "Area kasir sebuah toko dengan meja pembayaran.",
+          variant: "aplikasi",
+          src: "/images/projects/aplikasi-kasir-umkm.jpg",
+          caption: "Ilustrasi area kasir yang memakai aplikasi ini. Foto: W.carter (CC0) via Wikimedia Commons.",
+        },
         gallery: [],
         sources: [{ label: "Lihat repositori", url: "https://example.com/demo/repositori-kasir-umkm" }],
         status: "published",
       },
     ],
+  },
+  {
+    username: "fajar",
+    displayName: "Fajar Nugroho",
+    headline: "Mahasiswa Teknik Informatika • Backend dan Basis Data",
+    program: "Teknik Informatika, Universitas Nusantara",
+    city: "Malang",
+    bio: "Saya senang merapikan alur data di balik layar: dari skema basis data sampai kueri yang tidak membebani server. Portofolio studi kasus saya sedang disusun, sementara halaman ini dipakai untuk membuka pencarian tim kompetisi.",
+    skills: ["Node.js", "PostgreSQL", "REST API", "Docker", "Git"],
+    contacts: [],
+    isPublished: true,
+    projects: [],
+  },
+  {
+    username: "alya",
+    displayName: "Alya Rahmawati",
+    headline: "Mahasiswa Sistem Informasi • Analitik Data dan Riset Pengguna",
+    program: "Sistem Informasi, Universitas Nusantara",
+    city: "Bandung",
+    bio: "Saya terbiasa mengubah data mentah yang berantakan menjadi ringkasan yang bisa dipakai untuk mengambil keputusan, lalu memeriksanya bersama calon penggunanya. Portofolio saya masih dalam penyusunan.",
+    skills: ["Python", "pandas", "SQL", "Riset pengguna", "Google Sheets"],
+    contacts: [],
+    isPublished: true,
+    projects: [],
+  },
+  {
+    username: "bima",
+    displayName: "Bima Saputra",
+    headline: "Mahasiswa Teknik Komputer • IoT dan Sistem Tertanam",
+    program: "Teknik Komputer, Universitas Nusantara",
+    city: "Surabaya",
+    bio: "Saya senang menghubungkan perangkat fisik dengan data: sensor, mikrokontroler, dan panel yang menampilkan hasilnya. Saya mencari rekan untuk mengerjakan kompetisi bertema perangkat cerdas dan IoT.",
+    skills: ["Arduino", "C++", "Sensor", "MQTT", "Rangkaian elektronik"],
+    contacts: [],
+    isPublished: true,
+    projects: [],
+  },
+  {
+    username: "citra",
+    displayName: "Citra Larasati",
+    headline: "Mahasiswa Desain Komunikasi Visual • Antarmuka dan Animasi",
+    program: "Desain Komunikasi Visual, Universitas Nusantara",
+    city: "Yogyakarta",
+    bio: "Saya mengerjakan antarmuka yang mudah dibaca dan ilustrasi pendukung agar produk terasa jelas bagi penggunanya. Portofolio visual saya sedang dirapikan sebelum diterbitkan.",
+    skills: ["Figma", "Design system", "Ilustrasi", "Motion", "Prototipe"],
+    contacts: [],
+    isPublished: true,
+    projects: [],
+  },
+  {
+    username: "deva",
+    displayName: "Deva Prasetya",
+    headline: "Mahasiswa Ilmu Komputer • Keamanan Siber",
+    program: "Ilmu Komputer, Universitas Nusantara",
+    city: "Depok",
+    bio: "Saya tertarik pada keamanan aplikasi web dan cara menemukan celah sebelum orang lain menemukannya. Saya sedang menyiapkan portofolio berupa catatan audit, sambil mencari tim untuk kompetisi keamanan.",
+    skills: ["Web security", "Linux", "Burp Suite", "Networking", "Python"],
+    contacts: [],
+    isPublished: true,
+    projects: [],
   },
 ];

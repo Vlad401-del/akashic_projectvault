@@ -18,7 +18,12 @@ import { firstSentence } from "@/lib/text";
 export function ProjectCard({ project, username }: { project: Project; username: string }) {
   return (
     <article className="card-lift group relative flex h-full flex-col overflow-hidden rounded-[18px]">
-      <ProjectCover variant={project.cover.variant} alt={project.cover.alt} frame="card" />
+      <ProjectCover
+        variant={project.cover.variant}
+        alt={project.cover.alt}
+        src={project.cover.src}
+        frame="card"
+      />
 
       <div className="flex flex-1 flex-col p-5 sm:p-6">
         <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-ink-2">

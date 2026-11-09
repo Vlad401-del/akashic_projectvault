@@ -23,6 +23,7 @@ export function ProjectRow({ project, username }: { project: Project; username: 
           <ProjectCover
             variant={project.cover.variant}
             alt={project.cover.alt}
+            src={project.cover.src}
             frame="figure"
             aspectClassName="aspect-[16/10]"
           />
