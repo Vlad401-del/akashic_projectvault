@@ -3,11 +3,7 @@ import Link from "next/link";
 import { PrismMark, Wordmark } from "@/components/site-brand";
 import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
 
-/**
- * Footer setiap halaman: blok hijau hutan dengan tautan ke rute yang memang ada.
- *
- * Tahap ini masih memakai data contoh, jadi statusnya dinyatakan terang-terangan.
- */
+/** Footer setiap halaman dengan navigasi utama Akashic. */
 export function SiteFooter() {
   const demoEditorEnabled = isLocalDemoEditorEnabled();
 
@@ -16,7 +12,7 @@ export function SiteFooter() {
       title: "Jelajahi",
       links: [
         { label: "Papan cari tim", href: "/tim" },
-        { label: "Contoh portofolio", href: "/u/nadia" },
+        { label: "Jelajahi portofolio", href: "/u/nadia" },
         { label: "Cara kerja", href: "/#cara-kerja" },
       ],
     },
@@ -30,7 +26,7 @@ export function SiteFooter() {
     ...(demoEditorEnabled
       ? [
           {
-            title: "Area pemilik",
+            title: "Ruang karya",
             links: [
               { label: "Proyek saya", href: "/dashboard" },
               { label: "Proyek baru", href: "/dashboard/projects/new" },
@@ -78,10 +74,7 @@ export function SiteFooter() {
       </div>
 
       <div className="relative mx-auto flex max-w-[1200px] flex-col gap-2 border-t border-cream/10 px-5 py-6 text-[12px] text-cream/55 sm:flex-row sm:items-center sm:justify-between sm:px-8">
-        <p>
-          Seluruh isi saat ini adalah <strong className="font-semibold text-cream/85">data contoh</strong>.
-          {demoEditorEnabled ? " Editor demo berjalan lokal." : ""}
-        </p>
+        <p>Portofolio mahasiswa, kolaborasi tim, dan bukti kerja dalam satu ruang.</p>
         <p>Akashic — ruang rekam karya mahasiswa</p>
       </div>
     </footer>

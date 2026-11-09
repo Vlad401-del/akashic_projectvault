@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { Icon } from "@/components/icons";
-import { PrototypeNotice } from "@/components/prototype-notice";
 import { SiteBrand } from "@/components/site-brand";
 import { TopBar } from "@/components/site-nav";
 import { TeamBoard } from "@/components/team/team-board";
@@ -48,10 +47,6 @@ export default function TeamBoardPage() {
       />
 
       <main className="mx-auto max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 sm:pt-10">
-        <PrototypeNotice className="mb-8">
-          Fitur baru (Tahap Pivot): Papan cari tim lomba dari bukti kerja. Perkenalan yang dikirim disimpan di komputer ini (<code>web/.data/team-requests.json</code>).
-        </PrototypeNotice>
-
         {/* Hero Banner */}
         <header className="on-dark relative isolate overflow-hidden rounded-[24px] bg-forest px-6 py-10 text-cream sm:px-10 sm:py-14">
           <div aria-hidden="true" className="grid-lines absolute inset-0 -z-10 text-cream/[0.07]" />

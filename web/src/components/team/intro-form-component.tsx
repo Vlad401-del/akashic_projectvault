@@ -77,11 +77,8 @@ export function IntroFormComponent({
               <strong>{ownerDisplayName}</strong>.
             </p>
             <p className="mt-2 text-[13px] text-emerald-800">
-              Karena aplikasi ini saat ini berjalan di mode prototipe lokal, perkenalan disimpan di{" "}
-              <code className="rounded bg-emerald-100 px-1 py-0.5 font-mono text-[12px]">
-                web/.data/team-requests.json
-              </code>{" "}
-              dan dapat ditinjau langsung di Dasbor pemilik.
+              Pemilik tim akan meninjau perkenalan Anda dan menghubungi kontak yang Anda cantumkan bila
+              ada kecocokan dengan kebutuhan tim.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <button
@@ -254,7 +251,7 @@ export function IntroFormComponent({
             type="url"
             value={form.proofUrl}
             onChange={(e) => handleChange("proofUrl", e.target.value)}
-            placeholder="https://... (Profil Akashic, repo GitHub, atau prototipe Figma)"
+            placeholder="https://... (Profil Akashic, repositori GitHub, atau desain Figma)"
             className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-[14px] text-ink transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
           {errors.proofUrl ? (

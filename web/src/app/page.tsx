@@ -66,7 +66,7 @@ export default function HomePage() {
 
   const portfolioCta = demoEditorEnabled
     ? { label: "Buat portofolio", href: "/dashboard/projects/new" }
-    : { label: "Lihat contoh portofolio", href: "/u/nadia" };
+    : { label: "Jelajahi portofolio", href: "/u/nadia" };
   const openTeamCta = demoEditorEnabled
     ? { label: "Pasang pencarian tim", href: "/dashboard/tim/baru" }
     : { label: "Buka papan tim", href: "/tim" };
@@ -385,9 +385,8 @@ export default function HomePage() {
                 Karya yang <em className="font-medium italic text-forest">bicara.</em>
               </h2>
               <p className="mt-5 max-w-[34rem] text-[16px] leading-[1.7] text-ink-2">
-                {demoEditorEnabled
-                  ? "Diambil dari halaman publik akun contoh, termasuk proyek yang kamu terbitkan lewat editor di komputer ini."
-                  : "Diambil dari halaman publik akun contoh. Setiap studi kasus memisahkan bagian pribadi dari hasil kelompok."}
+                Setiap studi kasus memisahkan kontribusi pribadi dari hasil kelompok, sehingga proses
+                dan peran setiap anggota terbaca dengan jelas.
               </p>
             </div>
             <Link

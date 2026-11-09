@@ -4,16 +4,8 @@ import { Icon } from "@/components/icons";
 import type { CoverVariant } from "@/lib/fixtures/types";
 
 /**
- * Placeholder bukti karya untuk tahap 1.
- *
- * Belum ada unggahan gambar (Supabase Storage baru masuk tahap 4), jadi sampul
- * dan galeri memakai ilustrasi netral yang digambar sendiri. Hak penggunaan
- * jelas karena dibuat di repositori ini, dan setiap ilustrasi diberi label
- * "Contoh tampilan" supaya tidak disangka tangkapan layar proyek sungguhan.
- * Ilustrasi sengaja tidak memuat angka atau metrik apa pun.
- *
- * Warna aksen mengikuti palet "studio lomba": forest #1F4D3A, coral #EE6C4D,
- * sun #F2B544. Hanya dipakai sebagai aksen kecil; sebagian besar ilustrasi netral.
+ * Ilustrasi sampul dan galeri proyek dengan palet studio lomba.
+ * Grafis dibuat di repositori ini dan tidak memuat angka atau metrik proyek.
  */
 const SURFACE = "#FFFDF8";
 const CANVAS = "#F4E9CF";
@@ -295,7 +287,7 @@ export function ProjectCover({
         <Art />
       </svg>
       <span className="absolute right-3 top-3 rounded-full bg-sun px-2.5 py-[3px] text-[11px] font-bold text-ink">
-        Contoh tampilan
+        Pratinjau karya
       </span>
     </div>
   );

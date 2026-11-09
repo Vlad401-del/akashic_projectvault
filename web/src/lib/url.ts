@@ -31,3 +31,21 @@ export function toSafeExternalUrl(value: string | null | undefined): string | nu
 
   return new URL(value.trim()).toString();
 }
+
+/**
+ * Seperti toSafeExternalUrl, tetapi juga menolak domain placeholder
+ * `example.com` agar tautan mati tidak tampil sebagai tombol kontak/bukti karya.
+ */
+export function toPublicExternalUrl(value: string | null | undefined): string | null {
+  const url = toSafeExternalUrl(value);
+  if (!url) {
+    return null;
+  }
+
+  const hostname = new URL(url).hostname;
+  if (hostname === "example.com" || hostname.endsWith(".example.com")) {
+    return null;
+  }
+
+  return url;
+}

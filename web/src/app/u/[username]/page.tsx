@@ -3,9 +3,8 @@ import { notFound } from "next/navigation";
 import { Icon } from "@/components/icons";
 import { ProfileHeader } from "@/components/profile-header";
 import { ProjectCard } from "@/components/project-card";
-import { PrototypeNotice } from "@/components/prototype-notice";
 import { OwnerChip, TopBar } from "@/components/site-nav";
-import { countStoredProjects, getPublicProfile, getPublicProjects, listKnownProfileRoutes } from "@/lib/content";
+import { getPublicProfile, getPublicProjects, listKnownProfileRoutes } from "@/lib/content";
 
 /**
  * Rute ini dibuat saat build dari daftar yang dikenal (fixture dan proyek hasil
@@ -46,20 +45,12 @@ export default async function PublicProfilePage({ params }: PageProps<"/u/[usern
   }
 
   const projects = getPublicProjects(profile);
-  const storedCount = countStoredProjects(profile.username);
 
   return (
     <>
       <TopBar left={<OwnerChip profile={profile} />} />
 
       <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
-        <PrototypeNotice>
-          Contoh fiktif. Nama, profil, dan kontak di halaman ini dibuat untuk prototipe.
-          {storedCount > 0
-            ? ` ${storedCount} proyek di halaman ini dibuat lewat editor dan tersimpan di berkas lokal komputer ini, bukan di database.`
-            : ""}
-        </PrototypeNotice>
-
         <ProfileHeader profile={profile} />
 
         <section aria-labelledby="daftar-proyek" className="mt-12 border-t border-line pt-10 sm:mt-14">

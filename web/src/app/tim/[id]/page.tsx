@@ -2,7 +2,6 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { Icon } from "@/components/icons";
-import { PrototypeNotice } from "@/components/prototype-notice";
 import { Avatar, TopBar } from "@/components/site-nav";
 import { IntroFormComponent } from "@/components/team/intro-form-component";
 import { getPublicProfile } from "@/lib/content";
@@ -64,11 +63,6 @@ export default async function TeamDetailPage({
       />
 
       <main className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
-        <PrototypeNotice className="mb-8">
-          Halaman pencarian tim publik. Pengajuan diri melalui formulir di bawah akan tersimpan di{" "}
-          <code>web/.data/team-requests.json</code> dan dapat dibuka oleh pemilik tim di dasbornya.
-        </PrototypeNotice>
-
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-12">
           {/* Kolom Kiri / Utama: Detail Tim & Formulir */}
           <div className="space-y-8 lg:col-span-8">

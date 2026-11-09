@@ -6,7 +6,6 @@ import { ProjectCard } from "@/components/project-card";
 import { ProjectContext } from "@/components/project-context";
 import { ProjectCover, ProjectCoverCaption } from "@/components/project-cover";
 import { ProjectStory } from "@/components/project-story";
-import { PrototypeNotice } from "@/components/prototype-notice";
 import { OwnerChip, TopBar } from "@/components/site-nav";
 import { SiteBrand } from "@/components/site-brand";
 import { SkillList } from "@/components/skill-list";
@@ -14,7 +13,6 @@ import {
   getOtherPublicProjects,
   getPublicProfile,
   getPublicProject,
-  isStoredProject,
   listKnownProjectRoutes,
 } from "@/lib/content";
 import { workTypeLabel } from "@/lib/labels";
@@ -64,7 +62,6 @@ export default async function PublicProjectPage({ params }: PageProps<"/u/[usern
   }
 
   const otherProjects = getOtherPublicProjects(profile, slug);
-  const fromEditor = isStoredProject(profile.username, slug);
 
   return (
     <>
@@ -90,12 +87,6 @@ export default async function PublicProjectPage({ params }: PageProps<"/u/[usern
       />
 
       <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
-        <PrototypeNotice className="mb-10 sm:mb-12">
-          {fromEditor
-            ? "Proyek ini dibuat lewat editor dan disimpan di berkas lokal komputer ini (web/.data/projects.json), belum ke database. Profil pemiliknya masih data contoh."
-            : "Contoh fiktif. Proyek dan narasi di halaman ini dibuat untuk prototipe."}
-        </PrototypeNotice>
-
         {/*
           Susunan grid: header dan sampul membentang penuh, lalu narasi di kolom
           kiri dan panel konteks di kolom kanan. Pada lebar kecil semuanya
