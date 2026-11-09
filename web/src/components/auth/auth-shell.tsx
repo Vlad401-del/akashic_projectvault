@@ -119,7 +119,8 @@ export function AuthShell({ mode, children }: { mode: "login" | "register"; chil
         </div>
 
         <p className="relative px-5 pb-6 text-center text-[12px] leading-5 text-ink-2 sm:px-8">
-          Mode lokal: akun disimpan di komputer ini saja. Autentikasi produksi menyusul bersama Supabase.
+          Akun Anda melindungi ruang karya: hanya Anda yang dapat mengelola studi kasus dan meninjau
+          perkenalan tim.
         </p>
       </div>
     </div>

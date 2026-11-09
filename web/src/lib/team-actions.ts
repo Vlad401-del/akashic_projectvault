@@ -160,7 +160,7 @@ export async function reviewTeamIntroAction(
   const updated = setStoredTeamIntroReview(teamId, sentAt, review);
 
   if (!updated) {
-    return { ok: false, message: "Perkenalan tidak ditemukan; mungkin sudah dihapus dari berkas lokal." };
+    return { ok: false, message: "Perkenalan tidak ditemukan; mungkin sudah dihapus." };
   }
 
   revalidatePath("/dashboard");

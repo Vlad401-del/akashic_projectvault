@@ -8,7 +8,6 @@ import { PreviewDialog } from "@/components/editor/preview-dialog";
 import { PublishChecklist } from "@/components/editor/publish-checklist";
 import { StatusChip } from "@/components/editor/status-chip";
 import { Icon } from "@/components/icons";
-import { PrototypeNotice } from "@/components/prototype-notice";
 import {
   canPublish,
   emptyForm,
@@ -48,10 +47,8 @@ function focusFirstInvalidField() {
 /**
  * Editor proyek untuk pemilik akun.
  *
- * Isi formulir disimpan sungguhan, tetapi ke penyimpanan lokal di komputer ini
- * (`web/.data/projects.json`), bukan ke database. Belum ada autentikasi, jadi
- * pemilik proyek selalu akun contoh; hal itu dinyatakan pada pemberitahuan di
- * atas formulir.
+ * Isi formulir disimpan lalu langsung tampil di halaman publik proyek saat
+ * diterbitkan.
  *
  * Tiga keadaan layar mengikuti desain: Proyek baru (formulir kosong), Draft
  * (sudah ada isinya tetapi belum tampil publik), dan Sudah terbit.
@@ -211,7 +208,7 @@ export function ProjectEditor({
 
       if (!result.ok) {
         setErrors(result.errors);
-        setSaveError("Penyimpanan lokal menolak isian ini. Periksa bagian yang ditandai, lalu simpan lagi.");
+        setSaveError("Ada isian yang belum sesuai. Periksa bagian yang ditandai, lalu simpan lagi.");
         setErrorFocusRequest((request) => request + 1);
         return;
       }
@@ -234,7 +231,7 @@ export function ProjectEditor({
       setFlash(`${note} Pukul ${timeNow()}.`);
     } catch {
       setSaveError(
-        "Gagal menulis ke penyimpanan lokal. Pastikan server masih berjalan, lalu simpan lagi.",
+        "Gagal menyimpan perubahan. Pastikan koneksi stabil, lalu simpan lagi.",
       );
     } finally {
       setBusy(null);
@@ -277,12 +274,6 @@ export function ProjectEditor({
 
   return (
     <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-10 xl:px-0">
-      <PrototypeNotice className="mb-8">
-        Area pemilik tanpa login. Isi formulir disimpan ke berkas lokal di komputer ini
-        (web/.data/projects.json), bukan ke database, dan siapa pun yang dapat membuka localhost
-        juga dapat mengubahnya.
-      </PrototypeNotice>
-
       <header>
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="min-w-0">
@@ -342,8 +333,7 @@ export function ProjectEditor({
 
         {isPublished ? (
           <p className="mt-4 max-w-[46rem] text-[13px] leading-5 text-ink-2">
-            Simpan perubahan publik langsung mengganti isi halaman publik proyek ini. Tidak ada versi
-            draft kedua pada tahap ini.
+            Simpan perubahan langsung mengganti isi halaman publik proyek ini.
           </p>
         ) : null}
 

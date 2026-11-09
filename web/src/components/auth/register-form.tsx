@@ -148,8 +148,8 @@ export function RegisterForm() {
               className="mt-0.5 size-4 rounded border-line-strong accent-[#1f4d3a]"
             />
             <span>
-              Saya setuju karya yang saya unggah adalah milik saya sendiri, dan saya memahami mode lokal
-              ini menyimpan data di komputer pengembang.
+              Saya setuju karya yang saya unggah adalah milik saya sendiri dan dapat ditampilkan pada
+              portofolio publik saya.
             </span>
           </label>
           {errors.agree ? (

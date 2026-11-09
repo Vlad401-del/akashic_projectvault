@@ -4,7 +4,6 @@ import Link from "next/link";
 import { OwnerTopBar } from "@/components/editor/owner-top-bar";
 import { ProjectRow } from "@/components/editor/project-row";
 import { Icon } from "@/components/icons";
-import { PrototypeNotice } from "@/components/prototype-notice";
 import { Avatar } from "@/components/site-nav";
 import { IntroReviewControls } from "@/components/team/intro-review-controls";
 import { getDemoOwner, listOwnedProjects } from "@/lib/content";
@@ -36,11 +35,6 @@ export default function DashboardPage() {
       <OwnerTopBar owner={owner} backHref="/" backLabel="Halaman awal" />
 
       <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
-        <PrototypeNotice className="mb-8">
-          Area pemilik tanpa login. Data proyek dan pencarian tim disimpan di berkas lokal komputer ini
-          (<code>web/.data/</code>), bukan di database, dan berlaku untuk akun contoh <strong>{owner.displayName}</strong>.
-        </PrototypeNotice>
-
         <header className="flex flex-wrap items-start justify-between gap-6">
           <div className="flex min-w-0 items-start gap-4">
             <Avatar displayName={owner.displayName} size="lg" />
@@ -332,14 +326,6 @@ export default function DashboardPage() {
               ))}
             </ul>
           )}
-
-          <p className="mt-6 flex items-start gap-2 text-[14px] leading-6 text-ink-2">
-            <Icon name="info" className="mt-0.5 size-4" />
-            <span>
-              Penyimpanannya masih berkas lokal, jadi proyek dan data tim hanya ada di komputer ini dan belum ada
-              autentikasi maupun pengaturan profil pemilik. Keduanya masuk tahap Supabase.
-            </span>
-          </p>
         </section>
       </div>
     </>

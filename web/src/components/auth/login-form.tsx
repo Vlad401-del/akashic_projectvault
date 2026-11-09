@@ -116,10 +116,8 @@ export function LoginForm() {
 
         {showResetNote ? (
           <p className="rounded-[10px] border border-line bg-surface px-3.5 py-3 text-[13px] leading-5 text-ink-2">
-            Reset kata sandi lewat email belum tersedia di mode lokal. Untuk sekarang, buat akun baru
-            dengan email berbeda, atau hapus berkas{" "}
-            <code className="rounded bg-canvas px-1 py-0.5 font-mono text-[12px]">web/.data/users.json</code>{" "}
-            di komputer pengembang untuk memulai dari kosong.
+            Pemulihan kata sandi lewat email belum aktif. Untuk sekarang, daftarkan akun baru dengan
+            email berbeda bila Anda tidak dapat masuk.
           </p>
         ) : null}
 
@@ -140,8 +138,7 @@ export function LoginForm() {
       </form>
 
       <p className="mt-6 rounded-[10px] border border-dashed border-line-strong bg-surface/60 px-3.5 py-3 text-[12px] leading-5 text-ink-2">
-        Pertama kali di sini? Akun demo dibuat saat Anda mendaftar dan disimpan lokal di{" "}
-        <code className="rounded bg-canvas px-1 py-0.5 font-mono text-[11px]">web/.data/users.json</code>.
+        Pertama kali di sini? Buat akun untuk merekam karya dan mencari rekan tim dari bukti kerja.
       </p>
     </div>
   );

@@ -77,7 +77,7 @@ export async function saveProjectAction(input: SaveProjectInput): Promise<SavePr
     : null;
 
   if (input.slug && !existing) {
-    return { ok: false, errors: { title: "Proyek ini tidak ditemukan lagi di penyimpanan lokal." } };
+    return { ok: false, errors: { title: "Proyek ini tidak ditemukan lagi." } };
   }
 
   // Slug tidak ikut berubah saat judul diubah, supaya alamat halaman publik
