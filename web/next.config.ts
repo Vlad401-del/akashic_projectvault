@@ -16,6 +16,18 @@ const nextConfig: NextConfig = {
    * penanganan soft-404 sudah disepakati bersama.
    */
   cacheComponents: false,
+  /*
+   * Batas pekerja saat `next build` (tahap "Generating static pages").
+   *
+   * Bawaan Next.js memakai `jumlah CPU - 1` (16 core → 15 pekerja). Pada
+   * mesin dengan memori bebas kecil, 15 proses sekaligus membuat build mati
+   * dengan "Fatal process out of memory: Zone". Dibatasi ke angka kecil agar
+   * build tetap selesai di laptop biasa; jumlah halaman Akashic sedikit,
+   * jadi waktu tambahannya tidak berarti.
+   */
+  experimental: {
+    cpus: 2,
+  },
   turbopack: {
     rules: {
       "*.css": {
