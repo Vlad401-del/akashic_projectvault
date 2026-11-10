@@ -322,10 +322,10 @@ export default function HomePage() {
       {/* ---------------- Pita lomba ---------------- */}
       {tickerItems.length > 0 ? (
         <div className="marquee relative z-10 -mx-[4%] -mt-12 -rotate-2 overflow-hidden border-y border-ink bg-sun py-4 text-ink">
-          <div className="marquee-track">
+          <div className="marquee-track" style={{ ["--marquee-duration" as string]: "240s" }}>
             {[0, 1].map((copy) => (
               <ul key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-center">
-                {[...tickerItems, ...tickerItems].map((item, index) => (
+                {tickerItems.map((item, index) => (
                   <li
                     key={`${copy}-${index}`}
                     className="flex items-center gap-6 whitespace-nowrap pr-6 font-display text-[22px] font-semibold sm:text-[26px]"
