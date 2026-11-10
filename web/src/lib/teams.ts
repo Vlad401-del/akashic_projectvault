@@ -17,6 +17,7 @@
 import { profiles } from "@/lib/fixtures/fixtures";
 import { teamPosts as fixtureTeams } from "@/lib/fixtures/teams";
 import type { IntroReviewStatus, TeamIntro, TeamPost } from "@/lib/fixtures/types";
+import { getDiscussionCounts } from "@/lib/discussions";
 import { readStoredTeamIntros, readStoredTeams } from "@/lib/team-store";
 
 import { DEMO_OWNER_USERNAME } from "@/lib/content";
@@ -47,9 +48,11 @@ export type TeamPostWithOwner = {
     displayName: string;
     headline: string;
   };
+  /** Jumlah pesan utas diskusi publik tim ini. */
+  discussionCount: number;
 };
 
-function withOwner(team: TeamPost): TeamPostWithOwner | null {
+function withOwner(team: TeamPost, discussionCounts: Map<string, number>): TeamPostWithOwner | null {
   const owner = resolveOwner(team.ownerUsername);
 
   if (!owner) {
@@ -63,6 +66,7 @@ function withOwner(team: TeamPost): TeamPostWithOwner | null {
       displayName: owner.displayName,
       headline: owner.headline,
     },
+    discussionCount: discussionCounts.get(team.id) ?? 0,
   };
 }
 
@@ -71,8 +75,10 @@ function withOwner(team: TeamPost): TeamPostWithOwner | null {
  * Dipakai papan, halaman detail, dan dashboard.
  */
 export function listTeamPosts(): TeamPostWithOwner[] {
+  const discussionCounts = getDiscussionCounts();
+
   return mergeTeams(fixtureTeams)
-    .map((team) => withOwner(team))
+    .map((team) => withOwner(team, discussionCounts))
     .filter((item): item is TeamPostWithOwner => item !== null);
 }
 

@@ -6,7 +6,9 @@ import { ProjectRow } from "@/components/editor/project-row";
 import { Icon } from "@/components/icons";
 import { Avatar } from "@/components/site-nav";
 import { IntroReviewControls } from "@/components/team/intro-review-controls";
+import { DiscussionThread } from "@/components/team/discussion-thread";
 import { getDemoOwner, listOwnedProjects } from "@/lib/content";
+import { getTeamDiscussion } from "@/lib/discussions";
 import { listIncomingIntros, listOwnedTeamPosts } from "@/lib/teams";
 import { openSlots } from "@/lib/team-utils";
 
@@ -29,6 +31,11 @@ export default function DashboardPage() {
   const ownedTeams = listOwnedTeamPosts();
   const incomingIntros = listIncomingIntros();
   const unreviewedCount = incomingIntros.filter((entry) => entry.review === "baru").length;
+  const ownedDiscussions = ownedTeams.map((item) => ({
+    item,
+    messages: getTeamDiscussion(item.team.id),
+  }));
+  const discussionMessageCount = ownedDiscussions.reduce((total, entry) => total + entry.messages.length, 0);
 
   return (
     <>
@@ -61,6 +68,10 @@ export default function DashboardPage() {
                 <span className="inline-flex items-center gap-1.5">
                   <Icon name="mail" className="size-4 text-purple-600" />
                   {incomingIntros.length} perkenalan masuk
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <Icon name="message" className="size-4 text-coral" />
+                  {discussionMessageCount} pesan diskusi
                 </span>
               </p>
             </div>
@@ -289,7 +300,45 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* Bagian 3: Daftar Proyek (Portofolio) */}
+        {/* Bagian 3: Diskusi tim milik pemilik */}
+        <section aria-labelledby="diskusi-tim-heading" className="mt-12 border-t border-line pt-8">
+          <h2 id="diskusi-tim-heading" className="text-[22px] font-semibold tracking-tight text-ink">
+            Diskusi Tim Saya
+          </h2>
+          <p className="mt-1 text-[14px] text-ink-2">
+            Baca dan balas pertanyaan calon anggota. Semua pesan dapat dibaca di halaman publik tim.
+          </p>
+
+          {ownedDiscussions.length === 0 ? (
+            <div className="mt-6 rounded-xl border border-dashed border-line bg-surface p-8 text-center">
+              <span className="mx-auto flex size-10 items-center justify-center rounded-full border border-line bg-canvas text-ink-2">
+                <Icon name="message" className="size-4" />
+              </span>
+              <p className="mt-3 text-[15px] font-medium text-ink">Belum ada tim untuk didiskusikan</p>
+              <p className="mt-1 text-[13px] text-ink-2">
+                Pasang pencarian tim terlebih dahulu; utas diskusinya akan muncul di sini.
+              </p>
+            </div>
+          ) : (
+            <div className="mt-6 space-y-5">
+              {ownedDiscussions.map(({ item, messages }) => (
+                <div
+                  key={item.team.id}
+                  className="rounded-xl border border-line bg-surface p-5 shadow-sm sm:p-6"
+                >
+                  <Link href={`/tim/${item.team.id}#diskusi`} className="mb-4 block font-semibold text-accent hover:underline">{item.team.title}</Link>
+                  <DiscussionThread
+                    teamId={item.team.id}
+                    initialMessages={messages}
+                    closed={item.team.status !== "open"}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* Bagian 4: Daftar Proyek (Portofolio) */}
         <section aria-labelledby="daftar-proyek-pemilik" className="mt-12 border-t border-line pt-8">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
             <h2 id="daftar-proyek-pemilik" className="text-[22px] font-semibold tracking-tight text-ink">

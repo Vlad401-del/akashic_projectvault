@@ -201,6 +201,16 @@ export type TeamIntro = {
  */
 export type IntroReviewStatus = "baru" | "diskusi" | "diterima" | "ditolak";
 
+export type DiscussionMessage = {
+  id: string;
+  teamId: string;
+  authorName: string;
+  body: string;
+  /** Pesan yang dikutip balasan ini; null untuk pesan tingkat atas. */
+  replyToId: string | null;
+  createdAt: string;
+};
+
 export type Profile = {
   username: string;
   displayName: string;

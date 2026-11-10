@@ -4,10 +4,11 @@
  * Ini berlaku sama dengan `local-store.ts` untuk proyek: Supabase dan Docker
  * belum tersedia, tetapi pencarian tim dan perkenalan yang dikirim lewat
  * formulir harus benar-benar tersimpan supaya alurnya nyata. Datanya ditulis ke
- * dua berkas JSON di `web/.data/`:
+ * berkas JSON di `web/.data/`:
  *
  * - `teams.json`          : pencarian anggota yang dibuat dari dashboard.
  * - `team-requests.json`  : perkenalan yang dikirim dari halaman detail tim.
+ * - `team-discussions.json`: pesan diskusi publik pada halaman detail tim.
  *
  * Sifatnya juga sama:
  * - Hanya ada di komputer ini, tidak masuk Git, dan bukan pengganti database.
@@ -22,7 +23,7 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";
 
-import type { IntroReviewStatus, TeamIntro, TeamPost } from "@/lib/fixtures/types";
+import type { DiscussionMessage, IntroReviewStatus, TeamIntro, TeamPost } from "@/lib/fixtures/types";
 
 /** Satu pencarian anggota tersimpan beserta pemiliknya. */
 export type StoredTeam = {
@@ -56,6 +57,7 @@ export function isIntroReviewStatus(value: unknown): value is IntroReviewStatus 
 const DATA_DIRECTORY = path.join(process.cwd(), ".data");
 const TEAMS_FILE = path.join(DATA_DIRECTORY, "teams.json");
 const INTROS_FILE = path.join(DATA_DIRECTORY, "team-requests.json");
+const DISCUSSIONS_FILE = path.join(DATA_DIRECTORY, "team-discussions.json");
 
 /** Lokasi berkas pencarian tim; dipakai pada pesan kesalahan dan keterangan UI. */
 export function teamsStoreFilePath(): string {
@@ -146,6 +148,38 @@ export function setStoredTeamIntroReview(
 
   writeArrayFile(INTROS_FILE, next);
   return true;
+}
+
+/**
+ * Membaca seluruh pesan diskusi tersimpan.
+ *
+ * Baris tidak sah dilewatkan seperti pada perkenalan: satu pesan rusak tidak
+ * boleh menyembunyikan utas yang sah.
+ */
+export function readStoredDiscussions(): DiscussionMessage[] {
+  return readArrayFile(DISCUSSIONS_FILE, "diskusi tim", isStoredDiscussionMessage);
+}
+
+/** Menambah satu pesan diskusi; utas bersifat append-only seperti perkenalan. */
+export function appendStoredDiscussion(message: DiscussionMessage): void {
+  writeArrayFile(DISCUSSIONS_FILE, [...readStoredDiscussions(), message]);
+}
+
+function isStoredDiscussionMessage(value: unknown): value is DiscussionMessage {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const item = value as Partial<DiscussionMessage>;
+
+  return (
+    typeof item.id === "string" &&
+    typeof item.teamId === "string" &&
+    typeof item.authorName === "string" &&
+    typeof item.body === "string" &&
+    (item.replyToId === null || typeof item.replyToId === "string") &&
+    typeof item.createdAt === "string"
+  );
 }
 
 function isStoredTeamIntro(value: unknown): value is StoredTeamIntro {

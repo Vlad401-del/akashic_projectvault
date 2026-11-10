@@ -82,6 +82,10 @@ export function TeamCard({ item }: { item: TeamPostWithOwner }) {
           <Icon name="calendar" className="size-3.5" />
           Tenggat: {team.deadline}
         </span>
+        <span className="inline-flex items-center gap-1">
+          <Icon name="message" className="size-3.5" />
+          {item.discussionCount} pesan diskusi
+        </span>
       </div>
 
       {/* Pemilik Posting (Pembuat Tim) dengan Proof of Work */}

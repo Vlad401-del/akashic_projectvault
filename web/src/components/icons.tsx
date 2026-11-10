@@ -231,6 +231,15 @@ const PATHS = {
       <path d="M12 4v11.5" />
     </>
   ),
+  message: (
+    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8Z" />
+  ),
+  reply: (
+    <>
+      <path d="m9 17-5-5 5-5" />
+      <path d="M20 18v-2a4 4 0 0 0-4-4H4" />
+    </>
+  ),
 } satisfies Record<string, ReactNode>;
 
 export type IconName = keyof typeof PATHS;

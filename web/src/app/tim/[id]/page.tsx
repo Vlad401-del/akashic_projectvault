@@ -3,8 +3,10 @@ import Link from "next/link";
 
 import { Icon } from "@/components/icons";
 import { Avatar, TopBar } from "@/components/site-nav";
+import { DiscussionThread } from "@/components/team/discussion-thread";
 import { IntroFormComponent } from "@/components/team/intro-form-component";
 import { getPublicProfile } from "@/lib/content";
+import { getTeamDiscussion } from "@/lib/discussions";
 import { getTeamPost, listKnownTeamIds } from "@/lib/teams";
 import { openSlots, roleSkillsLabel } from "@/lib/team-utils";
 
@@ -45,6 +47,7 @@ export default async function TeamDetailPage({
   const { team, owner } = item;
   const ownerProfile = getPublicProfile(owner.username);
   const slots = openSlots(team);
+  const discussion = getTeamDiscussion(team.id);
 
   return (
     <>
@@ -191,6 +194,19 @@ export default async function TeamDetailPage({
                 </div>
               </div>
             )}
+
+            {/* Utas diskusi publik tim */}
+            <section
+              id="diskusi"
+              aria-labelledby={`diskusi-heading-${team.id}`}
+              className="scroll-mt-24 rounded-xl border border-line bg-surface p-6 shadow-sm sm:p-8"
+            >
+              <DiscussionThread
+                teamId={team.id}
+                initialMessages={discussion}
+                closed={team.status !== "open"}
+              />
+            </section>
           </div>
 
           {/* Kolom Kanan / Sidebar: Profil Pembuat Tim (Proof of Work) */}
