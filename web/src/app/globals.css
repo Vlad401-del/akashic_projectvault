@@ -1,48 +1,33 @@
 @import "tailwindcss";
 
-/*
- * Palet Akashic — "studio lomba".
- *
- * DNA dari referensi: hijau hutan, mustard, koral, krem, biru langit, dan mint,
- * dengan judul serif. Supaya tidak terasa kartun, garis dibuat tipis dan
- * bayangan offset hanya muncul saat kartu disentuh (hover/fokus).
- *
- * Catatan kontras:
- *   ink   #16241E di atas krem #FBF6EA   ~15:1
- *   ink-2 #4E5A52 di atas krem            ~6,7:1
- *   putih di atas forest #1F4D3A          ~9,5:1
- *   ink di atas sun #F2B544 / coral #EE6C4D  >= 5:1
- * Sun dan coral TIDAK dipakai sebagai warna teks di atas latar terang.
- */
 @theme inline {
-  --color-canvas: #fbf6ea;
-  --color-surface: #fffdf8;
-  --color-ink: #16241e;
-  --color-ink-2: #4e5a52;
-  --color-line: #e6dcc6;
-  --color-line-strong: #cdbf9f;
-  --color-accent: #1f4d3a;
-  --color-accent-hover: #163a2b;
-  --color-accent-soft: #e2ede4;
+  --color-canvas: #ffffff;
+  --color-surface: #f7f8fa;
+  --color-ink: #191b22;
+  --color-ink-2: #565d6b;
+  --color-line: #e1e4ea;
+  --color-line-strong: #aeb6c4;
+  --color-accent: #b51220;
+  --color-accent-hover: #8e0e19;
+  --color-accent-soft: #fcebed;
   --color-danger: #b42318;
   --color-danger-soft: #fef3f2;
 
-  --color-forest: #1f4d3a;
-  --color-forest-deep: #143326;
-  --color-night: #111a15;
-  --color-sun: #f2b544;
-  --color-sun-soft: #f9e2a8;
-  --color-coral: #ee6c4d;
-  --color-sky: #d3e8f2;
-  --color-mint: #d7eadb;
-  --color-cream: #fbf6ea;
-  --color-cream-deep: #f4e9cf;
+  --color-forest: #344b68;
+  --color-forest-deep: #243348;
+  --color-night: #14151b;
+  --color-sun: #b9cce2;
+  --color-sun-soft: #e8eef6;
+  --color-coral: #ee929a;
+  --color-sky: #dce6f2;
+  --color-mint: #e5e8ef;
+  --color-cream: #ffffff;
+  --color-cream-deep: #eef0f4;
 
-  /* Dipertahankan untuk komponen lama; nilainya mengikuti palet baru. */
-  --color-spectrum-cyan: #ee6c4d;
-  --color-spectrum-blue: #1f4d3a;
-  --color-spectrum-green: #f2b544;
-  --color-spectrum-lime: #9cc9a8;
+  --color-spectrum-cyan: #b51220;
+  --color-spectrum-blue: #344b68;
+  --color-spectrum-green: #b9cce2;
+  --color-spectrum-lime: #aeb6c4;
 
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial,
     sans-serif;
@@ -50,9 +35,9 @@
 }
 
 :root {
-  --spectrum-mark: linear-gradient(148deg, #ee6c4d 0%, #f2b544 100%);
-  --spectrum-word: linear-gradient(92deg, #16241e 0%, #16241e 100%);
-  --spectrum-rule: linear-gradient(90deg, #1f4d3a 0%, #1f4d3a 55%, #f2b544 55%, #f2b544 80%, #ee6c4d 80%);
+  --spectrum-mark: linear-gradient(148deg, #b51220 0%, #8e0e19 100%);
+  --spectrum-word: linear-gradient(92deg, #191b22 0%, #191b22 100%);
+  --spectrum-rule: linear-gradient(90deg, #b51220 0%, #b51220 55%, #344b68 55%, #344b68 80%, #aeb6c4 80%);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
