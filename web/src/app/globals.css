@@ -7,14 +7,14 @@
   --color-ink-2: #565d6b;
   --color-line: #e1e4ea;
   --color-line-strong: #aeb6c4;
-  --color-accent: #b51220;
-  --color-accent-hover: #8e0e19;
+  --color-accent: #883b46;
+  --color-accent-hover: #6e2e38;
   --color-accent-soft: #fcebed;
   --color-danger: #b42318;
   --color-danger-soft: #fef3f2;
 
-  --color-forest: #344b68;
-  --color-forest-deep: #243348;
+  --color-forest: #883b46;
+  --color-forest-deep: #53252d;
   --color-night: #14151b;
   --color-sun: #b9cce2;
   --color-sun-soft: #e8eef6;
@@ -24,7 +24,7 @@
   --color-cream: #ffffff;
   --color-cream-deep: #eef0f4;
 
-  --color-spectrum-cyan: #b51220;
+  --color-spectrum-cyan: #883b46;
   --color-spectrum-blue: #344b68;
   --color-spectrum-green: #b9cce2;
   --color-spectrum-lime: #aeb6c4;
@@ -35,9 +35,9 @@
 }
 
 :root {
-  --spectrum-mark: linear-gradient(148deg, #b51220 0%, #8e0e19 100%);
+  --spectrum-mark: linear-gradient(148deg, #883b46 0%, #6e2e38 100%);
   --spectrum-word: linear-gradient(92deg, #191b22 0%, #191b22 100%);
-  --spectrum-rule: linear-gradient(90deg, #b51220 0%, #b51220 55%, #344b68 55%, #344b68 80%, #aeb6c4 80%);
+  --spectrum-rule: linear-gradient(90deg, #883b46 0%, #883b46 55%, #344b68 55%, #344b68 80%, #aeb6c4 80%);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
