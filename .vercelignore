@@ -1,0 +1,17 @@
+# Vercel builds the Next.js app from the configured web/ root.
+# Upload only that application, never repository notes or design files.
+/*
+!web
+
+# Local runtime files and credentials are not deployment source.
+web/.env*
+web/.data/
+web/.data-playwright/
+web/.next/
+web/.next-playwright/
+web/.vercel/
+web/node_modules/
+web/coverage/
+web/test-results/
+web/playwright-report/
+web/*.tsbuildinfo

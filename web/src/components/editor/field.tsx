@@ -11,7 +11,7 @@ import { Icon } from "@/components/icons";
  * pembaca layar dan pengguna yang tidak membedakan warna.
  */
 const FIELD_BASE =
-  "w-full rounded-[10px] border border-line bg-surface px-3.5 py-2.5 text-[15px] leading-6 text-ink placeholder:text-ink-2/60";
+  "w-full rounded-[10px] border border-line bg-surface px-3.5 py-2.5 text-base leading-6 text-ink placeholder:text-ink-2/60 sm:text-[15px]";
 const FIELD_INVALID = "border-danger";
 
 export function Field({

@@ -2,27 +2,23 @@ import type { ReactElement } from "react";
 
 import { Icon } from "@/components/icons";
 import type { CoverVariant } from "@/lib/fixtures/types";
+import { toSafeImageSrc } from "@/lib/url";
 
 /**
- * Placeholder bukti karya untuk tahap 1.
+ * Sampul dan galeri proyek.
  *
- * Belum ada unggahan gambar (Supabase Storage baru masuk tahap 4), jadi sampul
- * dan galeri memakai ilustrasi netral yang digambar sendiri. Hak penggunaan
- * jelas karena dibuat di repositori ini, dan setiap ilustrasi diberi label
- * "Contoh tampilan" supaya tidak disangka tangkapan layar proyek sungguhan.
- * Ilustrasi sengaja tidak memuat angka atau metrik apa pun.
- *
- * Warna aksen mengikuti palet terbaru: biru #2563EB, cyan #06B6D4, hijau
- * #22C55E. Hanya dipakai sebagai aksen kecil; sebagian besar ilustrasi netral.
+ * Bila pemilik mengisi gambar asli (`src`), gambar itu yang dirender dengan
+ * potongan `object-cover`. Bila tidak, dipakai ilustrasi vektor dari repositori
+ * ini sebagai cadangan; ilustrasi sengaja tidak memuat angka atau metrik.
  */
-const SURFACE = "#FFFFFF";
-const CANVAS = "#F8F9FC";
-const LINE = "#DCE2EA";
-const BLOCK = "#E7ECF3";
-const INK_SOFT = "#8A96A6";
-const ACCENT = "#2563EB";
-const CYAN = "#06B6D4";
-const GREEN = "#22C55E";
+const SURFACE = "#FFFDF8";
+const CANVAS = "#F4E9CF";
+const LINE = "#E6DCC6";
+const BLOCK = "#EFE5CF";
+const INK_SOFT = "#8B8F7E";
+const ACCENT = "#1F4D3A";
+const CYAN = "#EE6C4D";
+const GREEN = "#F2B544";
 
 function TextLines({
   x,
@@ -265,36 +261,58 @@ const ART: Record<CoverVariant, () => ReactElement> = {
  * `frame` menentukan tampilan bingkai:
  * - `card`   : tanpa sudut membulat, dipakai di dalam kartu proyek.
  * - `figure` : bersudut membulat, dipakai sebagai sampul/galeri halaman detail.
+ *
+ * `src` opsional berisi gambar asli. Bila ada, ilustrasi vektor tidak dipakai.
  */
 export function ProjectCover({
   variant,
   alt,
+  src,
   frame = "figure",
   aspectClassName = "aspect-[16/10]",
 }: {
   variant: CoverVariant;
   alt: string;
+  src?: string;
   frame?: "card" | "figure";
   aspectClassName?: string;
 }) {
-  const Art = ART[variant];
+  const image = toSafeImageSrc(src);
+  const Illustration = ART[variant];
   const frameClass =
-    frame === "card" ? "border-b border-line bg-surface" : "overflow-hidden rounded-xl border border-line bg-surface";
+    frame === "card"
+      ? "overflow-hidden border-b border-ink/10 bg-surface"
+      : "overflow-hidden rounded-[18px] border border-ink/15 bg-surface";
+  const zoomClass =
+    frame === "card" ? "transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:scale-[1.04]" : "";
 
   return (
     <div className={`relative w-full ${frameClass} ${aspectClassName}`}>
-      <svg
-        viewBox="0 0 640 400"
-        role="img"
-        aria-label={alt}
-        preserveAspectRatio="xMidYMid slice"
-        className="h-full w-full"
-      >
-        <Art />
-      </svg>
-      <span className="absolute right-3 top-3 rounded-full border border-line bg-surface/85 px-2.5 py-[3px] text-[11px] font-medium text-ink-2 backdrop-blur-[2px]">
-        Contoh tampilan
-      </span>
+      {image ? (
+        // eslint-disable-next-line @next/next/no-img-element -- sumber bisa berupa URL pilihan pemilik, di luar daftar domain next/image.
+        <img
+          src={image}
+          alt={alt}
+          loading="lazy"
+          decoding="async"
+          className={`h-full w-full object-cover ${zoomClass}`}
+        />
+      ) : (
+        <>
+          <svg
+            viewBox="0 0 640 400"
+            role="img"
+            aria-label={alt}
+            preserveAspectRatio="xMidYMid slice"
+            className={`h-full w-full ${zoomClass}`}
+          >
+            <Illustration />
+          </svg>
+          <span className="absolute right-3 top-3 rounded-full bg-sun px-2.5 py-[3px] text-[11px] font-bold text-ink">
+            Pratinjau karya
+          </span>
+        </>
+      )}
     </div>
   );
 }

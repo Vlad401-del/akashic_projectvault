@@ -1,8 +1,8 @@
-import { Avatar } from "@/components/site-nav";
+import { Avatar } from "@/components/avatar";
 import { Icon, type IconName } from "@/components/icons";
 import { SkillList } from "@/components/skill-list";
 import type { ContactKind, Profile } from "@/lib/fixtures/types";
-import { toSafeExternalUrl } from "@/lib/url";
+import { isSafeEmailLink, toPublicExternalUrl } from "@/lib/url";
 
 const CONTACT_ICON: Record<ContactKind, IconName> = {
   email: "mail",
@@ -20,7 +20,12 @@ const CONTACT_ICON: Record<ContactKind, IconName> = {
  */
 export function ProfileHeader({ profile }: { profile: Profile }) {
   const contacts = profile.contacts
-    .map((contact) => ({ ...contact, safeUrl: toSafeExternalUrl(contact.url) }))
+    .map((contact) => ({
+      ...contact,
+      safeUrl: contact.kind === "email"
+        ? (isSafeEmailLink(contact.url) ? contact.url : null)
+        : toPublicExternalUrl(contact.url),
+    }))
     .filter((contact): contact is typeof contact & { safeUrl: string } => contact.safeUrl !== null);
 
   return (

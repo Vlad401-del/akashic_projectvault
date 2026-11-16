@@ -2,6 +2,7 @@ import { Icon, type IconName } from "@/components/icons";
 import { SourceLinks } from "@/components/source-links";
 import type { Project } from "@/lib/fixtures/types";
 import { workTypeWithTeam } from "@/lib/labels";
+import { toPublicExternalUrl } from "@/lib/url";
 
 /** Daftar bagian yang bisa dilompati pembaca dari panel samping. */
 const SECTIONS: { id: string; label: string }[] = [
@@ -28,7 +29,7 @@ function ContextRow({ icon, label, value }: { icon: IconName; label: string; val
  * Panel samping halaman detail proyek.
  *
  * Berisi konteks tugas (jenis, peran, periode, mata kuliah, alat), tombol bukti
- * karya, catatan bahwa tautannya masih contoh, dan daftar bagian halaman.
+ * karya, dan daftar bagian halaman.
  * Pada layar besar panel ini menempel (sticky) di kanan saat narasi digulir.
  */
 export function ProjectContext({ project }: { project: Project }) {
@@ -45,7 +46,7 @@ export function ProjectContext({ project }: { project: Project }) {
   );
 
   const sections = SECTIONS.filter((section) => section.id !== "galeri" || project.gallery.length > 0);
-  const hasSources = project.sources.some((source) => source.url.trim().length > 0);
+  const sources = project.sources.filter((source) => toPublicExternalUrl(source.url) !== null);
 
   return (
     <div className="flex flex-col gap-4">
@@ -60,20 +61,7 @@ export function ProjectContext({ project }: { project: Project }) {
         </dl>
       </div>
 
-      {project.sources.length > 0 ? (
-        <div>
-          <SourceLinks sources={project.sources} />
-          {hasSources ? (
-            <p className="mt-3 flex items-start gap-2 text-[13px] leading-5 text-ink-2">
-              <Icon name="info" className="mt-0.5 size-4" />
-              <span>
-                Tautan di atas masih contoh. Semuanya mengarah ke alamat example.com, bukan layanan
-                sungguhan.
-              </span>
-            </p>
-          ) : null}
-        </div>
-      ) : null}
+      {sources.length > 0 ? <SourceLinks sources={sources} /> : null}
 
       <nav aria-labelledby="di-halaman-ini" className="rounded-xl border border-line bg-surface p-5">
         <h2 id="di-halaman-ini" className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-2">

@@ -1,0 +1,4 @@
+{
+  "installOn": ["web/package.json", "web/package-lock.json"],
+  "restartOn": ["web/next.config.ts"]
+}

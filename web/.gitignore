@@ -12,9 +12,13 @@
 
 # testing
 /coverage
+/test-results/
+/playwright-report/
+/.data-playwright/
 
 # next.js
 /.next/
+/.next-playwright/
 /out/
 
 # production
@@ -41,3 +45,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
+.env*

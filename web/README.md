@@ -13,7 +13,16 @@ npm run build       # production build
 npm start           # jalankan hasil build
 npm run lint        # ESLint
 npm run typecheck   # next typegen + tsc --noEmit
+npm run test:e2e     # build + Playwright desktop/ponsel, produksi dan mode uji lokal
 ```
+
+Tes Playwright memakai Chrome yang sudah terpasang di Windows. Tes produksi memeriksa
+halaman publik, navigasi, privasi, validasi awal, dan responsivitas. Tes mode uji lokal
+memeriksa empat langkah editor, simpan/terbit/tarik proyek, pencarian tim, perkenalan,
+diskusi, dan peninjauan pelamar. Data tes disimpan terpisah di `.data-playwright/`
+(diabaikan Git), sehingga tidak mengubah data Supabase atau `.data/` milik pengembang.
+Alur akun Supabase yang memerlukan email konfirmasi masih perlu dites dengan akun uji
+tersendiri sebelum deployment.
 
 Pemeriksaan perilaku rute (status HTTP) dijalankan terhadap hasil build:
 
@@ -44,16 +53,26 @@ src/
     └── text.ts              # kalimat pertama, inisial avatar, nama depan
 ```
 
-Sumber data dasar masih fixture di `src/lib/fixtures/`. Di atasnya ada hasil editor: proyek yang
-disimpan dari area pemilik ditulis ke `.data/projects.json` (folder ini, tidak masuk Git) dan
-digabungkan di `src/lib/content.ts`. Pengganti keduanya adalah Supabase pada tahap berikutnya; berkas
-`src/lib/content.ts` adalah satu-satunya tempat yang perlu diubah menjadi kueri database.
+## Supabase dan akun
 
-Editor area pemilik menyimpan sungguhan lewat server action di `src/lib/project-actions.ts`. Server
-action itu memvalidasi ulang isian dengan fungsi yang sama seperti peramban, membentuk slug, menulis
-ke penyimpanan lokal, lalu menyegarkan halaman publik yang terdampak dengan `revalidatePath`. State
-formulir sendiri tetap hidup di peramban (`src/components/editor/project-editor.tsx`) dan sengaja
-tidak memakai `localStorage`, sesuai aturan spesifikasi bahwa data nyata nanti berasal dari database.
+Salin `.env.example` menjadi `.env.local`, lalu isi URL proyek dan publishable key Supabase.
+Kedua variabel tersebut juga perlu diatur pada proyek Vercel untuk lingkungan Production dan Preview.
+Jangan masukkan service role key atau sandi database ke variabel `NEXT_PUBLIC_*`.
+
+Saat kedua variabel tersedia, aplikasi memakai Supabase sebagai sumber data utama untuk akun,
+profil, studi kasus proyek, pencarian tim, perkenalan, dan diskusi. Profil baru dimulai privat.
+Profil dan proyek draft tidak terlihat oleh pengunjung publik. Pemilik perlu menerbitkan profil
+dan minimal satu proyek sebelum memasang pencarian anggota. Pelamar wajib menyertakan tautan
+bukti karya HTTPS. Pemilik dapat meninjau perkenalan serta membuka atau menutup pencarian.
+
+Skema database tersimpan di `supabase/migrations/`. Migrasi tersebut sudah diterapkan pada proyek
+Akashic yang terhubung; untuk proyek Supabase lain, jalankan berurutan setelah skema portofolio
+yang ada. Atur URL dasar situs dan URL pengalihan `/auth/callback` pada pengaturan Auth Supabase
+untuk domain lokal dan Vercel sebelum menguji konfirmasi email atau pemulihan sandi.
+
+Tanpa konfigurasi Supabase, mode contoh lokal tetap tersedia untuk pengembangan saja.
+Data contoh berasal dari `src/lib/fixtures/`, sedangkan perubahan editor lokal disimpan di
+`.data/` dan tidak masuk Git. Mode ini tidak boleh dipakai sebagai penyimpanan produksi.
 
 Berkas `scripts/seed/proyek-uji-penyimpanan-lokal.json` adalah contoh isi penyimpanan yang dipakai
 `scripts/check-routes.ps1` untuk menguji bahwa proyek terbit muncul di halaman publik dan proyek draft

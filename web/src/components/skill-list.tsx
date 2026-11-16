@@ -19,8 +19,8 @@ export function SkillList({
 
   const itemClass =
     variant === "card"
-      ? "rounded-full border border-line bg-canvas px-2.5 py-0.5 text-[13px] font-medium text-ink"
-      : "rounded-full border border-line bg-surface px-3 py-1 text-[13px] font-medium text-ink";
+      ? "rounded-full border border-ink/15 bg-canvas px-2.5 py-0.5 text-[12px] font-semibold text-ink"
+      : "rounded-full border border-ink/15 bg-surface px-3 py-1 text-[13px] font-semibold text-ink";
 
   return (
     <ul className={`flex flex-wrap gap-2 ${className}`}>

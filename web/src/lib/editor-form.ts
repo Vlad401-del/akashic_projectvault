@@ -20,7 +20,7 @@ import type {
   Teammate,
   WorkType,
 } from "@/lib/fixtures/types";
-import { isSafeExternalUrl } from "@/lib/url";
+import { isHttpsExternalUrl, toSafeImageSrc } from "@/lib/url";
 
 /** Satu baris tautan bukti karya di dalam formulir. */
 export type EditorSource = {
@@ -53,6 +53,8 @@ export type EditorForm = {
   outcomeNote: string;
   outcomeCards: string;
   coverVariant: CoverVariant;
+  /** Alamat gambar sampul asli; kosong berarti memakai ilustrasi `coverVariant`. */
+  coverImageUrl: string;
   coverAlt: string;
   coverCaption: string;
   sources: EditorSource[];
@@ -65,6 +67,13 @@ export type EditorForm = {
 export type EditorErrors = {
   title?: string;
   summary?: string;
+  problem?: string;
+  processIntro?: string;
+  contributionChecklist?: string;
+  outcomeIntro?: string;
+  evidence?: string;
+  publish?: string;
+  coverImageUrl?: string;
   sources?: Record<number, string>;
 };
 
@@ -179,6 +188,7 @@ export function emptyForm(): EditorForm {
     outcomeNote: "",
     outcomeCards: "",
     coverVariant: "dashboard",
+    coverImageUrl: "",
     coverAlt: "",
     coverCaption: "",
     sources: [{ label: "", url: "" }],
@@ -217,6 +227,7 @@ export function projectToForm(project: Project): EditorForm {
       .map((card) => `${card.title} ${PAIR_SEPARATOR} ${card.body}`)
       .join("\n"),
     coverVariant: project.cover.variant,
+    coverImageUrl: project.cover.src ?? "",
     coverAlt: project.cover.alt,
     coverCaption: project.cover.caption ?? "",
     sources: project.sources.length > 0 ? project.sources.map((source) => ({ ...source })) : [{ label: "", url: "" }],
@@ -237,6 +248,7 @@ export function formToProject(form: EditorForm, status: ProjectStatus): Project 
     name: item.title,
     task: item.body,
   }));
+  const coverImage = toSafeImageSrc(form.coverImageUrl);
 
   return {
     slug: slugify(form.title) || "proyek-baru",
@@ -263,8 +275,9 @@ export function formToProject(form: EditorForm, status: ProjectStatus): Project 
     outcomeNote: optional(form.outcomeNote),
     outcomeCards: toLabelledItems(form.outcomeCards).map((item) => ({ title: item.title, body: item.body })),
     cover: {
-      alt: form.coverAlt.trim() || "Ilustrasi contoh sampul proyek.",
+      alt: form.coverAlt.trim() || "Ilustrasi sampul proyek.",
       variant: form.coverVariant,
+      ...(coverImage ? { src: coverImage } : {}),
       ...(form.coverCaption.trim() ? { caption: form.coverCaption.trim() } : {}),
     },
     gallery: [],
@@ -283,8 +296,12 @@ export function validateForm(form: EditorForm): EditorErrors {
     errors.title = "Judul proyek wajib diisi.";
   }
 
-  if (form.summary.trim().length === 0) {
-    errors.summary = "Ringkasan wajib diisi, cukup dua kalimat.";
+  if (form.summary.trim().length === 0 || form.summary.trim().length > 280) {
+    errors.summary = "Ringkasan wajib diisi, maksimal 280 karakter.";
+  }
+
+  if (form.coverImageUrl.trim().length > 0 && !toSafeImageSrc(form.coverImageUrl)) {
+    errors.coverImageUrl = "Gunakan alamat gambar berawalan https:// atau http://, atau jalur di dalam situs seperti /images/...";
   }
 
   const sourceErrors: Record<number, string> = {};
@@ -301,8 +318,8 @@ export function validateForm(form: EditorForm): EditorErrors {
       sourceErrors[index] = "Label tautan wajib diisi.";
     } else if (url.length === 0) {
       sourceErrors[index] = "Alamat tautan wajib diisi.";
-    } else if (!isSafeExternalUrl(url)) {
-      sourceErrors[index] = "Gunakan alamat lengkap yang berawalan https:// atau http://.";
+    } else if (!isHttpsExternalUrl(url)) {
+      sourceErrors[index] = "Gunakan tautan bukti HTTPS yang valid.";
     }
   });
 
@@ -314,7 +331,51 @@ export function validateForm(form: EditorForm): EditorErrors {
 }
 
 export function hasErrors(errors: EditorErrors): boolean {
-  return Boolean(errors.title || errors.summary || errors.sources);
+  return Boolean(
+    errors.title || errors.summary || errors.problem || errors.processIntro ||
+    errors.contributionChecklist || errors.outcomeIntro || errors.evidence ||
+    errors.publish || errors.coverImageUrl || errors.sources,
+  );
+}
+
+export function validateStep(form: EditorForm, step: 1 | 2 | 3 | 4): EditorErrors {
+  const errors: EditorErrors = {};
+
+  if (step === 1) {
+    if (!form.title.trim()) errors.title = "Judul proyek wajib diisi.";
+    if (!form.summary.trim() || form.summary.trim().length > 280) {
+      errors.summary = "Ringkasan wajib diisi, maksimal 280 karakter.";
+    }
+  }
+
+  if (step === 2) {
+    if (!toParagraphs(form.problem).length) errors.problem = "Jelaskan masalah yang ingin diselesaikan.";
+    if (!form.processIntro.trim() && !toLabelledItems(form.processSteps).length) {
+      errors.processIntro = "Isi pengantar atau minimal satu langkah proses.";
+    }
+  }
+
+  if (step === 3) {
+    if (!form.contributionIntro.trim() && !toBullets(form.contributionChecklist).length) {
+      errors.contributionChecklist = "Jelaskan pekerjaan yang benar-benar kamu kerjakan.";
+    }
+    if (!form.outcomeIntro.trim()) errors.outcomeIntro = "Jelaskan hasil proyek.";
+  }
+
+  if (step === 4) {
+    const base = validateForm(form);
+    errors.coverImageUrl = base.coverImageUrl;
+    errors.sources = base.sources;
+    const hasSource = form.sources.some((source) => source.label.trim() && isHttpsExternalUrl(source.url));
+    const hasImage = Boolean(toSafeImageSrc(form.coverImageUrl));
+    if (!hasSource && !hasImage) errors.evidence = "Tambahkan tautan bukti karya atau URL gambar sampul asli.";
+  }
+
+  return errors;
+}
+
+export function validatePublishedContent(form: EditorForm): EditorErrors {
+  return Object.assign({}, ...([1, 2, 3, 4] as const).map((step) => validateStep(form, step)));
 }
 
 /**
@@ -325,8 +386,8 @@ export function hasErrors(errors: EditorErrors): boolean {
  * minimal satu bukti berupa gambar atau tautan.
  */
 export function publishChecklist(form: EditorForm): ChecklistItem[] {
-  const hasSafeSource = form.sources.some((source) => isSafeExternalUrl(source.url));
-  const hasCoverNote = form.coverAlt.trim().length > 0;
+  const hasSafeSource = form.sources.some((source) => source.label.trim() && isHttpsExternalUrl(source.url));
+  const hasCoverImage = Boolean(toSafeImageSrc(form.coverImageUrl));
 
   return [
     { id: "judul", label: "Judul proyek terisi", ok: form.title.trim().length > 0 },
@@ -345,14 +406,14 @@ export function publishChecklist(form: EditorForm): ChecklistItem[] {
     { id: "hasil", label: "Bagian Hasil terisi", ok: form.outcomeIntro.trim().length > 0 },
     {
       id: "bukti",
-      label: "Ada minimal satu bukti: tautan atau keterangan sampul",
-      ok: hasSafeSource || hasCoverNote,
+      label: "Ada minimal satu bukti: tautan atau gambar sampul asli",
+      ok: Boolean(hasSafeSource || hasCoverImage),
     },
   ];
 }
 
 export function canPublish(form: EditorForm): boolean {
-  const checklistReady = publishChecklist(form).every((item) => item.ok);
+  const checklistReady = !hasErrors(validatePublishedContent(form));
 
   return checklistReady && form.consentRights && form.consentNoSensitive;
 }

@@ -1,11 +1,16 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import { Icon } from "@/components/icons";
 import { ProfileHeader } from "@/components/profile-header";
 import { ProjectCard } from "@/components/project-card";
-import { PrototypeNotice } from "@/components/prototype-notice";
-import { OwnerChip, TopBar } from "@/components/site-nav";
-import { countStoredProjects, getPublicProfile, getPublicProjects, listKnownProfileRoutes } from "@/lib/content";
+import { OwnerChip } from "@/components/avatar";
+import { BackButton } from "@/components/back-button";
+import { SiteBrand } from "@/components/site-brand";
+import { TopBar } from "@/components/site-nav";
+import { getPublicProfile, getPublicProjects, listKnownProfileRoutes } from "@/lib/content";
+import { getCloudPublicProfile } from "@/lib/supabase/content";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
  * Rute ini dibuat saat build dari daftar yang dikenal (fixture dan proyek hasil
@@ -23,7 +28,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/u/[username]">) {
   const { username } = await params;
-  const profile = getPublicProfile(username);
+  const profile = isSupabaseConfigured()
+    ? await getCloudPublicProfile(username)
+    : getPublicProfile(username);
 
   if (!profile) {
     return { title: "Profil tidak ditemukan" };
@@ -37,7 +44,9 @@ export async function generateMetadata({ params }: PageProps<"/u/[username]">) {
 
 export default async function PublicProfilePage({ params }: PageProps<"/u/[username]">) {
   const { username } = await params;
-  const profile = getPublicProfile(username);
+  const profile = isSupabaseConfigured()
+    ? await getCloudPublicProfile(username)
+    : getPublicProfile(username);
 
   // Profil yang belum aktif tampil publik atau username yang salah sama-sama
   // menghasilkan not-found, supaya keberadaan profil privat tidak bocor.
@@ -46,20 +55,30 @@ export default async function PublicProfilePage({ params }: PageProps<"/u/[usern
   }
 
   const projects = getPublicProjects(profile);
-  const storedCount = countStoredProjects(profile.username);
 
   return (
     <>
-      <TopBar left={<OwnerChip profile={profile} />} />
+      <TopBar
+        left={
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <OwnerChip profile={profile} />
+          </div>
+        }
+        right={
+          <div className="flex items-center gap-4">
+            <Link
+              href="/tim"
+              className="link-underline hidden text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink sm:inline"
+            >
+              Cari Tim
+            </Link>
+            <span className="hidden sm:inline-flex"><SiteBrand /></span>
+          </div>
+        }
+      />
 
       <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
-        <PrototypeNotice>
-          Contoh fiktif. Nama, profil, dan kontak di halaman ini dibuat untuk prototipe.
-          {storedCount > 0
-            ? ` ${storedCount} proyek di halaman ini dibuat lewat editor dan tersimpan di berkas lokal komputer ini, bukan di database.`
-            : ""}
-        </PrototypeNotice>
-
         <ProfileHeader profile={profile} />
 
         <section aria-labelledby="daftar-proyek" className="mt-12 border-t border-line pt-10 sm:mt-14">

@@ -33,9 +33,9 @@ export function PublishChecklist({
   const declarationsReady = consentRights && consentNoSensitive;
 
   return (
-    <section id={id} aria-labelledby="checklist-terbit" className={`rounded-xl border border-line bg-surface ${className}`}>
+    <section id={id} aria-labelledby="checklist-terbit-title" className={`rounded-xl border border-line bg-surface ${className}`}>
       <header className="border-b border-line px-5 py-4">
-        <h2 id="checklist-terbit" className="text-[15px] font-semibold text-ink">
+        <h2 id="checklist-terbit-title" className="text-[15px] font-semibold text-ink">
           Checklist sebelum menerbitkan
         </h2>
         <p className="mt-1 text-[13px] leading-5 text-ink-2">
@@ -75,7 +75,7 @@ export function PublishChecklist({
               type="checkbox"
               checked={consentRights}
               onChange={(event) => onConsentRightsChange(event.target.checked)}
-              className="mt-1 size-4 shrink-0 accent-[#2563EB]"
+              className="mt-1 size-4 shrink-0 accent-accent"
             />
             <span>Saya berhak membagikan karya ini dan sudah memakai data yang boleh ditampilkan.</span>
           </label>
@@ -85,7 +85,7 @@ export function PublishChecklist({
               type="checkbox"
               checked={consentNoSensitive}
               onChange={(event) => onConsentNoSensitiveChange(event.target.checked)}
-              className="mt-1 size-4 shrink-0 accent-[#2563EB]"
+              className="mt-1 size-4 shrink-0 accent-accent"
             />
             <span>Proyek ini tidak memuat data sensitif seperti kontak pribadi orang lain atau berkas rahasia.</span>
           </label>
