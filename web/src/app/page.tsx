@@ -4,6 +4,7 @@ import type { CSSProperties } from "react";
 
 import { Icon } from "@/components/icons";
 import { HeroSpotlight, PathTabs, RevealObserver, type PathData } from "@/components/landing/landing-motion";
+import { MobileMenu } from "@/components/mobile-menu";
 import { ProjectCard } from "@/components/project-card";
 import { SiteBrand } from "@/components/site-brand";
 import { TopBar } from "@/components/site-nav";
@@ -192,6 +193,21 @@ export default async function HomePage() {
               <Icon name="users" className="size-4" />
               Cari tim
             </Link>
+            <MobileMenu
+              tone="dark"
+              links={[
+                { label: "Cara kerja", href: "#cara-kerja" },
+                { label: "Karya", href: "#karya" },
+                { label: "Lomba", href: "#lomba" },
+                { label: "Cari tim", href: "/tim" },
+                ...(user
+                  ? [{ label: `Dashboard (${user.name.split(" ")[0]})`, href: "/dashboard" }]
+                  : [
+                      { label: "Masuk", href: "/login" },
+                      { label: "Daftar", href: "/register", primary: true as const },
+                    ]),
+              ]}
+            />
           </>
         }
       />

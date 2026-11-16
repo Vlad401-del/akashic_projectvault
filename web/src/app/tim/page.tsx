@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { getCurrentUser } from "@/lib/auth-session";
 import { Icon } from "@/components/icons";
+import { MobileMenu } from "@/components/mobile-menu";
 import { SiteBrand } from "@/components/site-brand";
 import { TopBar } from "@/components/site-nav";
 import { TeamBoard } from "@/components/team/team-board";
@@ -68,6 +69,19 @@ export default async function TeamBoardPage() {
               </>
             )}
             <SiteBrand />
+            <MobileMenu
+              tone="light"
+              links={[
+                { label: "Beranda", href: "/" },
+                ...(user
+                  ? [{ label: `Dashboard (${user.name.split(" ")[0]})`, href: "/dashboard" }]
+                  : [
+                      { label: "Masuk", href: "/login" },
+                      { label: "Daftar", href: "/register", primary: true as const },
+                    ]),
+                { label: "Pasang pencarian tim", href: newTeamHref, primary: true as const },
+              ]}
+            />
           </div>
         }
       />
