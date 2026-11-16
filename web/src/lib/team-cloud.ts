@@ -117,6 +117,9 @@ export type SentIntro = {
   sentAt: string;
   teamVisible: boolean;
   teamOpen: boolean;
+  /** Kontak pemilik tim — hanya tersedia saat review = "diterima". */
+  ownerContact: string | null;
+  ownerName: string | null;
 };
 
 export async function listCloudSentIntros(senderId: string): Promise<SentIntro[]> {
@@ -127,19 +130,57 @@ export async function listCloudSentIntros(senderId: string): Promise<SentIntro[]
     .order("created_at", { ascending: false });
   if (error) throw new Error("Pengajuan Anda belum dapat dibaca.");
   if (!rows?.length) return [];
+
+  const teamIds = [...new Set(rows.map((row) => row.team_id))];
   const { data: teams, error: teamError } = await supabase.from("team_posts")
-    .select("id,title,status")
-    .in("id", [...new Set(rows.map((row) => row.team_id))]);
+    .select("id,title,status,owner_id")
+    .in("id", teamIds);
   if (teamError) throw new Error("Rincian pengajuan belum dapat dibaca.");
-  const titles = new Map((teams ?? []).map((team) => [team.id, team]));
-  return rows.map((row) => ({
-    teamId: row.team_id,
-    teamTitle: titles.get(row.team_id)?.title ?? "Pencarian tidak tersedia",
-    role: row.role,
-    review: row.review === "diskusi" || row.review === "diterima" || row.review === "ditolak" ? row.review : "baru",
-    joinedAt: row.joined_at,
-    sentAt: row.created_at,
-    teamVisible: titles.has(row.team_id),
-    teamOpen: titles.get(row.team_id)?.status === "open",
-  }));
+
+  // Ambil kontak pemilik hanya untuk tim yang pelamar ini sudah diterima.
+  const acceptedOwnerIds = [...new Set(
+    rows
+      .filter((row) => row.review === "diterima")
+      .map((row) => (teams ?? []).find((team) => team.id === row.team_id)?.owner_id)
+      .filter(Boolean) as string[]
+  )];
+  const ownerProfiles = acceptedOwnerIds.length > 0
+    ? await supabase.from("profiles")
+        .select("id,display_name,contacts,show_contacts")
+        .in("id", acceptedOwnerIds)
+    : { data: [] };
+
+  const teamMap = new Map((teams ?? []).map((team) => [team.id, team]));
+  const ownerMap = new Map((ownerProfiles.data ?? []).map((p) => [p.id, p]));
+
+  return rows.map((row) => {
+    const teamData = teamMap.get(row.team_id);
+    const review: SentIntro["review"] =
+      row.review === "diskusi" || row.review === "diterima" || row.review === "ditolak"
+        ? row.review
+        : "baru";
+    const owner = review === "diterima" && teamData?.owner_id
+      ? ownerMap.get(teamData.owner_id)
+      : null;
+
+    // Ambil kontak pertama yang bisa dihubungi (email atau link pertama).
+    let ownerContact: string | null = null;
+    if (owner && owner.show_contacts && Array.isArray(owner.contacts) && owner.contacts.length > 0) {
+      const first = owner.contacts[0] as { kind?: string; label?: string; url?: string } | null;
+      ownerContact = first?.url ?? null;
+    }
+
+    return {
+      teamId: row.team_id,
+      teamTitle: teamData?.title ?? "Pencarian tidak tersedia",
+      role: row.role,
+      review,
+      joinedAt: row.joined_at,
+      sentAt: row.created_at,
+      teamVisible: teamMap.has(row.team_id),
+      teamOpen: teamData?.status === "open",
+      ownerContact,
+      ownerName: owner?.display_name ?? null,
+    };
+  });
 }

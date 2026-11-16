@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { getCurrentUser } from "@/lib/auth-session";
 import { Icon } from "@/components/icons";
@@ -173,7 +174,9 @@ export default async function TeamBoardPage() {
               </div>
             </div>
           ) : (
-            <TeamBoard items={openTeams} />
+            <Suspense fallback={<p className="mt-6 text-[14px] text-ink-2">Memuat papan tim…</p>}>
+              <TeamBoard items={openTeams} />
+            </Suspense>
           )}
         </section>
       </main>

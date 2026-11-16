@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 
 import { Icon } from "@/components/icons";
 import { TeamCard } from "@/components/team/team-card";
@@ -25,16 +26,47 @@ const selectClass =
  * peramban tanpa permintaan tambahan.
  */
 export function TeamBoard({ items, example = false }: { items: TeamPostWithOwner[]; example?: boolean }) {
-  const [filter, setFilter] = useState<TeamFilter>(emptyTeamFilter);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Baca state awal dari URL agar link yang dibagikan langsung ke filter yang tepat.
+  const [filter, setFilter] = useState<TeamFilter>(() => ({
+    query: searchParams.get("q") ?? "",
+    category: (searchParams.get("kategori") ?? "") as TeamFilter["category"],
+    skill: searchParams.get("skill") ?? "",
+    maxHours: searchParams.get("jam") ? Number(searchParams.get("jam")) : null,
+  }));
+
+  // Sinkronkan filter ke URL setiap kali berubah.
+  const syncUrl = useCallback((next: TeamFilter) => {
+    const params = new URLSearchParams();
+    if (next.query) params.set("q", next.query);
+    if (next.category) params.set("kategori", next.category);
+    if (next.skill) params.set("skill", next.skill);
+    if (next.maxHours !== null) params.set("jam", String(next.maxHours));
+    const qs = params.toString();
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+  }, [router, pathname]);
+
+  function update<K extends keyof TeamFilter>(field: K, value: TeamFilter[K]) {
+    setFilter((prev) => {
+      const next = { ...prev, [field]: value };
+      syncUrl(next);
+      return next;
+    });
+  }
+
+  function clearFilter() {
+    const empty = emptyTeamFilter();
+    setFilter(empty);
+    syncUrl(empty);
+  }
 
   const categories = useMemo(() => listCategoryOptions(items), [items]);
   const skills = useMemo(() => listSkillOptions(items), [items]);
   const results = useMemo(() => filterTeamPosts(items, filter), [items, filter]);
   const active = hasActiveFilter(filter);
-
-  function update<K extends keyof TeamFilter>(field: K, value: TeamFilter[K]) {
-    setFilter((prev) => ({ ...prev, [field]: value }));
-  }
 
   return (
     <div className="mt-6">
@@ -127,7 +159,7 @@ export function TeamBoard({ items, example = false }: { items: TeamPostWithOwner
           {active ? (
             <button
               type="button"
-              onClick={() => setFilter(emptyTeamFilter())}
+              onClick={() => clearFilter()}
               className="inline-flex items-center gap-1.5 rounded-lg border border-line px-2.5 py-1 text-[13px] font-medium text-ink transition-colors hover:border-line-strong hover:text-accent"
             >
               <Icon name="x" className="size-3" />
@@ -150,7 +182,7 @@ export function TeamBoard({ items, example = false }: { items: TeamPostWithOwner
           </p>
           <button
             type="button"
-            onClick={() => setFilter(emptyTeamFilter())}
+            onClick={() => clearFilter()}
             className="mt-4 inline-flex items-center gap-1.5 rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-accent-hover"
           >
             <Icon name="x" className="size-3.5" />
