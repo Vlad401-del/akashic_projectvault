@@ -91,7 +91,7 @@ export function RegisterForm() {
             id="reg-email"
             type="email"
             autoComplete="email"
-            placeholder="nama@kampus.ac.id"
+            placeholder="contoh@email.com"
             value={form.email}
             invalid={Boolean(errors.email)}
             onChange={(event) => handleChange("email", event.target.value)}
