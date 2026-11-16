@@ -1,6 +1,10 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  distDir: process.env.AKASHIC_TEST_DIST_DIR || ".next",
+  allowedDevOrigins: ["127.0.0.1"],
+  // Next.js development logging includes Server Action arguments, including passwords.
+  logging: { incomingRequests: false },
   /*
    * `cacheComponents` (Cache Components / Partial Prerender) bawaan template
    * sengaja dimatikan untuk tahap MVP.
