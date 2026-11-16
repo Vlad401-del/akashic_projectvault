@@ -96,8 +96,9 @@ export function validateTeamForm(form: TeamPostForm, allowFull = false): TeamErr
     errors.title = "Judul tim harus 3–160 karakter.";
   }
 
-  if (form.competition.trim().length === 0) {
-    errors.competition = "Kompetisi atau konteks wajib diisi.";
+  const hasCategory = /^(GEMASTIK|PKM|Hackathon|Tugas Akhir|Lainnya)/i.test(form.competition.trim());
+  if (form.competition.trim().length === 0 || !hasCategory) {
+    errors.competition = "Pilih kategori lomba terlebih dahulu.";
   }
 
   if (form.summary.trim().length < 20 || form.summary.trim().length > 5000) {
