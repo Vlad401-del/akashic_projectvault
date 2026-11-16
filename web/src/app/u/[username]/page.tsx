@@ -4,6 +4,7 @@ import { Icon } from "@/components/icons";
 import { ProfileHeader } from "@/components/profile-header";
 import { ProjectCard } from "@/components/project-card";
 import { OwnerChip } from "@/components/avatar";
+import { BackButton } from "@/components/back-button";
 import { TopBar } from "@/components/site-nav";
 import { getPublicProfile, getPublicProjects, listKnownProfileRoutes } from "@/lib/content";
 import { getCloudPublicProfile } from "@/lib/supabase/content";
@@ -55,7 +56,14 @@ export default async function PublicProfilePage({ params }: PageProps<"/u/[usern
 
   return (
     <>
-      <TopBar left={<OwnerChip profile={profile} />} />
+      <TopBar
+        left={
+          <div className="flex items-center gap-3">
+            <BackButton />
+            <OwnerChip profile={profile} />
+          </div>
+        }
+      />
 
       <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
         <ProfileHeader profile={profile} />
