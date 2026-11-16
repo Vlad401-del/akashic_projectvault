@@ -2,13 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
-import { getCurrentUser } from "@/lib/auth-session";
 import { Icon } from "@/components/icons";
-import { MobileMenu } from "@/components/mobile-menu";
-import { SiteBrand } from "@/components/site-brand";
-import { TopBar } from "@/components/site-nav";
 import { TeamBoard } from "@/components/team/team-board";
 import { listOpenTeamPosts } from "@/lib/teams";
+import { NewTeamCta, TeamPageNav } from "./team-page-nav";
 
 export const metadata: Metadata = {
   title: "Papan Cari Tim — Rekan Lomba Berbasis Bukti Kerja",
@@ -16,76 +13,20 @@ export const metadata: Metadata = {
     "Cari rekan lomba GEMASTIK, PKM, dan hackathon dari bukti kerja nyata dan studi kasus, bukan sekadar CV.",
 };
 
-export const dynamic = "force-dynamic";
+// Data tim diperbarui saat ada posting baru atau perubahan status lewat revalidatePath.
+// Halaman ini tidak butuh render ulang per request -- ISR 60 detik cukup.
+export const revalidate = 60;
 
 export default async function TeamBoardPage() {
   const openTeams = listOpenTeamPosts();
-  const user = await getCurrentUser();
-  const newTeamHref = user ? "/dashboard/tim/baru" : "/register";
 
   return (
     <>
-      <TopBar
-        left={
-          <div className="flex items-center gap-3">
-            <Link
-              href="/"
-              className="link-underline text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink"
-            >
-              Beranda
-            </Link>
-            <span className="text-line-strong" aria-hidden="true">/</span>
-            <span className="text-[14px] font-semibold text-ink">Cari Tim</span>
-          </div>
-        }
-        right={
-          <div className="flex items-center gap-4">
-            {user ? (
-              <Link
-                href="/dashboard"
-                className="hidden items-center gap-2 text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink sm:flex"
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex size-7 items-center justify-center rounded-full bg-forest font-display text-[11px] font-semibold text-sun"
-                >
-                  {user.name.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
-                </span>
-                {user.name.split(" ")[0]}
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="hidden text-[14px] font-medium text-ink-2 transition-colors hover:text-ink sm:inline"
-                >
-                  Masuk
-                </Link>
-                <Link
-                  href="/register"
-                  className="hidden h-9 items-center rounded-full bg-sun px-4 text-[13px] font-bold text-ink transition-transform hover:-translate-y-0.5 sm:inline-flex"
-                >
-                  Daftar
-                </Link>
-              </>
-            )}
-            <SiteBrand />
-            <MobileMenu
-              tone="light"
-              links={[
-                { label: "Beranda", href: "/" },
-                ...(user
-                  ? [{ label: `Dashboard (${user.name.split(" ")[0]})`, href: "/dashboard" }]
-                  : [
-                      { label: "Masuk", href: "/login" },
-                      { label: "Daftar", href: "/register", primary: true as const },
-                    ]),
-                { label: "Pasang pencarian tim", href: newTeamHref, primary: true as const },
-              ]}
-            />
-          </div>
-        }
-      />
+      <Suspense fallback={
+        <div className="sticky top-0 z-30 h-14 border-b border-line/60 bg-cream/80 backdrop-blur-sm" />
+      }>
+        <TeamPageNav />
+      </Suspense>
 
       <main className="mx-auto max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 sm:pt-10">
         {/* Hero Banner */}
@@ -107,13 +48,14 @@ export default async function TeamBoardPage() {
               </p>
             </div>
 
-            <Link
-              href={newTeamHref}
-              className="group inline-flex h-12 shrink-0 items-center gap-2 self-start rounded-full bg-sun px-6 text-[15px] font-bold text-ink shadow-[4px_4px_0_0_#0b1a13] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#0b1a13] lg:self-auto"
-            >
-              <Icon name="plus" className="size-4" />
-              Pasang Pencarian Tim
-            </Link>
+            <Suspense fallback={
+              <div className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full bg-sun/50 px-6 text-[15px] font-bold text-ink/50 self-start lg:self-auto">
+                <Icon name="plus" className="size-4" />
+                Pasang Pencarian Tim
+              </div>
+            }>
+              <NewTeamCta />
+            </Suspense>
           </div>
         </header>
 
@@ -165,7 +107,7 @@ export default async function TeamBoardPage() {
               </p>
               <div className="mt-5">
                 <Link
-                  href={newTeamHref}
+                  href="/register"
                   className="inline-flex items-center gap-1.5 rounded-full bg-accent px-5 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-accent-hover"
                 >
                   <Icon name="plus" className="size-4" />
