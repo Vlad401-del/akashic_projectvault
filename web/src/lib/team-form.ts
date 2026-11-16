@@ -220,8 +220,10 @@ export function validateIntroForm(form: IntroForm, roleTitles: string[]): IntroE
 
   const proofUrl = form.proofUrl.trim();
 
-  if (!proofUrl || !isHttpsExternalUrl(proofUrl)) {
-    errors.proofUrl = "Tambahkan tautan bukti karya HTTPS yang valid.";
+  if (!proofUrl) {
+    errors.proofUrl = "Isi tautan bukti karya, misalnya profil Akashic, GitHub, atau Figma.";
+  } else if (!isHttpsExternalUrl(proofUrl)) {
+    errors.proofUrl = "Tautan harus dimulai dengan https://. Contoh: https://github.com/namamu";
   }
 
   if (form.contact.trim().length < 3) {

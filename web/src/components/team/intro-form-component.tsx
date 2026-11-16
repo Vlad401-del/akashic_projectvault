@@ -260,6 +260,12 @@ export function IntroFormComponent({
             type="url"
             value={form.proofUrl}
             onChange={(e) => handleChange("proofUrl", e.target.value)}
+            onBlur={(e) => {
+              const val = e.target.value.trim();
+              if (val && !val.startsWith("http")) {
+                handleChange("proofUrl", `https://${val}`);
+              }
+            }}
             placeholder="https://... (Profil Akashic, repositori GitHub, atau desain Figma)"
             className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
