@@ -1,10 +1,12 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 import { Icon } from "@/components/icons";
 import { ProfileHeader } from "@/components/profile-header";
 import { ProjectCard } from "@/components/project-card";
 import { OwnerChip } from "@/components/avatar";
 import { BackButton } from "@/components/back-button";
+import { SiteBrand } from "@/components/site-brand";
 import { TopBar } from "@/components/site-nav";
 import { getPublicProfile, getPublicProjects, listKnownProfileRoutes } from "@/lib/content";
 import { getCloudPublicProfile } from "@/lib/supabase/content";
@@ -61,6 +63,17 @@ export default async function PublicProfilePage({ params }: PageProps<"/u/[usern
           <div className="flex items-center gap-3">
             <BackButton />
             <OwnerChip profile={profile} />
+          </div>
+        }
+        right={
+          <div className="flex items-center gap-4">
+            <Link
+              href="/tim"
+              className="link-underline hidden text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink sm:inline"
+            >
+              Cari Tim
+            </Link>
+            <span className="hidden sm:inline-flex"><SiteBrand /></span>
           </div>
         }
       />
