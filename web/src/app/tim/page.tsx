@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { getCurrentUser } from "@/lib/auth-session";
 import { Icon } from "@/components/icons";
 import { SiteBrand } from "@/components/site-brand";
 import { TopBar } from "@/components/site-nav";
@@ -15,8 +16,9 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function TeamBoardPage() {
+export default async function TeamBoardPage() {
   const openTeams = listOpenTeamPosts();
+  const user = await getCurrentUser();
 
   return (
     <>
@@ -35,12 +37,35 @@ export default function TeamBoardPage() {
         }
         right={
           <div className="flex items-center gap-4">
-            <Link
-              href="/dashboard"
-              className="hidden text-[14px] font-medium text-ink-2 transition-colors hover:text-ink sm:inline"
-            >
-              Area Pemilik
-            </Link>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="hidden items-center gap-2 text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink sm:flex"
+              >
+                <span
+                  aria-hidden="true"
+                  className="flex size-7 items-center justify-center rounded-full bg-forest font-display text-[11px] font-semibold text-sun"
+                >
+                  {user.name.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                </span>
+                {user.name.split(" ")[0]}
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="hidden text-[14px] font-medium text-ink-2 transition-colors hover:text-ink sm:inline"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  href="/register"
+                  className="hidden h-9 items-center rounded-full bg-sun px-4 text-[13px] font-bold text-ink transition-transform hover:-translate-y-0.5 sm:inline-flex"
+                >
+                  Daftar
+                </Link>
+              </>
+            )}
             <SiteBrand />
           </div>
         }

@@ -9,6 +9,7 @@ import { SiteBrand } from "@/components/site-brand";
 import { TopBar } from "@/components/site-nav";
 import { TeamCard } from "@/components/team/team-card";
 import { getPublicProjects, listPublicProfiles } from "@/lib/content";
+import { getCurrentUser } from "@/lib/auth-session";
 import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
 import { openSlots } from "@/lib/team-utils";
 import { listOpenTeamPosts } from "@/lib/teams";
@@ -52,8 +53,9 @@ const PRINCIPLES = [
  * dua jalur bernomor → karya → prinsip kepercayaan → lomba terbuka → ajakan.
  * Gerak dibuat ringan dengan CSS dan satu IntersectionObserver.
  */
-export default function HomePage() {
+export default async function HomePage() {
   const demoEditorEnabled = isLocalDemoEditorEnabled();
+  const user = await getCurrentUser();
   const profiles = listPublicProfiles();
   const featured = profiles
     .flatMap((profile) => getPublicProjects(profile).map((project) => ({ profile, project })))
@@ -154,14 +156,35 @@ export default function HomePage() {
                 </a>
               ))}
             </nav>
-            {demoEditorEnabled ? (
+            {user ? (
               <Link
                 href="/dashboard"
-                className="link-underline hidden text-[14px] font-semibold text-cream/80 hover:text-cream sm:ml-2 sm:inline"
+                className="hidden items-center gap-2 text-[14px] font-semibold text-cream/80 hover:text-cream sm:ml-2 sm:flex"
               >
-                Area pemilik
+                <span
+                  aria-hidden="true"
+                  className="flex size-7 items-center justify-center rounded-full bg-sun font-display text-[11px] font-semibold text-ink"
+                >
+                  {user.name.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
+                </span>
+                {user.name.split(" ")[0]}
               </Link>
-            ) : null}
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="link-underline hidden text-[14px] font-semibold text-cream/80 hover:text-cream sm:ml-2 sm:inline"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  href="/register"
+                  className="hidden h-9 items-center rounded-full bg-cream/10 px-4 text-[13px] font-bold text-cream ring-1 ring-cream/20 transition-transform hover:-translate-y-0.5 sm:inline-flex"
+                >
+                  Daftar
+                </Link>
+              </>
+            )}
             <Link
               href="/tim"
               className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sun px-4 text-[14px] font-bold text-ink transition-transform hover:-translate-y-0.5"
