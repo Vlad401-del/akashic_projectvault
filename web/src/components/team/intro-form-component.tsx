@@ -162,7 +162,7 @@ export function IntroFormComponent({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="intro-name" className="block text-[14px] font-semibold text-ink">
-              Nama atau panggilan Anda
+              Nama atau panggilan Anda <span className="text-[13px] font-normal text-ink-2">(Opsional)</span>
             </label>
             <input
               id="intro-name"
@@ -253,13 +253,19 @@ export function IntroFormComponent({
         {/* Tautan bukti karya */}
         <div>
           <label htmlFor="intro-proof" className="block text-[14px] font-semibold text-ink">
-            Tautan bukti karya / portofolio (Wajib)
+            Tautan bukti karya / portofolio <span className="text-rose-500">*</span>
           </label>
           <input
             id="intro-proof"
             type="url"
             value={form.proofUrl}
             onChange={(e) => handleChange("proofUrl", e.target.value)}
+            onBlur={(e) => {
+              const val = e.target.value.trim();
+              if (val && !val.startsWith("http")) {
+                handleChange("proofUrl", `https://${val}`);
+              }
+            }}
             placeholder="https://... (Profil Akashic, repositori GitHub, atau desain Figma)"
             className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />

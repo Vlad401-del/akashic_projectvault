@@ -96,8 +96,9 @@ export function validateTeamForm(form: TeamPostForm, allowFull = false): TeamErr
     errors.title = "Judul tim harus 3–160 karakter.";
   }
 
-  if (form.competition.trim().length === 0) {
-    errors.competition = "Kompetisi atau konteks wajib diisi.";
+  const hasCategory = /^(GEMASTIK|PKM|Hackathon|Tugas Akhir|Lainnya)/i.test(form.competition.trim());
+  if (form.competition.trim().length === 0 || !hasCategory) {
+    errors.competition = "Pilih kategori lomba terlebih dahulu.";
   }
 
   if (form.summary.trim().length < 20 || form.summary.trim().length > 5000) {
@@ -220,8 +221,10 @@ export function validateIntroForm(form: IntroForm, roleTitles: string[]): IntroE
 
   const proofUrl = form.proofUrl.trim();
 
-  if (!proofUrl || !isHttpsExternalUrl(proofUrl)) {
-    errors.proofUrl = "Tambahkan tautan bukti karya HTTPS yang valid.";
+  if (!proofUrl) {
+    errors.proofUrl = "Isi tautan bukti karya, misalnya profil Akashic, GitHub, atau Figma.";
+  } else if (!isHttpsExternalUrl(proofUrl)) {
+    errors.proofUrl = "Tautan harus dimulai dengan https://. Contoh: https://github.com/namamu";
   }
 
   if (form.contact.trim().length < 3) {
