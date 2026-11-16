@@ -16,7 +16,7 @@ import {
   type LoginForm,
 } from "@/lib/auth-form";
 
-export function LoginForm() {
+export function LoginForm({ next }: { next?: string }) {
   const [form, setForm] = useState<LoginForm>(emptyLoginForm);
   const [errors, setErrors] = useState<LoginErrors>({});
   const [message, setMessage] = useState<string | null>(null);
@@ -40,7 +40,7 @@ export function LoginForm() {
     }
 
     startTransition(async () => {
-      const result = await loginAction(form);
+      const result = await loginAction(form, next);
       if (result) {
         setErrors(result.errors);
         setMessage(result.message ?? null);

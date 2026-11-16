@@ -39,7 +39,7 @@ async function establishSession(userId: string, remember: boolean): Promise<void
 }
 
 /** Membuat akun lokal lalu langsung masuk dan membuka dasbor. */
-export async function registerAction(form: RegisterForm): Promise<RegisterResult> {
+export async function registerAction(form: RegisterForm, next?: string): Promise<RegisterResult> {
   const errors = validateRegisterForm(form);
   if (hasRegisterErrors(errors)) {
     return { ok: false, errors };
@@ -59,11 +59,11 @@ export async function registerAction(form: RegisterForm): Promise<RegisterResult
   }
 
   await establishSession(user.id, true);
-  redirect("/dashboard");
+  redirect(next && next.startsWith("/") ? next : "/dashboard");
 }
 
 /** Memverifikasi kredensial lalu membuka dasbor bila cocok. */
-export async function loginAction(form: LoginForm): Promise<LoginResult> {
+export async function loginAction(form: LoginForm, next?: string): Promise<LoginResult> {
   const errors = validateLoginForm(form);
   if (hasLoginErrors(errors)) {
     return { ok: false, errors };
@@ -79,7 +79,7 @@ export async function loginAction(form: LoginForm): Promise<LoginResult> {
   }
 
   await establishSession(user.id, form.remember);
-  redirect("/dashboard");
+  redirect(next && next.startsWith("/") ? next : "/dashboard");
 }
 
 /** Menghapus sesi lokal dan cookie, lalu kembali ke halaman awal. */

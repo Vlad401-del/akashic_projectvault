@@ -19,6 +19,7 @@ export const dynamic = "force-dynamic";
 export default async function TeamBoardPage() {
   const openTeams = listOpenTeamPosts();
   const user = await getCurrentUser();
+  const newTeamHref = user ? "/dashboard/tim/baru" : "/register";
 
   return (
     <>
@@ -92,7 +93,7 @@ export default async function TeamBoardPage() {
             </div>
 
             <Link
-              href="/dashboard/tim/baru"
+              href={newTeamHref}
               className="group inline-flex h-12 shrink-0 items-center gap-2 self-start rounded-full bg-sun px-6 text-[15px] font-bold text-ink shadow-[4px_4px_0_0_#0b1a13] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#0b1a13] lg:self-auto"
             >
               <Icon name="plus" className="size-4" />
@@ -149,7 +150,7 @@ export default async function TeamBoardPage() {
               </p>
               <div className="mt-5">
                 <Link
-                  href="/dashboard/tim/baru"
+                  href={newTeamHref}
                   className="inline-flex items-center gap-1.5 rounded-full bg-accent px-5 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-accent-hover"
                 >
                   <Icon name="plus" className="size-4" />

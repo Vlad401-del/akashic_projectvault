@@ -66,12 +66,12 @@ export default async function HomePage() {
   const heroProject = featured[0] ?? null;
   const heroSlots = heroTeam ? openSlots(heroTeam.team) : 0;
 
-  const portfolioCta = demoEditorEnabled
+  const portfolioCta = user
     ? { label: "Buat portofolio", href: "/dashboard/projects/new" }
-    : { label: "Jelajahi portofolio", href: "/u/nadia" };
-  const openTeamCta = demoEditorEnabled
+    : { label: "Buat portofolio", href: "/register" };
+  const openTeamCta = user
     ? { label: "Pasang pencarian tim", href: "/dashboard/tim/baru" }
-    : { label: "Buka papan tim", href: "/tim" };
+    : { label: "Pasang pencarian tim", href: "/register" };
 
   const tickerItems = Array.from(
     new Set([

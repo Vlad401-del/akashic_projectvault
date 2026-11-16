@@ -19,7 +19,7 @@ import {
 
 const METER_COLORS = ["bg-danger", "bg-coral", "bg-sun", "bg-accent", "bg-accent"];
 
-export function RegisterForm() {
+export function RegisterForm({ next }: { next?: string }) {
   const [form, setForm] = useState<RegisterForm>(emptyRegisterForm);
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [message, setMessage] = useState<string | null>(null);
@@ -42,7 +42,7 @@ export function RegisterForm() {
     }
 
     startTransition(async () => {
-      const result = await registerAction(form);
+      const result = await registerAction(form, next);
       if (result) {
         setErrors(result.errors);
         setMessage(result.message ?? null);
