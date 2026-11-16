@@ -1,3 +1,5 @@
+import "server-only";
+
 import { cookies } from "next/headers";
 
 import { getStoredSessionUser, type StoredUser } from "@/lib/auth-store";
