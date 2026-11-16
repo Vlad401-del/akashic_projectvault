@@ -162,7 +162,7 @@ export function IntroFormComponent({
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <label htmlFor="intro-name" className="block text-[14px] font-semibold text-ink">
-              Nama atau panggilan Anda
+              Nama atau panggilan Anda <span className="text-[13px] font-normal text-ink-2">(opsional)</span>
             </label>
             <input
               id="intro-name"
@@ -253,7 +253,7 @@ export function IntroFormComponent({
         {/* Tautan bukti karya */}
         <div>
           <label htmlFor="intro-proof" className="block text-[14px] font-semibold text-ink">
-            Tautan bukti karya / portofolio (Wajib)
+            Tautan bukti karya / portofolio <span className="text-rose-500">*</span>
           </label>
           <input
             id="intro-proof"
