@@ -1,27 +1,35 @@
 import Link from "next/link";
 
 import { PrismMark, Wordmark } from "@/components/site-brand";
+import { getCurrentUser } from "@/lib/auth-session";
 import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /** Footer setiap halaman dengan navigasi utama Akashic. */
-export function SiteFooter() {
-  const demoEditorEnabled = isLocalDemoEditorEnabled();
+export async function SiteFooter() {
+  const demoEditorEnabled = isSupabaseConfigured() || isLocalDemoEditorEnabled();
+  const user = await getCurrentUser();
 
   const groups: { title: string; links: { label: string; href: string }[] }[] = [
     {
       title: "Jelajahi",
       links: [
         { label: "Papan cari tim", href: "/tim" },
-        { label: "Jelajahi portofolio", href: "/u/nadia" },
+        { label: "Jelajahi portofolio", href: "/#karya" },
         { label: "Cara kerja", href: "/#cara-kerja" },
       ],
     },
     {
-      title: "Akun",
-      links: [
-        { label: "Masuk", href: "/login" },
-        { label: "Daftar", href: "/register" },
-      ],
+      title: user ? "Profil" : "Mulai",
+      links: user
+        ? [
+            { label: "Dasbor saya", href: "/dashboard" },
+            { label: "Atur profil", href: "/dashboard/profile" },
+          ]
+        : [
+            { label: "Masuk", href: "/login" },
+            { label: "Daftar", href: "/register" },
+          ],
     },
     ...(demoEditorEnabled
       ? [

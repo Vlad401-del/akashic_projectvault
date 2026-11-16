@@ -33,9 +33,9 @@ export function PublishChecklist({
   const declarationsReady = consentRights && consentNoSensitive;
 
   return (
-    <section id={id} aria-labelledby="checklist-terbit" className={`rounded-xl border border-line bg-surface ${className}`}>
+    <section id={id} aria-labelledby="checklist-terbit-title" className={`rounded-xl border border-line bg-surface ${className}`}>
       <header className="border-b border-line px-5 py-4">
-        <h2 id="checklist-terbit" className="text-[15px] font-semibold text-ink">
+        <h2 id="checklist-terbit-title" className="text-[15px] font-semibold text-ink">
           Checklist sebelum menerbitkan
         </h2>
         <p className="mt-1 text-[13px] leading-5 text-ink-2">

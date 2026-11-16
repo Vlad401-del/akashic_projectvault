@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 
 import { EditorForm } from "@/components/editor/editor-form";
 import { EditorPreview } from "@/components/editor/editor-preview";
@@ -16,12 +17,14 @@ import {
   projectToForm,
   publishChecklist,
   validateForm,
+  validatePublishedContent,
+  validateStep,
   type EditorErrors,
   type EditorForm as EditorFormValue,
   type EditorSource,
 } from "@/lib/editor-form";
 import type { Profile, Project, ProjectStatus } from "@/lib/fixtures/types";
-import { saveProjectAction } from "@/lib/project-actions";
+import { deleteProjectAction, saveProjectAction } from "@/lib/project-actions";
 
 const PRIMARY_BUTTON =
   "inline-flex h-11 items-center gap-2 rounded-[10px] bg-accent px-4 text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60";
@@ -29,7 +32,7 @@ const SECONDARY_BUTTON =
   "inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink transition-colors hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60";
 
 /** Aksi yang sedang berjalan; dipakai untuk menonaktifkan tombol dan mengganti label. */
-type BusyKind = null | "save" | "publish" | "unpublish";
+type BusyKind = null | "save" | "publish" | "unpublish" | "delete";
 
 function timeNow(): string {
   return new Intl.DateTimeFormat("id-ID", { hour: "2-digit", minute: "2-digit" }).format(new Date());
@@ -56,10 +59,13 @@ function focusFirstInvalidField() {
 export function ProjectEditor({
   owner,
   project = null,
+  allowDelete = false,
 }: {
   owner: Profile;
   project?: Project | null;
+  allowDelete?: boolean;
 }) {
+  const router = useRouter();
   const [form, setForm] = useState<EditorFormValue>(() => (project ? projectToForm(project) : emptyForm()));
   const [status, setStatus] = useState<ProjectStatus>(project ? project.status : "draft");
   const [savedSlug, setSavedSlug] = useState<string | null>(project ? project.slug : null);
@@ -70,7 +76,11 @@ export function ProjectEditor({
   const [flash, setFlash] = useState<string | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [unpublishConfirm, setUnpublishConfirm] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [errorFocusRequest, setErrorFocusRequest] = useState(0);
+  const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+
+  const steps = ["Identitas", "Masalah & proses", "Kontribusi & hasil", "Bukti & terbit"] as const;
 
   const previewProject = useMemo(() => formToProject(form, status), [form, status]);
   const checklist = useMemo(() => publishChecklist(form), [form]);
@@ -86,20 +96,13 @@ export function ProjectEditor({
     // Pesan kesalahan yang sudah diperbaiki langsung dibersihkan supaya tidak
     // tertinggal di layar padahal isiannya sudah diisi.
     setErrors((current) => {
-      if (!current.title && !current.summary) {
-        return current;
-      }
-
       const next = { ...current };
-
-      if (patch.title !== undefined && patch.title.trim().length > 0) {
-        delete next.title;
+      for (const field of Object.keys(patch) as (keyof EditorFormValue)[]) {
+        if (field in next) delete next[field as keyof EditorErrors];
       }
-
-      if (patch.summary !== undefined && patch.summary.trim().length > 0) {
-        delete next.summary;
-      }
-
+      if (patch.processSteps !== undefined) delete next.processIntro;
+      if (patch.contributionIntro !== undefined) delete next.contributionChecklist;
+      if (patch.coverImageUrl !== undefined) delete next.evidence;
       return next;
     });
   }, []);
@@ -119,7 +122,7 @@ export function ProjectEditor({
       const sources = { ...current.sources };
       delete sources[index];
 
-      return { ...current, sources: Object.keys(sources).length > 0 ? sources : undefined };
+      return { ...current, evidence: undefined, sources: Object.keys(sources).length > 0 ? sources : undefined };
     });
   }, []);
 
@@ -190,14 +193,16 @@ export function ProjectEditor({
     busyKind: Exclude<BusyKind, null>;
     note: string;
   }) => {
-    const found = validateForm(form);
+    const found = nextStatus === "published" ? validatePublishedContent(form) : validateForm(form);
     setErrors(found);
     setSaveError(null);
 
     if (hasErrors(found)) {
       setFlash(null);
+      const firstIncomplete = ([1, 2, 3, 4] as const).find((item) => hasErrors(validateStep(form, item)));
+      if (firstIncomplete) setStep(firstIncomplete);
       setErrorFocusRequest((request) => request + 1);
-      return;
+      return false;
     }
 
     const isNewProject = savedSlug === null;
@@ -209,8 +214,10 @@ export function ProjectEditor({
       if (!result.ok) {
         setErrors(result.errors);
         setSaveError("Ada isian yang belum sesuai. Periksa bagian yang ditandai, lalu simpan lagi.");
+        const firstIncomplete = ([1, 2, 3, 4] as const).find((item) => hasErrors(validateStep(form, item)));
+        if (firstIncomplete) setStep(firstIncomplete);
         setErrorFocusRequest((request) => request + 1);
-        return;
+        return false;
       }
 
       setStatus(result.status);
@@ -218,24 +225,42 @@ export function ProjectEditor({
       setErrors({});
 
       if (isNewProject) {
-        /*
-         * Proyek baru dipindahkan ke alamat editornya sendiri tanpa memuat ulang
-         * halaman: pesan konfirmasi tetap terlihat, dan menekan simpan dua kali
-         * tidak membuat proyek kedua. `replaceState` bawaan peramban dipakai
-         * supaya tidak ada permintaan ulang ke server (didukung App Router).
-         */
+        // Simpan slug di state agar langkah yang sedang diisi tidak ter-reset
+        // oleh pergantian rute. Draft dapat dibuka kembali dari dasbor.
         setSavedSlug(result.slug);
-        window.history.replaceState(null, "", `/dashboard/projects/${result.slug}/edit`);
       }
 
       setFlash(`${note} Pukul ${timeNow()}.`);
+      return true;
     } catch {
       setSaveError(
         "Gagal menyimpan perubahan. Pastikan koneksi stabil, lalu simpan lagi.",
       );
+      return false;
     } finally {
       setBusy(null);
     }
+  };
+
+  const nextStep = async () => {
+    if (step === 4 || isBusy) return;
+    const found = validateStep(form, step);
+    setErrors(found);
+    if (hasErrors(found)) {
+      setSaveError("Lengkapi isian yang ditandai sebelum melanjutkan.");
+      setErrorFocusRequest((request) => request + 1);
+      return;
+    }
+
+    if (status === "draft") {
+      const saved = await save({ nextStatus: "draft", busyKind: "save", note: "Draft otomatis tersimpan." });
+      if (!saved) return;
+    }
+
+    setErrors({});
+    setSaveError(null);
+    setStep((current) => (current + 1) as 1 | 2 | 3 | 4);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleSave = () => {
@@ -248,7 +273,16 @@ export function ProjectEditor({
 
   const handlePublish = () => {
     if (!publishReady) {
-      document.getElementById("checklist-terbit")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      const found = validatePublishedContent(form);
+      if (hasErrors(found)) {
+        setErrors(found);
+        const firstIncomplete = ([1, 2, 3, 4] as const).find((item) => hasErrors(validateStep(form, item)));
+        if (firstIncomplete) setStep(firstIncomplete);
+        setSaveError("Lengkapi bagian yang ditandai sebelum menerbitkan.");
+        setErrorFocusRequest((request) => request + 1);
+      } else {
+        document.getElementById("checklist-terbit")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
       setFlash(null);
       return;
     }
@@ -267,6 +301,26 @@ export function ProjectEditor({
       busyKind: "unpublish",
       note: "Proyek ditarik dari tampilan publik.",
     });
+  };
+
+  const confirmDelete = async () => {
+    if (!savedSlug || busy) return;
+    setBusy("delete");
+    setSaveError(null);
+    try {
+      const deleted = await deleteProjectAction(savedSlug);
+      if (!deleted) {
+        setSaveError("Proyek belum dapat dihapus. Muat ulang halaman lalu coba lagi.");
+        return;
+      }
+      setDirty(false);
+      router.replace("/dashboard");
+    } catch {
+      setSaveError("Proyek belum dapat dihapus. Periksa koneksi lalu coba lagi.");
+    } finally {
+      setBusy(null);
+      setDeleteConfirm(false);
+    }
   };
 
   const isPublished = status === "published";
@@ -295,6 +349,16 @@ export function ProjectEditor({
           </div>
 
           <div className="flex flex-wrap gap-2.5">
+            {allowDelete && savedSlug ? (
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(true)}
+                disabled={isBusy}
+                className="inline-flex h-11 items-center rounded-[10px] border border-danger/30 bg-surface px-4 text-[15px] font-medium text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
+              >
+                Hapus proyek
+              </button>
+            ) : null}
             <button type="button" onClick={() => setPreviewOpen(true)} className={SECONDARY_BUTTON}>
               <Icon name="eye" className="size-4" />
               Pratinjau
@@ -321,10 +385,6 @@ export function ProjectEditor({
                 <button type="button" onClick={handleSave} disabled={isBusy} className={SECONDARY_BUTTON}>
                   <Icon name="save" className="size-4" />
                   {busy === "save" ? "Menyimpan..." : "Simpan draft"}
-                </button>
-                <button type="button" onClick={handlePublish} disabled={isBusy} className={PRIMARY_BUTTON}>
-                  <Icon name="upload" className="size-4" />
-                  {busy === "publish" ? "Menerbitkan..." : "Terbitkan"}
                 </button>
               </>
             )}
@@ -362,6 +422,23 @@ export function ProjectEditor({
           </div>
         ) : null}
 
+        {deleteConfirm ? (
+          <div role="alertdialog" aria-label="Konfirmasi hapus proyek" className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-danger/30 bg-danger-soft px-4 py-3">
+            <p className="max-w-[40rem] text-[14px] leading-6 text-ink">
+              Hapus “{project?.title}” beserta tautan buktinya? Proyek tidak bisa dipulihkan setelah dihapus.
+              {dirty ? " Perubahan yang belum disimpan juga akan hilang." : ""}
+            </p>
+            <span className="flex gap-2">
+              <button type="button" onClick={() => void confirmDelete()} disabled={isBusy} className="h-9 rounded-[10px] bg-danger px-3.5 text-[14px] font-semibold text-white disabled:opacity-60">
+                {busy === "delete" ? "Menghapus..." : "Ya, hapus proyek"}
+              </button>
+              <button type="button" onClick={() => setDeleteConfirm(false)} disabled={isBusy} className="h-9 rounded-[10px] border border-line bg-surface px-3.5 text-[14px] font-medium text-ink disabled:opacity-60">
+                Batal
+              </button>
+            </span>
+          </div>
+        ) : null}
+
         {saveError ? (
           <p
             role="alert"
@@ -392,10 +469,34 @@ export function ProjectEditor({
         </p>
       </header>
 
+      <nav aria-label="Langkah membuat proyek" className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {steps.map((label, index) => {
+          const number = (index + 1) as 1 | 2 | 3 | 4;
+          return (
+            <button
+              key={label}
+              type="button"
+              disabled={number > step}
+              onClick={() => setStep(number)}
+              aria-current={number === step ? "step" : undefined}
+              className={`min-h-12 rounded-lg border px-3 py-2 text-left text-[13px] font-semibold transition-colors ${
+                number === step ? "border-accent bg-accent text-white" : "border-line bg-surface text-ink disabled:opacity-60 hover:border-accent"
+              }`}
+            >
+              <span className="mr-2 tabular-nums">{number}.</span>{label}
+            </button>
+          );
+        })}
+      </nav>
+      <p className="mt-3 text-[13px] leading-5 text-ink-2">
+        Langkah {step} dari 4. Isian opsional boleh dikosongkan. {status === "draft" ? "Draft tersimpan saat kamu menekan Lanjut." : "Perubahan publik berlaku setelah Simpan perubahan publik."}
+      </p>
+
       <div className="mt-9 grid gap-9 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12">
         <div className="min-w-0">
           <EditorForm
             form={form}
+            step={step}
             errors={errors}
             onChange={update}
             onSourceChange={changeSource}
@@ -403,7 +504,7 @@ export function ProjectEditor({
             onRemoveSource={removeSource}
           />
 
-          {isPublished ? null : (
+          {!isPublished && step === 4 ? (
             <PublishChecklist
               id="checklist-terbit"
               className="mt-10"
@@ -413,7 +514,24 @@ export function ProjectEditor({
               onConsentRightsChange={(value) => update({ consentRights: value })}
               onConsentNoSensitiveChange={(value) => update({ consentNoSensitive: value })}
             />
-          )}
+          ) : null}
+
+          <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-5">
+            <button type="button" disabled={step === 1 || isBusy} onClick={() => setStep((current) => (current - 1) as 1 | 2 | 3 | 4)} className={SECONDARY_BUTTON}>
+              Kembali
+            </button>
+            {step < 4 ? (
+              <button type="button" disabled={isBusy} onClick={() => void nextStep()} className={PRIMARY_BUTTON}>
+                {busy === "save" ? "Menyimpan..." : "Lanjut"}
+                <Icon name="arrowRight" className="size-4" />
+              </button>
+            ) : !isPublished ? (
+              <button type="button" disabled={isBusy} onClick={handlePublish} className={PRIMARY_BUTTON}>
+                <Icon name="upload" className="size-4" />
+                {busy === "publish" ? "Menerbitkan..." : "Terbitkan proyek"}
+              </button>
+            ) : null}
+          </div>
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">

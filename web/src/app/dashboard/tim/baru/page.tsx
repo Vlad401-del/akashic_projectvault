@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { OwnerTopBar } from "@/components/editor/owner-top-bar";
 import { TeamPostFormComponent } from "@/components/team/team-post-form-component";
 import { getDemoOwner } from "@/lib/content";
+import { getCloudOwner } from "@/lib/supabase/content";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata: Metadata = {
   title: "Pasang Pencarian Tim Baru — Akashic",
@@ -10,8 +14,11 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default function NewTeamPostPage() {
-  const owner = getDemoOwner();
+export default async function NewTeamPostPage() {
+  const cloud = isSupabaseConfigured();
+  const owner = cloud ? await getCloudOwner() : getDemoOwner();
+  if (!owner) redirect("/login");
+  const ready = !cloud || owner.isPublished;
 
   return (
     <>
@@ -30,7 +37,17 @@ export default function NewTeamPostPage() {
           </p>
         </header>
 
-        <TeamPostFormComponent />
+        {!ready ? (
+          <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 p-5 text-[14px] leading-6 text-amber-950">
+            <p className="font-semibold">Terbitkan profil sebelum memasang pencarian.</p>
+            <p className="mt-1">Calon anggota perlu mengenali pembuat tim. Studi kasus proyek dapat kamu tambahkan untuk membantu mereka menilai pengalamanmu.</p>
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 font-semibold underline underline-offset-2">
+              <Link href="/dashboard/profile">Atur profil publik</Link>
+            </div>
+          </div>
+        ) : null}
+
+        {ready ? <TeamPostFormComponent /> : null}
       </main>
     </>
   );

@@ -1,33 +1,34 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-canvas: #ffffff;
-  --color-surface: #f7f8fa;
-  --color-ink: #191b22;
-  --color-ink-2: #565d6b;
-  --color-line: #e1e4ea;
-  --color-line-strong: #aeb6c4;
-  --color-accent: #883b46;
-  --color-accent-hover: #6e2e38;
-  --color-accent-soft: #fcebed;
+  --color-canvas: #fffdf8;
+  --color-surface: #f7f5ed;
+  --color-ink: #151c1b;
+  --color-ink-2: #435552;
+  --color-line: #d7dfd8;
+  --color-line-strong: #7b948e;
+  --color-accent: #1f4d4a;
+  --color-accent-hover: #163b38;
+  --color-accent-soft: #e4f2e9;
   --color-danger: #b42318;
   --color-danger-soft: #fef3f2;
 
-  --color-forest: #883b46;
-  --color-forest-deep: #53252d;
-  --color-night: #14151b;
-  --color-sun: #b9cce2;
-  --color-sun-soft: #e8eef6;
-  --color-coral: #ee929a;
-  --color-sky: #dce6f2;
-  --color-mint: #e5e8ef;
-  --color-cream: #ffffff;
-  --color-cream-deep: #eef0f4;
+  --color-forest: #1f4d4a;
+  --color-forest-deep: #153a38;
+  --color-night: #151c1b;
+  --color-sun: #f2b544;
+  --color-sun-soft: #fff0c9;
+  --color-coral: #f08369;
+  --color-coral-ink: #a54430;
+  --color-sky: #d8edf0;
+  --color-mint: #d8eee0;
+  --color-cream: #fff6e5;
+  --color-cream-deep: #f3ead9;
 
-  --color-spectrum-cyan: #883b46;
-  --color-spectrum-blue: #344b68;
-  --color-spectrum-green: #b9cce2;
-  --color-spectrum-lime: #aeb6c4;
+  --color-spectrum-cyan: #1f4d4a;
+  --color-spectrum-blue: #397b78;
+  --color-spectrum-green: #f2b544;
+  --color-spectrum-lime: #f08369;
 
   --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial,
     sans-serif;
@@ -35,9 +36,9 @@
 }
 
 :root {
-  --spectrum-mark: linear-gradient(148deg, #883b46 0%, #6e2e38 100%);
-  --spectrum-word: linear-gradient(92deg, #191b22 0%, #191b22 100%);
-  --spectrum-rule: linear-gradient(90deg, #883b46 0%, #883b46 55%, #344b68 55%, #344b68 80%, #aeb6c4 80%);
+  --spectrum-mark: linear-gradient(148deg, #1f4d4a 0%, #153a38 100%);
+  --spectrum-word: linear-gradient(92deg, #151c1b 0%, #151c1b 100%);
+  --spectrum-rule: linear-gradient(90deg, #1f4d4a 0%, #1f4d4a 55%, #f2b544 55%, #f2b544 80%, #f08369 80%);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 

@@ -5,17 +5,20 @@ import "server-only";
 import { revalidatePath } from "next/cache";
 
 import { DEMO_OWNER_USERNAME, listOwnedProjects } from "@/lib/content";
+import { deleteCloudProject, saveCloudProject } from "@/lib/cloud-project-actions";
 import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
 import {
   formToProject,
   hasErrors,
   slugify,
   validateForm,
+  validatePublishedContent,
   type EditorErrors,
   type EditorForm,
 } from "@/lib/editor-form";
 import type { Project, ProjectStatus } from "@/lib/fixtures/types";
 import { saveStoredProject } from "@/lib/local-store";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export type SaveProjectInput = {
   /** Slug proyek yang sedang diedit; `null` bila ini proyek baru. */
@@ -28,6 +31,11 @@ export type SaveProjectInput = {
 export type SaveProjectResult =
   | { ok: true; slug: string; status: ProjectStatus; savedAt: string }
   | { ok: false; errors: EditorErrors };
+
+export async function deleteProjectAction(slug: string): Promise<boolean> {
+  if (!isSupabaseConfigured() || !slug.trim()) return false;
+  return deleteCloudProject(slug);
+}
 
 /**
  * Membuat slug yang belum dipakai pemilik ini.
@@ -63,6 +71,10 @@ function uniqueSlug(title: string): string {
  * akun contoh; dan database, jadi penyimpanannya berkas lokal, bukan Supabase.
  */
 export async function saveProjectAction(input: SaveProjectInput): Promise<SaveProjectResult> {
+  if (isSupabaseConfigured()) {
+    return saveCloudProject(input);
+  }
+
   // Aksi server bisa dipanggil langsung, jadi batas akses wajib diulang di sini.
   if (!isLocalDemoEditorEnabled()) {
     throw new Error("Editor demo tidak tersedia pada aplikasi yang di-host.");
@@ -80,6 +92,14 @@ export async function saveProjectAction(input: SaveProjectInput): Promise<SavePr
 
   if (input.slug && !existing) {
     return { ok: false, errors: { title: "Proyek ini tidak ditemukan lagi." } };
+  }
+
+  if (input.status === "published") {
+    const publicationErrors = validatePublishedContent(input.form);
+    if (hasErrors(publicationErrors)) return { ok: false, errors: publicationErrors };
+    if (existing?.status !== "published" && (!input.form.consentRights || !input.form.consentNoSensitive)) {
+      return { ok: false, errors: { publish: "Centang kedua pernyataan sebelum menerbitkan." } };
+    }
   }
 
   // Slug tidak ikut berubah saat judul diubah, supaya alamat halaman publik

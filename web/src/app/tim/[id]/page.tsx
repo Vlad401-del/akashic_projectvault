@@ -2,13 +2,19 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { Icon } from "@/components/icons";
-import { Avatar, TopBar } from "@/components/site-nav";
+import { Avatar } from "@/components/avatar";
+import { TopBar } from "@/components/site-nav";
 import { DiscussionThread } from "@/components/team/discussion-thread";
 import { IntroFormComponent } from "@/components/team/intro-form-component";
 import { getPublicProfile } from "@/lib/content";
 import { getTeamDiscussion } from "@/lib/discussions";
-import { getTeamPost, listKnownTeamIds } from "@/lib/teams";
-import { openSlots, roleSkillsLabel } from "@/lib/team-utils";
+import { getExampleTeamPost, getTeamPost, listKnownTeamIds } from "@/lib/teams";
+import { getCloudTeamDiscussion, getCloudTeamPost } from "@/lib/team-cloud";
+import { getCurrentUser } from "@/lib/auth-session";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { createClient } from "@/lib/supabase/server";
+import { getCloudPublicProfile } from "@/lib/supabase/content";
+import { formatTeamDeadline, openSlots, roleSkillsLabel } from "@/lib/team-utils";
 
 export function generateStaticParams() {
   return listKnownTeamIds().map((id) => ({ id }));
@@ -20,14 +26,16 @@ export async function generateMetadata({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const item = getTeamPost(id);
+  const cloud = isSupabaseConfigured();
+  const example = cloud && id.startsWith("contoh-");
+  const item = example ? getExampleTeamPost(id.slice(7)) : cloud ? await getCloudTeamPost(id) : getTeamPost(id);
 
   if (!item) {
     return { title: "Pencarian Tim Tidak Ditemukan" };
   }
 
   return {
-    title: `${item.team.title} — Cari Tim Akashic`,
+    title: `${example ? "Contoh · " : ""}${item.team.title} — Cari Tim Akashic`,
     description: item.team.summary,
   };
 }
@@ -38,16 +46,25 @@ export default async function TeamDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const item = getTeamPost(id);
+  const cloud = isSupabaseConfigured();
+  const example = cloud && id.startsWith("contoh-");
+  const item = example ? getExampleTeamPost(id.slice(7)) : cloud ? await getCloudTeamPost(id) : getTeamPost(id);
 
   if (!item) {
     notFound();
   }
 
   const { team, owner } = item;
-  const ownerProfile = getPublicProfile(owner.username);
+  const ownerProfile = cloud && !example
+    ? (owner.username ? await getCloudPublicProfile(owner.username) : null)
+    : getPublicProfile(owner.username);
   const slots = openSlots(team);
-  const discussion = getTeamDiscussion(team.id);
+  const discussion = example ? [] : cloud ? await getCloudTeamDiscussion(team.id) : getTeamDiscussion(team.id);
+  const currentUser = cloud && !example ? await getCurrentUser() : null;
+  const priorIntro = cloud && currentUser && currentUser.id !== item.ownerId
+    ? (await (await createClient()).from("team_intros")
+      .select("review,joined_at").eq("team_id", team.id).eq("sender_id", currentUser.id).maybeSingle()).data
+    : null;
 
   return (
     <>
@@ -70,6 +87,11 @@ export default async function TeamDetailPage({
           {/* Kolom Kiri / Utama: Detail Tim & Formulir */}
           <div className="space-y-8 lg:col-span-8">
             <article className="rounded-xl border border-line bg-surface p-6 sm:p-8">
+              {example ? (
+                <p className="mb-5 rounded-lg border border-line bg-canvas px-4 py-3 text-[14px] text-ink-2">
+                  Contoh tampilan dengan data fiktif. Tim ini tidak menerima pengajuan atau pesan.
+                </p>
+              ) : null}
               {/* Badge & Status */}
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <span className="inline-flex items-center rounded-md bg-accent/10 px-3 py-1 text-[13px] font-semibold text-accent">
@@ -146,7 +168,7 @@ export default async function TeamDetailPage({
                     Tenggat Pendaftaran
                   </span>
                   <p className="mt-1 text-[14px] font-semibold text-ink">
-                    {team.deadline}
+                    {formatTeamDeadline(team.deadline)}
                   </p>
                 </div>
 
@@ -169,20 +191,53 @@ export default async function TeamDetailPage({
             </article>
 
             {/* Formulir Perkenalan Terstruktur */}
-            {team.status === "open" ? (
+            {example ? (
+              <section className="rounded-xl border border-line bg-surface p-6 text-center">
+                <p className="font-semibold text-ink">Ini hanya contoh pencarian tim.</p>
+                <p className="mt-2 text-[14px] text-ink-2">Pengajuan hanya tersedia pada pencarian yang diterbitkan pengguna.</p>
+                <Link href="/tim" className="mt-4 inline-block font-semibold text-accent underline">Kembali ke papan tim</Link>
+              </section>
+            ) : priorIntro?.joined_at ? (
+              <section id="ajukan-diri" className="rounded-xl border border-line bg-surface p-6 sm:p-8">
+                <h2 className="text-[20px] font-semibold text-ink">Kamu sudah bergabung dengan tim ini</h2>
+                <p className="mt-2 text-[14px] text-ink-2">Status keanggotaanmu dapat dilihat di dasbor. Koordinasikan langkah berikutnya dengan pemilik tim melalui kontak yang telah kamu bagikan.</p>
+                <Link href="/dashboard" className="mt-4 inline-block text-[14px] font-semibold text-accent underline">Lihat dasbor</Link>
+              </section>
+            ) : team.status === "open" && cloud && !currentUser ? (
+              <section id="ajukan-diri" className="rounded-xl border border-line bg-surface p-8">
+                <h2 className="text-[20px] font-semibold text-ink">Ingin bergabung?</h2>
+                <p className="mt-2 text-[14px] leading-6 text-ink-2">Masuk agar perkenalanmu tersimpan dan pemilik tim dapat melihat profil serta bukti karyamu.</p>
+                <Link href="/login" className="mt-5 inline-flex rounded-lg bg-accent px-5 py-2.5 text-[14px] font-semibold text-white">Masuk untuk melamar</Link>
+              </section>
+            ) : team.status === "open" && cloud && currentUser?.id === item.ownerId ? (
+              <section id="ajukan-diri" className="rounded-xl border border-line bg-surface p-8">
+                <h2 className="text-[20px] font-semibold text-ink">Ini pencarian timmu</h2>
+                <p className="mt-2 text-[14px] text-ink-2">Perkenalan dari calon anggota tampil di dasbor.</p>
+                <Link href="/dashboard" className="mt-4 inline-block font-semibold text-accent underline">Buka dasbor</Link>
+              </section>
+            ) : team.status === "open" && priorIntro ? (
+              <section id="ajukan-diri" className="rounded-xl border border-line bg-surface p-6 sm:p-8">
+                <h2 className="text-[20px] font-semibold text-ink">Pengajuanmu sudah tercatat</h2>
+                <p className="mt-2 text-[14px] text-ink-2">
+                  Status: <strong className="text-ink">{priorIntro.review === "diskusi" ? "Sedang Diskusi" : priorIntro.review === "diterima" ? "Diterima — perlu konfirmasi" : priorIntro.review === "ditolak" ? "Ditolak" : "Diajukan"}</strong>. Kamu dapat memantau semua pengajuan di dasbor.
+                </p>
+                <Link href="/dashboard" className="mt-4 inline-block text-[14px] font-semibold text-accent underline">Lihat Pengajuan Saya</Link>
+              </section>
+            ) : team.status === "open" ? (
               <section id="ajukan-diri">
                 <IntroFormComponent
                   teamId={team.id}
                   teamTitle={team.title}
                   roles={team.roles}
                   ownerDisplayName={owner.displayName}
+                  accountName={cloud ? currentUser?.name : undefined}
                 />
               </section>
             ) : (
               <div className="rounded-xl border border-line bg-surface p-8 text-center">
                 <p className="text-[16px] font-semibold text-ink">Pencarian tim ini sudah ditutup.</p>
                 <p className="mt-1 text-[14px] text-ink-2">
-                  Seluruh slot peran untuk tim ini telah terisi. Silakan cari tim lain di papan pencarian.
+                  Pencarian ini tidak menerima pengajuan baru. Silakan cari tim lain di papan pencarian.
                 </p>
                 <div className="mt-4">
                   <Link
@@ -196,7 +251,7 @@ export default async function TeamDetailPage({
             )}
 
             {/* Utas diskusi publik tim */}
-            <section
+            {!example ? <section
               id="diskusi"
               aria-labelledby={`diskusi-heading-${team.id}`}
               className="scroll-mt-24 rounded-xl border border-line bg-surface p-6 shadow-sm sm:p-8"
@@ -205,8 +260,10 @@ export default async function TeamDetailPage({
                 teamId={team.id}
                 initialMessages={discussion}
                 closed={team.status !== "open"}
+                accountName={cloud ? currentUser?.name : undefined}
+                loginRequired={cloud && !currentUser}
               />
-            </section>
+            </section> : null}
           </div>
 
           {/* Kolom Kanan / Sidebar: Profil Pembuat Tim (Proof of Work) */}
@@ -220,12 +277,11 @@ export default async function TeamDetailPage({
                 <Avatar displayName={owner.displayName} size="sm" />
                 <div className="min-w-0">
                   <h3 className="text-[16px] font-semibold text-ink">
-                    <Link
-                      href={`/u/${owner.username}`}
-                      className="hover:text-accent hover:underline"
-                    >
-                      {owner.displayName}
-                    </Link>
+                    {example ? owner.displayName : (
+                      <Link href={`/u/${owner.username}`} className="hover:text-accent hover:underline">
+                        {owner.displayName}
+                      </Link>
+                    )}
                   </h3>
                   <p className="text-[13px] text-ink-2">@{owner.username}</p>
                 </div>
@@ -257,7 +313,7 @@ export default async function TeamDetailPage({
                 </div>
               ) : null}
 
-              <div className="mt-5 border-t border-line pt-4">
+              {!example ? <div className="mt-5 border-t border-line pt-4">
                 <Link
                   href={`/u/${owner.username}`}
                   className="inline-flex w-full items-center justify-center gap-2 rounded-lg border border-line bg-canvas px-4 py-2.5 text-[14px] font-medium text-ink transition-colors hover:border-line-strong hover:text-accent"
@@ -266,9 +322,9 @@ export default async function TeamDetailPage({
                   Lihat Portofolio & Bukti Karya
                 </Link>
                 <p className="mt-2 text-center text-[12px] text-ink-2">
-                  Verifikasi proyek & studi kasus sebelum memutuskan bergabung.
+                  Periksa profil dan studi kasus yang dibagikan sebelum memutuskan bergabung.
                 </p>
-              </div>
+              </div> : null}
             </div>
 
             {/* Kotak Pengingat Etika Kolaborasi */}

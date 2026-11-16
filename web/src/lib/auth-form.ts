@@ -8,7 +8,6 @@
 export type LoginForm = {
   email: string;
   password: string;
-  remember: boolean;
 };
 
 export type RegisterForm = {
@@ -25,7 +24,7 @@ export type RegisterErrors = Partial<Record<"name" | "email" | "password" | "con
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function emptyLoginForm(): LoginForm {
-  return { email: "", password: "", remember: true };
+  return { email: "", password: "" };
 }
 
 export function emptyRegisterForm(): RegisterForm {

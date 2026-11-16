@@ -48,12 +48,12 @@ const COVER_OPTIONS: { value: CoverVariant; label: string }[] = [
 /**
  * Formulir editor proyek.
  *
- * Dikelompokkan menjadi tiga bagian seperti desain: Identitas proyek, Cerita
- * proyek, dan Bukti karya. Komponen ini hanya menampilkan isian dan
+ * Dikelompokkan menjadi empat langkah dalam satu halaman. Komponen ini hanya menampilkan isian dan
  * meneruskan perubahan ke pemanggil; seluruh state ada di ProjectEditor.
  */
 export function EditorForm({
   form,
+  step,
   errors,
   onChange,
   onSourceChange,
@@ -61,6 +61,7 @@ export function EditorForm({
   onRemoveSource,
 }: {
   form: EditorFormValue;
+  step: 1 | 2 | 3 | 4;
   errors: EditorErrors;
   onChange: (patch: Partial<EditorFormValue>) => void;
   onSourceChange: (index: number, patch: Partial<EditorSource>) => void;
@@ -72,6 +73,7 @@ export function EditorForm({
 
   return (
     <div>
+      {step === 1 ? (
       <Section
         first
         icon="pencil"
@@ -215,20 +217,27 @@ export function EditorForm({
           </Field>
         </div>
       </Section>
+      ) : null}
 
+      {step === 2 ? (
       <Section
+        first
         icon="route"
-        title="Cerita proyek"
-        description="Urutan masalah, proses, kontribusi pribadi, dan hasil. Bagian ini yang paling banyak dibaca perekrut."
+        title="Masalah dan proses"
+        description="Jelaskan masalah yang dihadapi dan langkah yang kamu ambil."
       >
+        <p className="text-[13px] font-medium text-ink-2">Wajib: masalah dan salah satu dari pengantar atau langkah proses.</p>
         <Field
           label="Masalah"
+          required
           htmlFor={id("masalah")}
+          error={errors.problem}
           hint="Pisahkan paragraf dengan satu baris kosong."
         >
           <TextArea
             id={id("masalah")}
             value={form.problem}
+            invalid={Boolean(errors.problem)}
             rows={5}
             onChange={(event) => onChange({ problem: event.target.value })}
             placeholder="Data penjualan tersimpan dalam tiga berkas terpisah sehingga laporan mingguan disusun manual."
@@ -253,10 +262,13 @@ export function EditorForm({
           <TextArea
             id={id("proses-intro")}
             value={form.processIntro}
+            invalid={Boolean(errors.processIntro)}
             rows={3}
             onChange={(event) => onChange({ processIntro: event.target.value })}
           />
         </Field>
+
+        {errors.processIntro ? <p role="alert" className="text-[13px] text-danger">{errors.processIntro}</p> : null}
 
         <Field
           label="Langkah proses"
@@ -284,6 +296,12 @@ export function EditorForm({
             onChange={(event) => onChange({ processNote: event.target.value })}
           />
         </Field>
+      </Section>
+      ) : null}
+
+      {step === 3 ? (
+      <Section first icon="checkCircle" title="Kontribusi dan hasil" description="Pisahkan pekerjaanmu dari hasil tim, lalu jelaskan keluarannya.">
+        <p className="text-[13px] font-medium text-ink-2">Wajib: kontribusi pribadi dan hasil. Isi pengantar atau daftar kontribusi.</p>
 
         <Field
           label="Pengantar bagian Kontribusi"
@@ -301,11 +319,13 @@ export function EditorForm({
         <Field
           label="Kontribusi saya"
           htmlFor={id("kontribusi-daftar")}
+          error={errors.contributionChecklist}
           hint="Satu pekerjaan per baris. Bagian mana yang benar-benar Anda kerjakan sendiri?"
         >
           <TextArea
             id={id("kontribusi-daftar")}
             value={form.contributionChecklist}
+            invalid={Boolean(errors.contributionChecklist)}
             rows={5}
             onChange={(event) => onChange({ contributionChecklist: event.target.value })}
             placeholder={"Menulis kueri penggabungan transaksi.\nMenyusun halaman ringkasan penjualan per kategori."}
@@ -339,10 +359,11 @@ export function EditorForm({
           />
         </Field>
 
-        <Field label="Pengantar bagian Hasil" htmlFor={id("hasil-intro")} hint="Sebutkan keluaran tugasnya.">
+        <Field label="Pengantar bagian Hasil" required htmlFor={id("hasil-intro")} error={errors.outcomeIntro} hint="Sebutkan keluaran tugasnya.">
           <TextArea
             id={id("hasil-intro")}
             value={form.outcomeIntro}
+            invalid={Boolean(errors.outcomeIntro)}
             rows={3}
             onChange={(event) => onChange({ outcomeIntro: event.target.value })}
           />
@@ -374,12 +395,16 @@ export function EditorForm({
           />
         </Field>
       </Section>
+      ) : null}
 
+      {step === 4 ? (
       <Section
+        first
         icon="image"
         title="Bukti karya"
         description="Tautan dan keterangan gambar yang membuktikan proyek ini benar ada."
       >
+        <p className="text-[13px] font-medium text-ink-2">Wajib: minimal satu tautan bukti yang lengkap atau URL gambar sampul asli.</p>
         <p className="flex items-start gap-2 rounded-[10px] border border-line bg-canvas px-4 py-3 text-[13px] leading-5 text-ink-2">
           <Icon name="info" className="mt-0.5 size-4" />
           <span>
@@ -387,6 +412,8 @@ export function EditorForm({
             cadangan yang dipakai.
           </span>
         </p>
+
+        {errors.evidence ? <p role="alert" className="text-[13px] font-medium text-danger">{errors.evidence}</p> : null}
 
         <Field
           label="Gambar sampul (URL)"
@@ -523,6 +550,7 @@ export function EditorForm({
           </button>
         </div>
       </Section>
+      ) : null}
     </div>
   );
 }

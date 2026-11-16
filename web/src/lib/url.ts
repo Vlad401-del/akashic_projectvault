@@ -20,6 +20,16 @@ export function isSafeExternalUrl(value: string | null | undefined): boolean {
   }
 }
 
+/** Tautan bukti yang disimpan di Supabase wajib memakai HTTPS. */
+export function isHttpsExternalUrl(value: string | null | undefined): boolean {
+  if (!isSafeExternalUrl(value)) return false;
+  return new URL(value!.trim()).protocol === "https:";
+}
+
+export function isSafeEmailLink(value: string | null | undefined): boolean {
+  return /^mailto:[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/i.test(value ?? "");
+}
+
 /**
  * Mengembalikan tautan yang sudah dinormalisasi, atau null bila tidak aman.
  * Dipakai sebelum merender tombol/tautan sumber.

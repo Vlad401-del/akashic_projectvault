@@ -16,7 +16,7 @@ import {
 import type { TeamPostWithOwner } from "@/lib/teams";
 
 const selectClass =
-  "h-10 w-full rounded-lg border border-line bg-canvas px-3 text-[14px] text-ink transition-colors focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent";
+  "h-11 w-full rounded-lg border border-line-strong bg-canvas px-3 text-base text-ink transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent sm:text-[14px]";
 
 /**
  * Papan pencarian tim dengan filter sisi klien: kata kunci, jenis lomba,
@@ -24,7 +24,7 @@ const selectClass =
  * berkas lokal), sehingga seluruh daftar dikirim sekali dan disaring di
  * peramban tanpa permintaan tambahan.
  */
-export function TeamBoard({ items }: { items: TeamPostWithOwner[] }) {
+export function TeamBoard({ items, example = false }: { items: TeamPostWithOwner[]; example?: boolean }) {
   const [filter, setFilter] = useState<TeamFilter>(emptyTeamFilter);
 
   const categories = useMemo(() => listCategoryOptions(items), [items]);
@@ -160,7 +160,7 @@ export function TeamBoard({ items }: { items: TeamPostWithOwner[] }) {
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-6 md:grid-cols-2">
           {results.map((item) => (
-            <TeamCard key={item.team.id} item={item} />
+            <TeamCard key={item.team.id} item={item} example={example} />
           ))}
         </div>
       )}

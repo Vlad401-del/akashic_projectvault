@@ -6,7 +6,8 @@ import { ProjectCard } from "@/components/project-card";
 import { ProjectContext } from "@/components/project-context";
 import { ProjectCover, ProjectCoverCaption } from "@/components/project-cover";
 import { ProjectStory } from "@/components/project-story";
-import { OwnerChip, TopBar } from "@/components/site-nav";
+import { OwnerChip } from "@/components/avatar";
+import { TopBar } from "@/components/site-nav";
 import { SiteBrand } from "@/components/site-brand";
 import { SkillList } from "@/components/skill-list";
 import {
@@ -16,6 +17,8 @@ import {
   listKnownProjectRoutes,
 } from "@/lib/content";
 import { workTypeLabel } from "@/lib/labels";
+import { getCloudPublicProfile } from "@/lib/supabase/content";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
  * Rute ini dibuat saat build dari fixture dan proyek hasil editor, lalu
@@ -33,7 +36,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/u/[username]/p/[slug]">) {
   const { username, slug } = await params;
-  const profile = getPublicProfile(username);
+  const profile = isSupabaseConfigured()
+    ? await getCloudPublicProfile(username)
+    : getPublicProfile(username);
   const project = profile ? getPublicProject(profile, slug) : null;
 
   if (!profile || !project) {
@@ -48,7 +53,9 @@ export async function generateMetadata({ params }: PageProps<"/u/[username]/p/[s
 
 export default async function PublicProjectPage({ params }: PageProps<"/u/[username]/p/[slug]">) {
   const { username, slug } = await params;
-  const profile = getPublicProfile(username);
+  const profile = isSupabaseConfigured()
+    ? await getCloudPublicProfile(username)
+    : getPublicProfile(username);
 
   if (!profile) {
     notFound();

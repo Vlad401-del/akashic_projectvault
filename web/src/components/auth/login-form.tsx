@@ -20,7 +20,6 @@ export function LoginForm({ next }: { next?: string }) {
   const [form, setForm] = useState<LoginForm>(emptyLoginForm);
   const [errors, setErrors] = useState<LoginErrors>({});
   const [message, setMessage] = useState<string | null>(null);
-  const [showResetNote, setShowResetNote] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   function handleChange<K extends keyof LoginForm>(field: K, value: LoginForm[K]) {
@@ -95,31 +94,14 @@ export function LoginForm({ next }: { next?: string }) {
           />
         </Field>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <label className="flex cursor-pointer items-center gap-2 text-[13px] font-medium text-ink">
-            <input
-              type="checkbox"
-              checked={form.remember}
-              onChange={(event) => handleChange("remember", event.target.checked)}
-              className="size-4 rounded border-line-strong accent-[#1f4d3a]"
-            />
-            Ingat saya
-          </label>
-          <button
-            type="button"
-            onClick={() => setShowResetNote((prev) => !prev)}
+        <div className="flex justify-end">
+          <Link
+            href="/forgot-password"
             className="link-underline text-[13px] font-semibold text-accent"
           >
             Lupa kata sandi?
-          </button>
+          </Link>
         </div>
-
-        {showResetNote ? (
-          <p className="rounded-[10px] border border-line bg-surface px-3.5 py-3 text-[13px] leading-5 text-ink-2">
-            Pemulihan kata sandi lewat email belum aktif. Untuk sekarang, daftarkan akun baru dengan
-            email berbeda bila Anda tidak dapat masuk.
-          </p>
-        ) : null}
 
         <button
           type="submit"

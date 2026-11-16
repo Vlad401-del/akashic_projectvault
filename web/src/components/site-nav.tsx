@@ -1,32 +1,40 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { Avatar } from "@/components/avatar";
 import { SiteBrand } from "@/components/site-brand";
-import type { Profile } from "@/lib/fixtures/types";
-import { initials } from "@/lib/text";
+import { getCurrentUser } from "@/lib/auth-session";
+import { firstName } from "@/lib/text";
 
-/** Lingkaran inisial nama. Dipakai di bilah atas dan header profil. */
-export function Avatar({ displayName, size = "sm" }: { displayName: string; size?: "sm" | "lg" }) {
-  const sizeClass =
-    size === "lg" ? "size-20 text-[28px] sm:size-24 sm:text-[32px]" : "size-8 text-[12px]";
+/** Navigasi akun mengikuti sesi: tombol masuk atau identitas pemilik. */
+export async function AccountNav({ tone = "light" }: { tone?: "light" | "dark" }) {
+  const dark = tone === "dark";
+  const user = await getCurrentUser();
+
+  if (user) {
+    return (
+      <Link
+        href="/dashboard"
+        aria-label={`Buka area akun ${user.name}`}
+        className={`inline-flex min-h-10 max-w-[11rem] items-center gap-2 rounded-full border py-1 pl-1 pr-3 transition-colors sm:max-w-[13rem] ${
+          dark
+            ? "border-cream/25 bg-cream/10 text-cream hover:bg-cream/20"
+            : "border-line-strong bg-surface text-ink hover:border-accent hover:bg-accent-soft"
+        }`}
+      >
+        <Avatar displayName={user.name} />
+        <span className="truncate text-[13px] font-semibold sm:text-[14px]">{firstName(user.name)}</span>
+      </Link>
+    );
+  }
 
   return (
-    <span
-      aria-hidden="true"
-      className={`flex shrink-0 items-center justify-center rounded-full bg-forest font-display font-semibold text-sun ring-2 ring-surface ${sizeClass}`}
+    <Link
+      href="/login"
+      className="inline-flex min-h-10 items-center rounded-lg bg-sun px-4 text-[14px] font-bold text-ink transition-colors hover:bg-sun-soft"
     >
-      {initials(displayName)}
-    </span>
-  );
-}
-
-/** Penanda pemilik portofolio di bilah atas: avatar kecil + nama. */
-export function OwnerChip({ profile }: { profile: Profile }) {
-  return (
-    <span className="flex min-w-0 items-center gap-2">
-      <Avatar displayName={profile.displayName} />
-      <span className="truncate text-[15px] font-semibold text-ink">{profile.displayName}</span>
-    </span>
+      Masuk
+    </Link>
   );
 }
 
@@ -66,19 +74,8 @@ export function TopBar({
               >
                 Cari Tim
               </Link>
-              <Link
-                href="/login"
-                className="link-underline text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink"
-              >
-                Masuk
-              </Link>
-              <Link
-                href="/register"
-                className="inline-flex h-9 items-center rounded-full bg-sun px-4 text-[13px] font-bold text-ink transition-transform hover:-translate-y-0.5"
-              >
-                Daftar
-              </Link>
-              <SiteBrand />
+              <AccountNav />
+              <span className="hidden sm:inline-flex"><SiteBrand /></span>
             </div>
           )}
         </div>

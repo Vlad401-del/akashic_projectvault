@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { OwnerTopBar } from "@/components/editor/owner-top-bar";
 import { ProjectRow } from "@/components/editor/project-row";
 import { Icon } from "@/components/icons";
-import { Avatar } from "@/components/site-nav";
+import { Avatar } from "@/components/avatar";
 import { IntroReviewControls } from "@/components/team/intro-review-controls";
+import { JoinTeamControl } from "@/components/team/join-team-control";
+import { TeamStatusControl } from "@/components/team/team-status-control";
 import { DiscussionThread } from "@/components/team/discussion-thread";
 import { getDemoOwner, listOwnedProjects } from "@/lib/content";
+import { getCurrentUser } from "@/lib/auth-session";
 import { getTeamDiscussion } from "@/lib/discussions";
 import { listIncomingIntros, listOwnedTeamPosts } from "@/lib/teams";
-import { openSlots } from "@/lib/team-utils";
+import { getCloudTeamDiscussion, listCloudIncomingIntros, listCloudOwnedTeamPosts, listCloudSentIntros } from "@/lib/team-cloud";
+import { getCloudOwner } from "@/lib/supabase/content";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
+import { formatTeamDeadline, openSlots } from "@/lib/team-utils";
 
 export const metadata: Metadata = {
   title: "Dasbor Pemilik — Akashic",
@@ -22,19 +29,23 @@ export const metadata: Metadata = {
  */
 export const dynamic = "force-dynamic";
 
-export default function DashboardPage() {
-  const owner = getDemoOwner();
-  const projects = listOwnedProjects();
+export default async function DashboardPage() {
+  const cloud = isSupabaseConfigured();
+  const user = cloud ? await getCurrentUser() : null;
+  const owner = cloud ? await getCloudOwner() : getDemoOwner();
+  if (!owner) redirect("/login");
+  const projects = cloud ? owner.projects : listOwnedProjects();
   const draftCount = projects.filter((project) => project.status === "draft").length;
   const publishedCount = projects.length - draftCount;
 
-  const ownedTeams = listOwnedTeamPosts();
-  const incomingIntros = listIncomingIntros();
+  const ownedTeams = cloud && user ? await listCloudOwnedTeamPosts(user.id) : listOwnedTeamPosts();
+  const incomingIntros = cloud && user ? await listCloudIncomingIntros(user.id) : listIncomingIntros();
+  const sentIntros = cloud && user ? await listCloudSentIntros(user.id) : [];
   const unreviewedCount = incomingIntros.filter((entry) => entry.review === "baru").length;
-  const ownedDiscussions = ownedTeams.map((item) => ({
+  const ownedDiscussions = await Promise.all(ownedTeams.map(async (item) => ({
     item,
-    messages: getTeamDiscussion(item.team.id),
-  }));
+    messages: cloud ? await getCloudTeamDiscussion(item.team.id) : getTeamDiscussion(item.team.id),
+  })));
   const discussionMessageCount = ownedDiscussions.reduce((total, entry) => total + entry.messages.length, 0);
 
   return (
@@ -42,6 +53,9 @@ export default function DashboardPage() {
       <OwnerTopBar owner={owner} backHref="/" backLabel="Halaman awal" />
 
       <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-12 xl:px-0">
+        {!cloud ? <p className="mb-6 border-l-4 border-sun bg-sun-soft px-4 py-3 text-[14px] leading-6 text-ink">
+          Mode pengembangan: proyek dan pencarian tim di area ini memakai profil contoh Nadia. Akun yang masuk belum memiliki ruang karya terpisah.
+        </p> : null}
         <header className="flex flex-wrap items-start justify-between gap-6">
           <div className="flex min-w-0 items-start gap-4">
             <Avatar displayName={owner.displayName} size="lg" />
@@ -86,12 +100,17 @@ export default function DashboardPage() {
               Papan Cari Tim
             </Link>
             <Link
-              href={`/u/${owner.username}`}
+              href={owner.isPublished ? `/u/${owner.username}` : "/dashboard/profile"}
               className="inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink transition-colors hover:border-line-strong"
             >
               <Icon name="externalLink" className="size-4" />
-              Portofolio publik
+              {owner.isPublished ? "Portofolio publik" : "Atur profil"}
             </Link>
+            {cloud && owner.isPublished ? (
+              <Link href="/dashboard/profile" className="inline-flex h-11 items-center rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink hover:border-line-strong">
+                Atur profil
+              </Link>
+            ) : null}
             <Link
               href="/dashboard/projects/new"
               className="inline-flex h-11 items-center gap-2 rounded-[10px] bg-accent px-4 text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover"
@@ -210,6 +229,7 @@ export default function DashboardPage() {
                     teamId={entry.teamId}
                     sentAt={entry.sentAt}
                     initialReview={entry.review}
+                    joinedAt={entry.joinedAt}
                     contact={entry.intro.contact}
                   />
                 </div>
@@ -217,6 +237,39 @@ export default function DashboardPage() {
             </div>
           )}
         </section>
+
+        {cloud ? (
+          <section aria-labelledby="pengajuan-saya-heading" className="mt-12 border-t border-line pt-8">
+            <h2 id="pengajuan-saya-heading" className="text-[22px] font-semibold tracking-tight text-ink">Pengajuan Saya</h2>
+            <p className="mt-1 text-[14px] text-ink-2">Pantau pengajuanmu. Setelah diterima, konfirmasi bergabung untuk mengisi slot tim.</p>
+            {sentIntros.length === 0 ? (
+              <div className="mt-5 rounded-xl border border-dashed border-line bg-surface p-6">
+                <p className="text-[14px] text-ink-2">Belum ada pengajuan. Cari tim yang sesuai dengan keterampilan dan waktu yang kamu punya.</p>
+                <Link href="/tim" className="mt-3 inline-block text-[14px] font-semibold text-accent underline">Jelajahi papan tim</Link>
+              </div>
+            ) : (
+              <ul className="mt-5 space-y-3">
+                {sentIntros.map((entry) => (
+                  <li key={`${entry.teamId}-${entry.sentAt}`} className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line bg-surface p-4">
+                    <div>
+                      {entry.teamVisible ? (
+                        <Link href={`/tim/${entry.teamId}`} className="font-semibold text-ink hover:text-accent hover:underline">{entry.teamTitle}</Link>
+                      ) : <span className="font-semibold text-ink">{entry.teamTitle}</span>}
+                      <p className="mt-1 text-[13px] text-ink-2">Peran: {entry.role}</p>
+                    </div>
+                    <div>
+                      <span className="rounded-full bg-accent/10 px-3 py-1 text-[13px] font-semibold text-accent">
+                        {entry.joinedAt ? "Anggota tim" : entry.review === "diskusi" ? "Sedang Diskusi" : entry.review === "diterima" ? "Diterima — perlu konfirmasi" : entry.review === "ditolak" ? "Ditolak" : "Diajukan"}
+                      </span>
+                      {entry.review === "diterima" && !entry.joinedAt && entry.teamOpen ? <JoinTeamControl teamId={entry.teamId} /> : null}
+                      {entry.review === "diterima" && !entry.joinedAt && !entry.teamOpen ? <p className="mt-2 text-[12px] text-ink-2">Pencarian ditutup; hubungi pemilik tim bila masih ingin bergabung.</p> : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
 
         {/* Bagian 2: Pencarian Tim Saya */}
         <section aria-labelledby="tim-saya-heading" className="mt-12 border-t border-line pt-8">
@@ -278,21 +331,33 @@ export default function DashboardPage() {
                       </div>
                       <p className="mt-1 line-clamp-1 text-[13px] text-ink-2">{team.summary}</p>
                       <div className="mt-2 flex flex-wrap gap-2 text-[12px] text-ink-2">
+                        <span className={team.status === "open" ? "font-semibold text-emerald-700" : "font-semibold text-ink-2"}>
+                          {team.status === "open" ? "Dibuka" : "Ditutup"}
+                        </span>
+                        <span>·</span>
                         <span>{slots > 0 ? `Butuh ${slots} anggota lagi` : "Slot penuh"}</span>
                         <span>·</span>
-                        <span>Tenggat: {team.deadline}</span>
+                        <span>Tenggat: {formatTeamDeadline(team.deadline)}</span>
                         <span>·</span>
                         <span>{team.weeklyHours} jam/minggu</span>
                       </div>
                     </div>
 
-                    <Link
-                      href={`/tim/${team.id}`}
-                      className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-line px-3 py-1.5 text-[13px] font-medium text-ink hover:border-line-strong hover:text-accent"
-                    >
-                      Buka Halaman Tim
-                      <Icon name="arrowRight" className="size-3.5" />
-                    </Link>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {cloud ? <TeamStatusControl teamId={team.id} status={team.status} slots={slots} /> : null}
+                      {cloud ? (
+                        <Link href={`/dashboard/tim/${team.id}/edit`} className="inline-flex min-h-9 items-center rounded-lg border border-line px-3 text-[13px] font-medium text-ink hover:border-line-strong hover:text-accent">
+                          Edit pencarian
+                        </Link>
+                      ) : null}
+                      <Link
+                        href={`/tim/${team.id}`}
+                        className="inline-flex min-h-9 shrink-0 items-center gap-1 rounded-lg border border-line px-3 text-[13px] font-medium text-ink hover:border-line-strong hover:text-accent"
+                      >
+                        Buka Halaman Tim
+                        <Icon name="arrowRight" className="size-3.5" />
+                      </Link>
+                    </div>
                   </div>
                 );
               })}
@@ -331,6 +396,7 @@ export default function DashboardPage() {
                     teamId={item.team.id}
                     initialMessages={messages}
                     closed={item.team.status !== "open"}
+                    accountName={cloud ? user?.name : undefined}
                   />
                 </div>
               ))}

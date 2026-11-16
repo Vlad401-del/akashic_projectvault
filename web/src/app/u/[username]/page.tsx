@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import { Icon } from "@/components/icons";
 import { ProfileHeader } from "@/components/profile-header";
 import { ProjectCard } from "@/components/project-card";
-import { OwnerChip, TopBar } from "@/components/site-nav";
+import { OwnerChip } from "@/components/avatar";
+import { TopBar } from "@/components/site-nav";
 import { getPublicProfile, getPublicProjects, listKnownProfileRoutes } from "@/lib/content";
+import { getCloudPublicProfile } from "@/lib/supabase/content";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
  * Rute ini dibuat saat build dari daftar yang dikenal (fixture dan proyek hasil
@@ -22,7 +25,9 @@ export function generateStaticParams() {
 
 export async function generateMetadata({ params }: PageProps<"/u/[username]">) {
   const { username } = await params;
-  const profile = getPublicProfile(username);
+  const profile = isSupabaseConfigured()
+    ? await getCloudPublicProfile(username)
+    : getPublicProfile(username);
 
   if (!profile) {
     return { title: "Profil tidak ditemukan" };
@@ -36,7 +41,9 @@ export async function generateMetadata({ params }: PageProps<"/u/[username]">) {
 
 export default async function PublicProfilePage({ params }: PageProps<"/u/[username]">) {
   const { username } = await params;
-  const profile = getPublicProfile(username);
+  const profile = isSupabaseConfigured()
+    ? await getCloudPublicProfile(username)
+    : getPublicProfile(username);
 
   // Profil yang belum aktif tampil publik atau username yang salah sama-sama
   // menghasilkan not-found, supaya keberadaan profil privat tidak bocor.

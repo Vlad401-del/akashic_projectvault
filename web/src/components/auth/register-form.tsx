@@ -23,6 +23,7 @@ export function RegisterForm({ next }: { next?: string }) {
   const [form, setForm] = useState<RegisterForm>(emptyRegisterForm);
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [message, setMessage] = useState<string | null>(null);
+  const [registrationSent, setRegistrationSent] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const strength = passwordStrength(form.password);
@@ -44,8 +45,9 @@ export function RegisterForm({ next }: { next?: string }) {
     startTransition(async () => {
       const result = await registerAction(form, next);
       if (result) {
-        setErrors(result.errors);
+        setErrors(result.ok ? {} : result.errors);
         setMessage(result.message ?? null);
+        setRegistrationSent(result.ok);
       }
     });
   }
@@ -66,7 +68,7 @@ export function RegisterForm({ next }: { next?: string }) {
       {message ? (
         <p
           role="alert"
-          className="mt-5 flex items-start gap-2 rounded-[10px] border border-danger/30 bg-danger-soft px-3.5 py-3 text-[13px] leading-5 text-danger"
+          className={`mt-5 flex items-start gap-2 rounded-[10px] border px-3.5 py-3 text-[13px] leading-5 ${registrationSent ? "border-accent/30 bg-accent-soft text-accent" : "border-danger/30 bg-danger-soft text-danger"}`}
         >
           <Icon name="alert" className="mt-px size-4" />
           <span>{message}</span>

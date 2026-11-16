@@ -1,19 +1,22 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState, useTransition, type FormEvent } from "react";
 import { Icon } from "@/components/icons";
 import { postTeamDiscussionAction } from "@/lib/discussion-actions";
 import { DISCUSSION_BODY_MAX, emptyDiscussionForm, hasDiscussionErrors, validateDiscussionForm, type DiscussionErrors } from "@/lib/discussion-form";
 import type { DiscussionMessage } from "@/lib/fixtures/types";
 
-export function DiscussionThread({ teamId, initialMessages, closed = false }: {
+export function DiscussionThread({ teamId, initialMessages, closed = false, accountName, loginRequired = false }: {
   teamId: string;
   initialMessages: DiscussionMessage[];
   closed?: boolean;
+  accountName?: string;
+  loginRequired?: boolean;
 }) {
   const [sentMessages, setSentMessages] = useState<DiscussionMessage[]>([]);
   const messages = [...initialMessages, ...sentMessages.filter((sent) => !initialMessages.some((message) => message.id === sent.id))];
-  const [form, setForm] = useState(emptyDiscussionForm);
+  const [form, setForm] = useState(() => ({ ...emptyDiscussionForm(), authorName: accountName ?? "" }));
   const [errors, setErrors] = useState<DiscussionErrors>({});
   const [notice, setNotice] = useState("");
   const [pending, startTransition] = useTransition();
@@ -36,7 +39,7 @@ export function DiscussionThread({ teamId, initialMessages, closed = false }: {
           return;
         }
         setSentMessages((previous) => [...previous, result.message]);
-        setForm((previous) => ({ ...emptyDiscussionForm(), authorName: previous.authorName }));
+        setForm((previous) => ({ ...emptyDiscussionForm(), authorName: accountName ?? previous.authorName }));
         setNotice("Pesan berhasil dikirim.");
       } catch {
         setNotice("Pesan belum dapat dikirim. Periksa koneksi lalu coba lagi.");
@@ -69,13 +72,17 @@ export function DiscussionThread({ teamId, initialMessages, closed = false }: {
                 </div>
                 {parent ? <blockquote className="mt-3 rounded-r-lg border-l-2 border-accent bg-surface px-3 py-2"><p className="text-[12px] font-semibold text-accent">{parent.authorName}</p><p className="line-clamp-2 text-[13px] text-ink-2">{parent.body}</p></blockquote> : null}
                 <p className="mt-3 whitespace-pre-line text-[15px] leading-[1.7] text-ink">{message.body}</p>
-                {!closed ? <button type="button" disabled={pending} onClick={() => { setForm((previous) => ({ ...previous, replyToId: message.id })); textarea.current?.focus(); }} className="mt-3 inline-flex items-center gap-1.5 rounded text-[13px] font-semibold text-accent hover:underline"><Icon name="reply" className="size-3.5" />Balas</button> : null}
+                {!closed && !loginRequired ? <button type="button" disabled={pending} onClick={() => { setForm((previous) => ({ ...previous, replyToId: message.id })); textarea.current?.focus(); }} className="mt-3 inline-flex items-center gap-1.5 rounded text-[13px] font-semibold text-accent hover:underline"><Icon name="reply" className="size-3.5" />Balas</button> : null}
               </li>
             );
           })}
         </ol>
       )}
-      {closed ? <p className="mt-6 text-[13px] text-ink-2">Pencarian tim ini sudah ditutup; diskusi hanya bisa dibaca.</p> : (
+      {closed ? <p className="mt-6 text-[13px] text-ink-2">Pencarian tim ini sudah ditutup; diskusi hanya bisa dibaca.</p> : loginRequired ? (
+        <p className="mt-6 rounded-xl border border-line bg-canvas p-5 text-[14px] text-ink-2">
+          <Link href="/login" className="font-semibold text-accent underline">Masuk</Link> untuk bertanya atau membalas di diskusi tim.
+        </p>
+      ) : (
         <form onSubmit={submit} noValidate className="mt-6 rounded-xl border border-line bg-surface p-4 sm:p-5">
           <fieldset disabled={pending}>
             <legend className="text-[16px] font-semibold text-ink">{replyTo ? "Tulis balasan Anda" : "Tulis pesan"}</legend>
@@ -83,8 +90,8 @@ export function DiscussionThread({ teamId, initialMessages, closed = false }: {
             {errors.replyToId ? <p role="alert" className="mt-2 text-[13px] text-rose-600">{errors.replyToId}</p> : null}
             <div className="mt-4">
               <label htmlFor={`diskusi-nama-${teamId}`} className="text-[14px] font-semibold">Nama Anda</label>
-              <input id={`diskusi-nama-${teamId}`} value={form.authorName} onChange={(event) => setForm((previous) => ({ ...previous, authorName: event.target.value }))} className={inputClass} aria-invalid={Boolean(errors.authorName)} aria-describedby={`diskusi-nama-info-${teamId}`} />
-              <p id={`diskusi-nama-info-${teamId}`} className="mt-1 text-[12px] text-ink-2">Nama diisi sendiri oleh pengirim dan belum diverifikasi.</p>
+              <input id={`diskusi-nama-${teamId}`} value={form.authorName} readOnly={Boolean(accountName)} onChange={(event) => setForm((previous) => ({ ...previous, authorName: event.target.value }))} className={inputClass} aria-invalid={Boolean(errors.authorName)} aria-describedby={`diskusi-nama-info-${teamId}`} />
+              <p id={`diskusi-nama-info-${teamId}`} className="mt-1 text-[12px] text-ink-2">{accountName ? "Nama diambil dari akun Akashic Anda." : "Nama diisi sendiri oleh pengirim dan belum diverifikasi."}</p>
               {errors.authorName ? <p role="alert" className="mt-1 text-[13px] text-rose-600">{errors.authorName}</p> : null}
             </div>
             <div className="mt-4">

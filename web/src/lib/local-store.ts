@@ -30,7 +30,7 @@ export type StoredProject = {
   savedAt: string;
 };
 
-const DATA_DIRECTORY = path.join(process.cwd(), ".data");
+const DATA_DIRECTORY = path.resolve(process.cwd(), process.env.AKASHIC_DEMO_DATA_DIR || ".data");
 const DATA_FILE = path.join(DATA_DIRECTORY, "projects.json");
 
 /** Lokasi berkas penyimpanan lokal; dipakai pada pesan kesalahan. */

@@ -54,7 +54,7 @@ export function isIntroReviewStatus(value: unknown): value is IntroReviewStatus 
   return typeof value === "string" && (REVIEW_STATUSES as string[]).includes(value);
 }
 
-const DATA_DIRECTORY = path.join(process.cwd(), ".data");
+const DATA_DIRECTORY = path.resolve(process.cwd(), process.env.AKASHIC_DEMO_DATA_DIR || ".data");
 const TEAMS_FILE = path.join(DATA_DIRECTORY, "teams.json");
 const INTROS_FILE = path.join(DATA_DIRECTORY, "team-requests.json");
 const DISCUSSIONS_FILE = path.join(DATA_DIRECTORY, "team-discussions.json");

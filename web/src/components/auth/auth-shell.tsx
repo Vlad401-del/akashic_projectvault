@@ -61,20 +61,12 @@ export function AuthShell({ mode, children }: { mode: "login" | "register"; chil
               : "Satu akun untuk mengubah tugas kuliah menjadi studi kasus yang bisa dibaca calon perekrut, lalu mencari rekan lomba dari bukti kerja nyata."}
           </p>
 
-          <figure className="card-lift mt-9 max-w-[26rem] rounded-[16px] p-5 text-ink">
-            <blockquote className="font-display text-[17px] italic leading-snug">
-              &ldquo;Portofolio yang menunjukkan proses lebih meyakinkan daripada daftar juara. Di sini proses itu punya rumah.&rdquo;
-            </blockquote>
-            <figcaption className="mt-4 flex items-center gap-3">
-              <span className="flex size-9 items-center justify-center rounded-full bg-forest font-display text-[13px] font-semibold text-sun">
-                NR
-              </span>
-              <span className="text-[13px] leading-5">
-                <span className="block font-semibold">Nadia Rahman</span>
-                <span className="block text-ink-2">Mahasiswa &middot; peserta GEMASTIK</span>
-              </span>
-            </figcaption>
-          </figure>
+          <div className="mt-9 max-w-[26rem] border-l-4 border-sun bg-cream px-5 py-4 text-ink">
+            <p className="text-[12px] font-bold uppercase tracking-[0.1em] text-accent">Di dalam Akashic</p>
+            <p className="mt-2 text-[15px] leading-6">
+              Ceritakan kontribusimu pada proyek, sertakan bukti kerja, lalu temukan tim yang mencari keahlianmu.
+            </p>
+          </div>
         </div>
 
         <div className="relative border-t border-cream/10 py-5">

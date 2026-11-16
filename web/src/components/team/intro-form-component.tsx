@@ -19,15 +19,18 @@ export function IntroFormComponent({
   teamTitle,
   roles,
   ownerDisplayName,
+  accountName,
 }: {
   teamId: string;
   teamTitle: string;
   roles: TeamRole[];
   ownerDisplayName: string;
+  accountName?: string;
 }) {
-  const [form, setForm] = useState<IntroForm>(() =>
-    emptyIntroForm(roles[0]?.title ?? ""),
-  );
+  const [form, setForm] = useState<IntroForm>(() => ({
+    ...emptyIntroForm(roles[0]?.title ?? ""),
+    senderName: accountName ?? "",
+  }));
   const [errors, setErrors] = useState<IntroErrors>({});
   const [isPending, startTransition] = useTransition();
   const [submittedAt, setSubmittedAt] = useState<string | null>(null);
@@ -80,17 +83,8 @@ export function IntroFormComponent({
               Pemilik tim akan meninjau perkenalan Anda dan menghubungi kontak yang Anda cantumkan bila
               ada kecocokan dengan kebutuhan tim.
             </p>
+            <p className="mt-2 text-[13px] font-medium text-emerald-900">Status awal: Diajukan.</p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setSubmittedAt(null);
-                  setForm(emptyIntroForm(roles[0]?.title ?? ""));
-                }}
-                className="rounded-lg border border-emerald-600 bg-white px-4 py-2 text-[14px] font-medium text-emerald-900 transition-colors hover:bg-emerald-50"
-              >
-                Kirim perkenalan lain
-              </button>
               <Link
                 href="/tim"
                 className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-800 px-4 py-2 text-[14px] font-medium text-white transition-colors hover:bg-emerald-900"
@@ -98,6 +92,7 @@ export function IntroFormComponent({
                 Kembali ke papan tim
                 <Icon name="arrowRight" className="size-4" />
               </Link>
+              {accountName ? <Link href="/dashboard" className="inline-flex items-center px-2 text-[14px] font-semibold text-emerald-900 underline">Lihat status di dasbor</Link> : null}
             </div>
           </div>
         </div>
@@ -173,9 +168,10 @@ export function IntroFormComponent({
               id="intro-name"
               type="text"
               value={form.senderName}
+              readOnly={Boolean(accountName)}
               onChange={(e) => handleChange("senderName", e.target.value)}
               placeholder="Contoh: Budi Santoso"
-              className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-[14px] text-ink transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
           </div>
 
@@ -191,7 +187,7 @@ export function IntroFormComponent({
               value={form.weeklyHours}
               onChange={(e) => handleChange("weeklyHours", e.target.value)}
               placeholder="Contoh: 8"
-              className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-[14px] text-ink transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
             {errors.weeklyHours ? (
               <p className="mt-1 text-[13px] font-medium text-rose-600">{errors.weeklyHours}</p>
@@ -212,7 +208,7 @@ export function IntroFormComponent({
             value={form.contact}
             onChange={(e) => handleChange("contact", e.target.value)}
             placeholder="Contoh: budi@email.com atau 0812-3456-7890 (WhatsApp)"
-            className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-[14px] text-ink transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
           {errors.contact ? (
             <p className="mt-1 text-[13px] font-medium text-rose-600">{errors.contact}</p>
@@ -221,6 +217,19 @@ export function IntroFormComponent({
               Hanya terlihat oleh pemilik tim di dasbornya, dipakai bila perkenalan Anda ditindaklanjuti.
             </p>
           )}
+        </div>
+
+        <div>
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-line bg-canvas p-4 text-[14px] leading-6 text-ink">
+            <input
+              type="checkbox"
+              checked={form.shareContact}
+              onChange={(event) => handleChange("shareContact", event.target.checked)}
+              className="mt-1 size-4 shrink-0 accent-accent"
+            />
+            <span>Saya setuju kontak di atas dibagikan hanya kepada pemilik pencarian tim ini untuk menindaklanjuti pengajuan saya.</span>
+          </label>
+          {errors.shareContact ? <p role="alert" className="mt-1.5 text-[13px] font-medium text-rose-600">{errors.shareContact}</p> : null}
         </div>
 
         {/* Apa yang saya bawa (Proof of work) */}
@@ -234,7 +243,7 @@ export function IntroFormComponent({
             value={form.bring}
             onChange={(e) => handleChange("bring", e.target.value)}
             placeholder="Jelaskan keahlian atau pengalaman konkret yang relevan dengan peran ini. Misalnya: Pernah membuat dashboard React untuk lomba Gemastik sebelumnya dan paham alur Git kerja kelompok."
-            className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-[14px] text-ink transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
           {errors.bring ? (
             <p className="mt-1 text-[13px] font-medium text-rose-600">{errors.bring}</p>
@@ -244,7 +253,7 @@ export function IntroFormComponent({
         {/* Tautan bukti karya */}
         <div>
           <label htmlFor="intro-proof" className="block text-[14px] font-semibold text-ink">
-            Tautan bukti karya / portofolio (Opsional)
+            Tautan bukti karya / portofolio (Wajib)
           </label>
           <input
             id="intro-proof"
@@ -252,13 +261,13 @@ export function IntroFormComponent({
             value={form.proofUrl}
             onChange={(e) => handleChange("proofUrl", e.target.value)}
             placeholder="https://... (Profil Akashic, repositori GitHub, atau desain Figma)"
-            className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-[14px] text-ink transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
           {errors.proofUrl ? (
             <p className="mt-1 text-[13px] font-medium text-rose-600">{errors.proofUrl}</p>
           ) : (
             <p className="mt-1 text-[12px] text-ink-2">
-              Tautan yang membuktikan pengalaman Anda agar calon tim lebih yakin.
+              Sertakan proyek Akashic, repositori, prototipe, atau artefak lain yang bisa dibuka.
             </p>
           )}
         </div>
@@ -274,7 +283,7 @@ export function IntroFormComponent({
             value={form.learn}
             onChange={(e) => handleChange("learn", e.target.value)}
             placeholder="Misalnya: Ingin mendalami optimasi kueri atau belajar komunikasi pitch kompetisi."
-            className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-[14px] text-ink transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+            className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
           />
         </div>
       </div>

@@ -43,6 +43,7 @@ function resolveOwner(username: string) {
 /** Satu pencarian beserta profil pemiliknya. */
 export type TeamPostWithOwner = {
   team: TeamPost;
+  ownerId?: string;
   owner: {
     username: string;
     displayName: string;
@@ -87,6 +88,26 @@ export function listOpenTeamPosts(): TeamPostWithOwner[] {
   return listTeamPosts().filter((item) => item.team.status === "open");
 }
 
+const exampleTeamIds = [
+  "gemastik-2027-analitik-komplain",
+  "pkm-k-jadwal-shift-lab",
+  "gemastik-2027-penambangan-data-kualitas-udara",
+];
+
+/** Contoh tampilan saja; tidak disimpan sebagai pencarian pengguna. */
+export function listExampleTeamPosts(): TeamPostWithOwner[] {
+  const counts = new Map<string, number>();
+  return exampleTeamIds
+    .map((id) => fixtureTeams.find((team) => team.id === id))
+    .filter((team): team is TeamPost => Boolean(team))
+    .map((team) => withOwner(team, counts))
+    .filter((item): item is TeamPostWithOwner => item !== null);
+}
+
+export function getExampleTeamPost(id: string): TeamPostWithOwner | null {
+  return listExampleTeamPosts().find((item) => item.team.id === id) ?? null;
+}
+
 /** Satu pencarian berdasarkan `id`; penggunaan utamanya `/tim/[id]`. */
 export function getTeamPost(id: string): TeamPostWithOwner | null {
   return listTeamPosts().find((item) => item.team.id === id) ?? null;
@@ -119,6 +140,7 @@ export type IncomingIntro = {
   sentAt: string;
   /** Keputusan pemilik tim; perkenalan lama tanpa kolom ini dianggap "baru". */
   review: IntroReviewStatus;
+  joinedAt?: string | null;
 };
 
 /**

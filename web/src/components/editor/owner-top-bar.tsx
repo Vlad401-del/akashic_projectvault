@@ -2,7 +2,8 @@ import Link from "next/link";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { Icon } from "@/components/icons";
-import { OwnerChip, TopBar } from "@/components/site-nav";
+import { OwnerChip } from "@/components/avatar";
+import { TopBar } from "@/components/site-nav";
 import { getCurrentUser } from "@/lib/auth-session";
 import type { Profile } from "@/lib/fixtures/types";
 

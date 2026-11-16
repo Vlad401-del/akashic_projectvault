@@ -4,6 +4,14 @@ import "server-only";
 
 import { revalidatePath } from "next/cache";
 
+import {
+  confirmCloudTeamJoin,
+  createCloudTeamPost,
+  reviewCloudTeamIntro,
+  sendCloudTeamIntro,
+  setCloudTeamStatus,
+  updateCloudTeamPost,
+} from "@/lib/cloud-team-actions";
 import { DEMO_OWNER_USERNAME } from "@/lib/content";
 import type { IntroReviewStatus, TeamIntro, TeamPost, TeamSearchStatus } from "@/lib/fixtures/types";
 import {
@@ -24,6 +32,7 @@ import {
   setStoredTeamIntroReview,
 } from "@/lib/team-store";
 import { getTeamPost, listTeamPosts } from "@/lib/teams";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export type SendIntroResult =
   | { ok: true; sentAt: string }
@@ -37,6 +46,19 @@ export type ReviewIntroResult =
   | { ok: true; review: IntroReviewStatus }
   | { ok: false; message: string };
 
+export async function confirmTeamJoinAction(teamId: string): Promise<{ ok: boolean; message?: string }> {
+  if (!isSupabaseConfigured()) return { ok: false, message: "Konfirmasi tim belum tersedia." };
+  return confirmCloudTeamJoin(teamId);
+}
+
+export async function setTeamStatusAction(
+  teamId: string,
+  status: TeamSearchStatus,
+): Promise<{ ok: boolean; message?: string }> {
+  if (!isSupabaseConfigured()) return { ok: false, message: "Pengaturan tim belum tersedia." };
+  return setCloudTeamStatus(teamId, status);
+}
+
 /**
  * Mengirim perkenalan terstruktur dari pengunjung untuk satu pencarian tim.
  *
@@ -47,6 +69,7 @@ export async function sendTeamIntroAction(
   teamId: string,
   form: IntroForm,
 ): Promise<SendIntroResult> {
+  if (isSupabaseConfigured()) return sendCloudTeamIntro(teamId, form);
   const teamItem = getTeamPost(teamId);
 
   if (!teamItem) {
@@ -101,6 +124,7 @@ export async function createTeamPostAction(
   form: TeamPostForm,
   status: TeamSearchStatus = "open",
 ): Promise<CreateTeamPostResult> {
+  if (isSupabaseConfigured()) return createCloudTeamPost(form, status);
   const errors = validateTeamForm(form);
 
   if (hasTeamErrors(errors)) {
@@ -136,6 +160,13 @@ export async function createTeamPostAction(
   return { ok: true, id: team.id, savedAt };
 }
 
+export async function updateTeamPostAction(teamId: string, form: TeamPostForm): Promise<CreateTeamPostResult> {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, errors: { title: "Pengeditan pencarian tersedia pada akun yang terhubung." } };
+  }
+  return updateCloudTeamPost(teamId, form);
+}
+
 /**
  * Menandai satu perkenalan masuk sebagai sedang diskusi, diterima, atau ditolak.
  *
@@ -152,6 +183,7 @@ export async function reviewTeamIntroAction(
   if (!isIntroReviewStatus(review)) {
     return { ok: false, message: "Status review tidak dikenal." };
   }
+  if (isSupabaseConfigured()) return reviewCloudTeamIntro(teamId, sentAt, review);
 
   const teamItem = getTeamPost(teamId);
 

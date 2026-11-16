@@ -31,11 +31,13 @@ export function IntroReviewControls({
   teamId,
   sentAt,
   initialReview,
+  joinedAt,
   contact,
 }: {
   teamId: string;
   sentAt: string;
   initialReview: IntroReviewStatus;
+  joinedAt?: string | null;
   contact?: string;
 }) {
   const [review, setReview] = useState<IntroReviewStatus>(initialReview);
@@ -77,7 +79,7 @@ export function IntroReviewControls({
         <span
           className={`inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-semibold ${meta.badgeClass}`}
         >
-          {meta.label}
+          {joinedAt ? "Anggota tim" : meta.label}
         </span>
 
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Ubah status perkenalan">
@@ -85,7 +87,7 @@ export function IntroReviewControls({
             <button
               key={action.status}
               type="button"
-              disabled={isPending || review === action.status}
+            disabled={isPending || Boolean(joinedAt) || review === action.status}
               onClick={() => handleReview(action.status)}
               className="inline-flex items-center gap-1 rounded-lg border border-line bg-canvas px-2.5 py-1 text-[12px] font-medium text-ink transition-colors hover:border-line-strong hover:text-accent disabled:cursor-default disabled:opacity-50"
             >

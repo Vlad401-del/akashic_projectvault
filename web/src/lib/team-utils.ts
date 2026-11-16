@@ -16,3 +16,11 @@ export function openSlots(team: TeamPost): number {
 export function roleSkillsLabel(role: TeamRole): string {
   return role.skills.length > 0 ? role.skills.join(", ") : "Kemampuan bebas";
 }
+
+export function formatTeamDeadline(value: string): string {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isFinite(date.getTime())
+    ? new Intl.DateTimeFormat("id-ID", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(date)
+    : value;
+}

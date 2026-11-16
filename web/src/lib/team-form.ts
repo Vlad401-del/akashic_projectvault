@@ -12,7 +12,7 @@
  */
 import type { TeamPost, TeamRole, TeamSearchStatus } from "@/lib/fixtures/types";
 import { slugify, toCsv } from "@/lib/editor-form";
-import { isSafeExternalUrl } from "@/lib/url";
+import { isHttpsExternalUrl } from "@/lib/url";
 
 /** Satu baris peran di dalam formulir pencarian. */
 export type TeamRoleForm = {
@@ -39,6 +39,10 @@ export type TeamErrors = {
   title?: string;
   competition?: string;
   summary?: string;
+  currentMembers?: string;
+  targetMembers?: string;
+  weeklyHours?: string;
+  deadline?: string;
   roles?: Record<number, string>;
 };
 
@@ -51,6 +55,7 @@ export type IntroForm = {
   learn: string;
   proofUrl: string;
   contact: string;
+  shareContact: boolean;
 };
 
 export type IntroErrors = {
@@ -59,6 +64,7 @@ export type IntroErrors = {
   bring?: string;
   proofUrl?: string;
   contact?: string;
+  shareContact?: string;
 };
 
 function optionalNumber(value: string): number | null {
@@ -83,32 +89,59 @@ export function emptyTeamForm(): TeamPostForm {
 }
 
 /** Memeriksa isian pencarian anggota baru. */
-export function validateTeamForm(form: TeamPostForm): TeamErrors {
+export function validateTeamForm(form: TeamPostForm, allowFull = false): TeamErrors {
   const errors: TeamErrors = {};
 
-  if (form.title.trim().length === 0) {
-    errors.title = "Judul tim wajib diisi.";
+  if (form.title.trim().length < 3 || form.title.trim().length > 160) {
+    errors.title = "Judul tim harus 3–160 karakter.";
   }
 
   if (form.competition.trim().length === 0) {
     errors.competition = "Kompetisi atau konteks wajib diisi.";
   }
 
-  if (form.summary.trim().length === 0) {
-    errors.summary = "Ide singkat wajib diisi.";
+  if (form.summary.trim().length < 20 || form.summary.trim().length > 5000) {
+    errors.summary = "Jelaskan ide dalam 20–5000 karakter.";
+  }
+
+  const current = Number(form.currentMembers);
+  const target = Number(form.targetMembers);
+  const hours = Number(form.weeklyHours);
+  if (!Number.isInteger(current) || current < 1) {
+    errors.currentMembers = "Isi jumlah anggota saat ini, minimal 1.";
+  }
+  if (!Number.isInteger(target) || (allowFull ? target < current : target <= current)) {
+    errors.targetMembers = allowFull
+      ? "Target anggota tidak boleh lebih sedikit dari anggota saat ini."
+      : "Target anggota harus lebih banyak dari anggota saat ini.";
+  }
+  if (!Number.isInteger(hours) || hours < 1 || hours > 40) {
+    errors.weeklyHours = "Isi komitmen 1–40 jam per minggu.";
+  }
+
+  const deadline = form.deadline.trim();
+  const parsedDeadline = new Date(`${deadline}T00:00:00Z`);
+  const todayInJakarta = new Date(Date.now() + 7 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(deadline) ||
+      !Number.isFinite(parsedDeadline.getTime()) ||
+      parsedDeadline.toISOString().slice(0, 10) !== deadline ||
+      deadline < todayInJakarta) {
+    errors.deadline = "Pilih tenggat hari ini atau setelahnya.";
   }
 
   const roleErrors: Record<number, string> = {};
+  const usedRoles = new Set<string>();
 
   form.roles.forEach((role, index) => {
-    if (role.title.trim().length === 0 && role.skills.trim().length === 0) {
-      // Baris yang sepenuhnya kosong dianggap tidak dipakai dan diabaikan.
-      return;
+    const title = role.title.trim();
+    if (title.length < 2 || title.length > 100) {
+      roleErrors[index] = "Nama peran harus 2–100 karakter.";
+    } else if (usedRoles.has(title.toLowerCase())) {
+      roleErrors[index] = "Nama peran tidak boleh sama dalam satu tim.";
+    } else if (toCsv(role.skills).length === 0) {
+      roleErrors[index] = "Isi setidaknya satu keahlian untuk peran ini.";
     }
-
-    if (role.title.trim().length === 0) {
-      roleErrors[index] = "Judul peran wajib diisi.";
-    }
+    usedRoles.add(title.toLowerCase());
   });
 
   if (Object.keys(roleErrors).length > 0) {
@@ -119,7 +152,10 @@ export function validateTeamForm(form: TeamPostForm): TeamErrors {
 }
 
 export function hasTeamErrors(errors: TeamErrors): boolean {
-  return Boolean(errors.title || errors.competition || errors.summary || errors.roles);
+  return Boolean(
+    errors.title || errors.competition || errors.summary ||
+    errors.currentMembers || errors.targetMembers || errors.weeklyHours || errors.deadline || errors.roles,
+  );
 }
 
 function parseMembers(value: string, fallback: number): number {
@@ -160,8 +196,8 @@ export function teamPostFromForm(form: TeamPostForm, status: TeamSearchStatus): 
 /**
  * Memeriksa isian perkenalan terhadap daftar peran yang tersedia pada tim.
  *
- * Tautan bukti opsional, tetapi bila diisi harus aman (http/https) dengan
- * aturan yang sama seperti tautan bukti karya pada editor proyek.
+ * Setiap pengajuan perlu tautan bukti HTTPS agar pemilik tim dapat memeriksa
+ * pengalaman yang disebutkan pelamar.
  */
 export function validateIntroForm(form: IntroForm, roleTitles: string[]): IntroErrors {
   const errors: IntroErrors = {};
@@ -184,19 +220,22 @@ export function validateIntroForm(form: IntroForm, roleTitles: string[]): IntroE
 
   const proofUrl = form.proofUrl.trim();
 
-  if (proofUrl.length > 0 && !isSafeExternalUrl(proofUrl)) {
-    errors.proofUrl = "Gunakan alamat lengkap yang berawalan https:// atau http://.";
+  if (!proofUrl || !isHttpsExternalUrl(proofUrl)) {
+    errors.proofUrl = "Tambahkan tautan bukti karya HTTPS yang valid.";
   }
 
   if (form.contact.trim().length < 3) {
     errors.contact = "Isi kontak yang bisa dihubungi, misalnya email atau nomor WhatsApp.";
+  }
+  if (form.shareContact !== true) {
+    errors.shareContact = "Setujui pembagian kontak kepada pemilik tim sebelum mengirim.";
   }
 
   return errors;
 }
 
 export function hasIntroErrors(errors: IntroErrors): boolean {
-  return Boolean(errors.role || errors.weeklyHours || errors.bring || errors.proofUrl || errors.contact);
+  return Boolean(errors.role || errors.weeklyHours || errors.bring || errors.proofUrl || errors.contact || errors.shareContact);
 }
 
 /** Formulir perkenalan kosong; peran diisi sesuai permintaan papan. */
@@ -209,5 +248,6 @@ export function emptyIntroForm(role: string): IntroForm {
     learn: "",
     proofUrl: "",
     contact: "",
+    shareContact: false,
   };
 }
