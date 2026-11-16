@@ -109,14 +109,35 @@ export function TeamPostFormComponent({ initialForm, editingTeamId }: { initialF
             <label htmlFor="team-comp" className="block text-[14px] font-semibold text-ink">
               Kompetisi atau konteks kegiatan <span className="text-rose-500">*</span>
             </label>
-            <input
-              id="team-comp"
-              type="text"
-              value={form.competition}
-              onChange={(e) => handleChange("competition", e.target.value)}
-              placeholder="Misalnya: GEMASTIK 2027 (Kategori UX Design), PKM-KC, Hackathon Web3"
-              className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-            />
+            <div className="mt-1.5 grid grid-cols-1 gap-2 sm:grid-cols-[180px_1fr]">
+              <select
+                id="team-comp-category"
+                value={form.competition.match(/^(GEMASTIK|PKM|Hackathon|Tugas Akhir)/)?.[0] ?? ""}
+                onChange={(e) => {
+                  const cat = e.target.value;
+                  if (!cat) return;
+                  // Isi prefix kategori ke field teks, biarkan user lengkapi detailnya
+                  const current = form.competition.replace(/^(GEMASTIK|PKM|Hackathon|Tugas Akhir)\s*/i, "").trim();
+                  handleChange("competition", current ? `${cat} ${current}` : cat);
+                }}
+                className="rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              >
+                <option value="">Pilih kategori…</option>
+                <option value="GEMASTIK">GEMASTIK</option>
+                <option value="PKM">PKM</option>
+                <option value="Hackathon">Hackathon</option>
+                <option value="Tugas Akhir">Tugas Akhir</option>
+              </select>
+              <input
+                id="team-comp"
+                type="text"
+                value={form.competition}
+                onChange={(e) => handleChange("competition", e.target.value)}
+                placeholder="Mis: GEMASTIK 2027 Kategori UX, PKM-KC 2027"
+                className="rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+              />
+            </div>
+            <p className="mt-1 text-[12px] text-ink-2">Pilih kategori supaya tim muncul di filter yang tepat, lalu tambah detail di kolom kanan.</p>
             {errors.competition ? (
               <p className="mt-1 text-[13px] font-medium text-rose-600">{errors.competition}</p>
             ) : null}
