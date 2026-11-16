@@ -19,7 +19,7 @@ import {
 
 const METER_COLORS = ["bg-danger", "bg-coral", "bg-sun", "bg-accent", "bg-accent"];
 
-export function RegisterForm({ next }: { next?: string }) {
+export function RegisterForm() {
   const [form, setForm] = useState<RegisterForm>(emptyRegisterForm);
   const [errors, setErrors] = useState<RegisterErrors>({});
   const [message, setMessage] = useState<string | null>(null);
@@ -43,56 +43,13 @@ export function RegisterForm({ next }: { next?: string }) {
     }
 
     startTransition(async () => {
-      const result = await registerAction(form, next);
+      const result = await registerAction(form);
       if (result) {
         setErrors(result.ok ? {} : result.errors);
         setMessage(result.message ?? null);
         setRegistrationSent(result.ok);
       }
     });
-  }
-
-  if (registrationSent) {
-    return (
-      <div className="fade-up">
-        <div className="flex size-12 items-center justify-center rounded-full bg-accent/10">
-          <Icon name="mail" className="size-6 text-accent" />
-        </div>
-        <h1 className="mt-4 text-[28px] font-semibold leading-tight text-ink">Cek email kamu!</h1>
-        <SpectrumRule className="mt-4" />
-        <p className="mt-4 text-[15px] leading-7 text-ink-2">
-          Kami mengirim tautan aktivasi ke{" "}
-          <strong className="font-semibold text-ink">{form.email}</strong>.
-        </p>
-        <ul className="mt-5 space-y-3 text-[14px] text-ink-2">
-          <li className="flex items-start gap-2.5">
-            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-white">1</span>
-            Buka email dan cari pesan dari Akashic.
-          </li>
-          <li className="flex items-start gap-2.5">
-            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-white">2</span>
-            Klik tautan <strong>"Confirm your signup"</strong> di dalam email.
-          </li>
-          <li className="flex items-start gap-2.5">
-            <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-accent text-[11px] font-bold text-white">3</span>
-            Kamu akan diarahkan ke dasbor dan akun langsung aktif.
-          </li>
-        </ul>
-        <p className="mt-5 rounded-[10px] border border-dashed border-line-strong bg-surface/60 px-3.5 py-3 text-[13px] leading-5 text-ink-2">
-          Tidak melihat email? Periksa folder <strong>Spam / Junk</strong>. Tautan berlaku selama 24 jam.
-        </p>
-        <p className="mt-4 text-center text-[13px] text-ink-2">
-          Salah email?{" "}
-          <button
-            type="button"
-            onClick={() => { setRegistrationSent(false); setMessage(null); }}
-            className="font-semibold text-accent underline underline-offset-2"
-          >
-            Kembali dan ubah
-          </button>
-        </p>
-      </div>
-    );
   }
 
   return (
@@ -136,7 +93,7 @@ export function RegisterForm({ next }: { next?: string }) {
             id="reg-email"
             type="email"
             autoComplete="email"
-            placeholder="contoh@email.com"
+            placeholder="nama@kampus.ac.id"
             value={form.email}
             invalid={Boolean(errors.email)}
             onChange={(event) => handleChange("email", event.target.value)}

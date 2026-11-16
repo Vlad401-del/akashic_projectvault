@@ -36,8 +36,7 @@ test("pencarian tersimpan, menerima perkenalan, dan dapat ditinjau", async ({ pa
   const sender = `Pelamar ${token}`;
   await page.goto("/dashboard/tim/baru");
   await page.locator("#team-title").fill(title);
-  await page.locator("#team-comp-category").selectOption("PKM");
-  await page.locator("#team-comp").fill("uji lokal");
+  await page.locator("#team-comp").fill("Lomba uji lokal");
   await page.locator("#team-summary").fill("Kami membuat prototipe untuk menguji alur pendaftaran dan kolaborasi tim secara lengkap.");
   await page.getByPlaceholder("Mis. Desainer UI/UX, Backend Dev").fill("Desainer UI");
   await page.getByPlaceholder("Mis. Figma, User Research, Wireframing").fill("Figma");
@@ -55,7 +54,7 @@ test("pencarian tersimpan, menerima perkenalan, dan dapat ditinjau", async ({ pa
   await page.locator("#intro-contact").fill("tester@example.com");
   await page.locator("#intro-bring").fill("Saya pernah mendesain prototipe aplikasi dan menguji alur pengguna.");
   await page.getByRole("button", { name: "Kirim Perkenalan" }).click();
-  await expect(page.getByText("Isi tautan bukti karya, misalnya profil Akashic, GitHub, atau Figma.")).toBeVisible();
+  await expect(page.getByText("Tambahkan tautan bukti karya HTTPS yang valid.")).toBeVisible();
   await expect(page.getByText("Setujui pembagian kontak kepada pemilik tim sebelum mengirim.")).toBeVisible();
   await page.locator("#intro-proof").fill("https://example.com/portofolio-uji");
   await page.getByRole("checkbox", { name: /Saya setuju kontak/ }).check();

@@ -1,8 +1,6 @@
 "use server";
 
-import "server-only";
-
-import { cookies, headers } from "next/headers";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import {
@@ -15,114 +13,65 @@ import {
   type RegisterErrors,
   type RegisterForm,
 } from "@/lib/auth-form";
-import { SESSION_COOKIE } from "@/lib/auth-session";
-import {
-  createStoredSession,
-  createStoredUser,
-  deleteStoredSession,
-  findUserByEmail,
-  sessionMaxAgeSeconds,
-  verifyPassword,
-} from "@/lib/auth-store";
-import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
 export type LoginResult = { ok: false; errors: LoginErrors; message?: string };
 export type RegisterResult =
-  | { ok: true; message: string }
-  | { ok: false; errors: RegisterErrors; message?: string };
+  | { ok: false; errors: RegisterErrors; message?: string }
+  | { ok: true; message: string };
 
-async function establishSession(userId: string, remember: boolean): Promise<void> {
-  const token = createStoredSession(userId, remember);
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    path: "/",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: sessionMaxAgeSeconds(remember),
+export async function registerAction(form: RegisterForm): Promise<RegisterResult> {
+  const errors = validateRegisterForm(form);
+  if (hasRegisterErrors(errors)) return { ok: false, errors };
+
+  const supabase = await createClient();
+  const origin = (await headers()).get("origin");
+  const { data, error } = await supabase.auth.signUp({
+    email: form.email.trim().toLowerCase(),
+    password: form.password,
+    options: {
+      data: { display_name: form.name.trim() },
+      ...(origin ? { emailRedirectTo: new URL("/auth/callback", origin).toString() } : {}),
+    },
   });
+  if (error) {
+    const message = error.code === "over_email_send_rate_limit"
+      ? "Batas pengiriman email konfirmasi tercapai. Coba lagi nanti."
+      : error.code === "email_address_not_authorized"
+        ? "Alamat ini belum dapat menerima email konfirmasi dari layanan Akashic. Hubungi pengelola."
+      : error.code === "weak_password"
+        ? "Kata sandi belum memenuhi syarat keamanan. Gunakan sandi yang lebih kuat."
+        : "Pendaftaran belum berhasil. Periksa kembali data Anda atau coba lagi nanti.";
+    return { ok: false, errors: {}, message };
+  }
+  if (data.session) redirect("/dashboard");
+  return {
+    ok: true,
+    message: "Jika alamat ini baru terdaftar, periksa inbox dan spam untuk tautan konfirmasi. Jika sudah pernah mendaftar, gunakan Masuk atau Lupa kata sandi.",
+  };
 }
 
-/** Membuat akun baru. Mode Supabase: kirim email verifikasi. Mode lokal: langsung masuk. */
-export async function registerAction(form: RegisterForm, next?: string): Promise<RegisterResult> {
-  const errors = validateRegisterForm(form);
-  if (hasRegisterErrors(errors)) {
-    return { ok: false, errors };
-  }
+export async function loginAction(form: LoginForm): Promise<LoginResult> {
+  const errors = validateLoginForm(form);
+  if (hasLoginErrors(errors)) return { ok: false, errors };
 
-  if (isSupabaseConfigured()) {
-    const supabase = await createClient();
-    const headerStore = await headers();
-    const origin = headerStore.get("origin") ?? "";
-    const redirectTo = next
-      ? `${origin}/auth/callback?next=${encodeURIComponent(next)}`
-      : `${origin}/auth/callback`;
-
-    const { error } = await supabase.auth.signUp({
-      email: form.email.trim().toLowerCase(),
-      password: form.password,
-      options: {
-        data: { display_name: form.name.trim() },
-        emailRedirectTo: redirectTo,
-      },
-    });
-
-    if (error) {
-      if (error.message.toLowerCase().includes("already registered") || error.code === "user_already_exists") {
-        return { ok: false, errors: { email: "Email ini sudah terdaftar. Coba masuk atau gunakan email lain." } };
-      }
-      return { ok: false, errors: {}, message: "Pendaftaran belum berhasil. Coba lagi dalam beberapa saat." };
-    }
-
-    return {
-      ok: true,
-      message: `Email verifikasi dikirim ke ${form.email.trim()}. Buka email kamu dan klik tautan di dalamnya untuk mengaktifkan akun.`,
-    };
-  }
-
-  // Mode lokal (tanpa Supabase)
-  const user = createStoredUser({
-    name: form.name,
-    email: form.email,
+  const supabase = await createClient();
+  const { error } = await supabase.auth.signInWithPassword({
+    email: form.email.trim().toLowerCase(),
     password: form.password,
   });
-
-  if (!user) {
-    return {
-      ok: false,
-      errors: { email: "Email ini sudah terdaftar. Coba masuk atau pakai email lain." },
-    };
-  }
-
-  await establishSession(user.id, true);
-  redirect(next && next.startsWith("/") ? next : "/dashboard");
-}
-
-/** Memverifikasi kredensial lalu membuka dasbor bila cocok. */
-export async function loginAction(form: LoginForm, next?: string): Promise<LoginResult> {
-  const errors = validateLoginForm(form);
-  if (hasLoginErrors(errors)) {
-    return { ok: false, errors };
-  }
-
-  const user = findUserByEmail(form.email);
-  if (!user || !verifyPassword(form.password, user.passwordHash)) {
+  if (error) {
     return {
       ok: false,
       errors: {},
-      message: "Email atau kata sandi salah. Periksa kembali, atau daftar bila belum punya akun.",
+      message: "Email atau kata sandi salah, atau akun belum dikonfirmasi.",
     };
   }
-
-  await establishSession(user.id, false);
-  redirect(next && next.startsWith("/") ? next : "/dashboard");
+  redirect("/dashboard");
 }
 
-/** Menghapus sesi lokal dan cookie, lalu kembali ke halaman awal. */
 export async function logoutAction(): Promise<void> {
-  const cookieStore = await cookies();
-  deleteStoredSession(cookieStore.get(SESSION_COOKIE)?.value);
-  cookieStore.delete(SESSION_COOKIE);
+  const supabase = await createClient();
+  await supabase.auth.signOut();
   redirect("/");
 }

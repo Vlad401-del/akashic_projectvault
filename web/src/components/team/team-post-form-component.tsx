@@ -105,50 +105,21 @@ export function TeamPostFormComponent({ initialForm, editingTeamId }: { initialF
             ) : null}
           </div>
 
-          {/* Kategori kompetisi -- dropdown wajib */}
-          <div>
-            <label htmlFor="team-comp-category" className="block text-[14px] font-semibold text-ink">
-              Kategori lomba <span className="text-rose-500">*</span>
-            </label>
-            <select
-              id="team-comp-category"
-              value={form.competition.match(/^(GEMASTIK|PKM|Hackathon|Tugas Akhir|Lainnya)/)?.[0] ?? ""}
-              onChange={(e) => {
-                const cat = e.target.value;
-                const detail = form.competition.replace(/^(GEMASTIK|PKM|Hackathon|Tugas Akhir|Lainnya)\s*/i, "").trim();
-                handleChange("competition", cat ? (detail ? `${cat} ${detail}` : cat) : detail);
-              }}
-              className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-            >
-              <option value="">Pilih kategori lomba…</option>
-              <option value="GEMASTIK">GEMASTIK</option>
-              <option value="PKM">PKM</option>
-              <option value="Hackathon">Hackathon</option>
-              <option value="Tugas Akhir">Tugas Akhir</option>
-              <option value="Lainnya">Lainnya</option>
-            </select>
-            {errors.competition ? (
-              <p className="mt-1 text-[13px] font-medium text-rose-600">{errors.competition}</p>
-            ) : null}
-          </div>
-
-          {/* Detail kompetisi -- teks bebas */}
           <div>
             <label htmlFor="team-comp" className="block text-[14px] font-semibold text-ink">
-              Detail kompetisi <span className="text-[13px] font-normal text-ink-2">(opsional)</span>
+              Kompetisi atau konteks kegiatan <span className="text-rose-500">*</span>
             </label>
             <input
               id="team-comp"
               type="text"
-              value={form.competition.replace(/^(GEMASTIK|PKM|Hackathon|Tugas Akhir|Lainnya)\s*/i, "").trim()}
-              onChange={(e) => {
-                const cat = form.competition.match(/^(GEMASTIK|PKM|Hackathon|Tugas Akhir|Lainnya)/i)?.[0] ?? "";
-                handleChange("competition", cat ? (e.target.value ? `${cat} ${e.target.value}` : cat) : e.target.value);
-              }}
-              placeholder="Mis: 2027 Kategori UX Design, PKM-KC 2027"
+              value={form.competition}
+              onChange={(e) => handleChange("competition", e.target.value)}
+              placeholder="Misalnya: GEMASTIK 2027 (Kategori UX Design), PKM-KC, Hackathon Web3"
               className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
-            <p className="mt-1 text-[12px] text-ink-2">Tambah tahun atau sub-kategori agar tim mudah ditemukan.</p>
+            {errors.competition ? (
+              <p className="mt-1 text-[13px] font-medium text-rose-600">{errors.competition}</p>
+            ) : null}
           </div>
 
           <div>

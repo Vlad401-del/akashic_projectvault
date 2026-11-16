@@ -16,7 +16,7 @@ import {
   type LoginForm,
 } from "@/lib/auth-form";
 
-export function LoginForm({ next }: { next?: string }) {
+export function LoginForm() {
   const [form, setForm] = useState<LoginForm>(emptyLoginForm);
   const [errors, setErrors] = useState<LoginErrors>({});
   const [message, setMessage] = useState<string | null>(null);
@@ -39,7 +39,7 @@ export function LoginForm({ next }: { next?: string }) {
     }
 
     startTransition(async () => {
-      const result = await loginAction(form, next);
+      const result = await loginAction(form);
       if (result) {
         setErrors(result.errors);
         setMessage(result.message ?? null);
@@ -76,7 +76,7 @@ export function LoginForm({ next }: { next?: string }) {
             id="login-email"
             type="email"
             autoComplete="email"
-            placeholder="contoh@email.com"
+            placeholder="nama@kampus.ac.id"
             value={form.email}
             invalid={Boolean(errors.email)}
             onChange={(event) => handleChange("email", event.target.value)}

@@ -10,22 +10,15 @@ export const metadata: Metadata = {
   description: "Masuk ke Akashic untuk melanjutkan studi kasus proyek dan pencarian tim Anda.",
 };
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ next?: string }>;
-}) {
+export default async function LoginPage() {
   const user = await getCurrentUser();
   if (user) {
-    const { next } = await searchParams;
-    redirect(next && next.startsWith("/") ? next : "/dashboard");
+    redirect("/dashboard");
   }
-
-  const { next } = await searchParams;
 
   return (
     <AuthShell mode="login">
-      <LoginForm next={next} />
+      <LoginForm />
     </AuthShell>
   );
 }

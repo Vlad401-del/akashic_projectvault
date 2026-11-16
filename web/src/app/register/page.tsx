@@ -10,22 +10,15 @@ export const metadata: Metadata = {
   description: "Buat akun Akashic untuk merekam karya mahasiswa dan mencari rekan lomba dari bukti kerja nyata.",
 };
 
-export default async function RegisterPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ next?: string }>;
-}) {
+export default async function RegisterPage() {
   const user = await getCurrentUser();
   if (user) {
-    const { next } = await searchParams;
-    redirect(next && next.startsWith("/") ? next : "/dashboard");
+    redirect("/dashboard");
   }
-
-  const { next } = await searchParams;
 
   return (
     <AuthShell mode="register">
-      <RegisterForm next={next} />
+      <RegisterForm />
     </AuthShell>
   );
 }

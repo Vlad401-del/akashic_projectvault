@@ -24,7 +24,7 @@ export const teamPosts: TeamPost[] = [
     competition: "GEMASTIK 2027 (Analitis Data)",
     summary:
       "Ide untuk lomba analitik data: merapikan catatan keluhan asrama yang selama ini tersebar di tiga buku tulis menjadi satu dasbor mingguan untuk panitia. Laporan sering tidak konsisten karena setiap panitia menulis dengan format berbeda, dan keluhan antar bulan belum pernah bisa dibandingkan. Peran dibagi jelas sejak awal: satu orang data, satu antarmuka, dan satu narasi.",
-    ownerUsername: "farhan",
+    ownerUsername: "darryl",
     roles: [
       {
         title: "Pengolahan data",
@@ -169,7 +169,7 @@ export const teamPosts: TeamPost[] = [
     competition: "PKM-K 2027",
     summary:
       "Layanan perawatan sepatu di sekitar kampus ramai, tetapi pemesanan masih lewat pesan pribadi dan sering bentrok jadwal. Kami ingin menguji model usaha dengan sistem pemesanan dan jadwal jemput yang jelas, sekaligus menghitung biaya nyatanya. Perlu satu orang operasional, satu orang pemasaran, dan satu orang pencatatan keuangan.",
-    ownerUsername: "farhan",
+    ownerUsername: "darryl",
     roles: [
       { title: "Operasional", skills: ["Manajemen jadwal"] },
       { title: "Pemasaran", skills: ["Konten", "Media sosial"] },
@@ -289,7 +289,7 @@ export const teamPosts: TeamPost[] = [
     competition: "Arkavidia 2027 — Hackvidia (hackathon ITB)",
     summary:
       "Saat bencana, bantuan sering menumpuk di satu titik sementara titik lain kosong karena kebutuhan tidak terlihat. Kami ingin membuat prototipe papan koordinasi yang memperbarui kebutuhan antar pos dalam hitungan menit. Perlu satu pengembang backend, satu pengembang antarmuka, dan satu orang yang memahami alur relawan.",
-    ownerUsername: "farhan",
+    ownerUsername: "darryl",
     roles: [
       { title: "Pengembang backend", skills: ["API", "Basis data"] },
       { title: "Pengembang antarmuka", skills: ["React", "Peta"] },

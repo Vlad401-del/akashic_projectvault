@@ -12,7 +12,7 @@
  * | Username | Kondisi                        | Perilaku yang diuji                          |
  * |----------|--------------------------------|----------------------------------------------|
  * | nadia    | Profil publik, 3 proyek + 1 draft | Konten berubah sesuai URL; draft tersembunyi |
- * | farhan   | Profil publik, 2 proyek        | Pengguna kedua membuktikan konten per URL    |
+ * | darryl   | Profil publik, 2 proyek        | Pengguna kedua membuktikan konten per URL    |
  * | rangga   | Profil publik, 0 proyek        | Empty state profil                           |
  * | sekar    | Profil privat, 1 proyek        | Profil privat menyembunyikan seluruh proyek  |
  *
@@ -364,14 +364,14 @@ export const profiles: Profile[] = [
     ],
   },
   {
-    username: "farhan",
-    displayName: "Farhan Dwiputra",
+    username: "darryl",
+    displayName: "Darryl Ramadhan",
     headline: "Mahasiswa Sistem Informasi • Pengembangan Web dan Basis Data",
     program: "Sistem Informasi, Universitas Nusantara",
     city: "Malang",
     bio: "Saya mengerjakan sebagian besar tugas kuliah sebagai aplikasi web kecil dan senang membereskan bagian data yang berantakan. Fokus saya saat ini adalah perancangan skema basis data dan pembuatan API yang mudah diuji.",
     skills: ["PostgreSQL", "Node.js", "Express", "Docker", "Pengujian API"],
-    contacts: [{ kind: "situs", label: "Halaman repositori", url: "https://example.com/profil/farhan-dwiputra" }],
+    contacts: [{ kind: "situs", label: "Halaman repositori", url: "https://example.com/profil/darryl-ramadhan" }],
     isPublished: true,
     projects: [
       {

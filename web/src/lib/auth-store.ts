@@ -12,8 +12,6 @@
  * Saat Supabase dipakai (tahap terakhir), berkas ini dihapus dan lapisan
  * autentikasi diganti Supabase Auth; komponen tampilan tidak berubah.
  */
-import "server-only";
-
 import { randomBytes, scryptSync, timingSafeEqual } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import path from "node:path";

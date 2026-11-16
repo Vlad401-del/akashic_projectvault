@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
 
 import { Icon } from "@/components/icons";
+import { SiteBrand } from "@/components/site-brand";
+import { AccountNav, TopBar } from "@/components/site-nav";
 import { TeamBoard } from "@/components/team/team-board";
-import { listOpenTeamPosts } from "@/lib/teams";
-import { NewTeamCta, TeamPageNav } from "./team-page-nav";
+import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
+import { listExampleTeamPosts, listOpenTeamPosts } from "@/lib/teams";
+import { listCloudTeamPosts } from "@/lib/team-cloud";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 export const metadata: Metadata = {
   title: "Papan Cari Tim — Rekan Lomba Berbasis Bukti Kerja",
@@ -13,20 +16,37 @@ export const metadata: Metadata = {
     "Cari rekan lomba GEMASTIK, PKM, dan hackathon dari bukti kerja nyata dan studi kasus, bukan sekadar CV.",
 };
 
-// Data tim diperbarui saat ada posting baru atau perubahan status lewat revalidatePath.
-// Halaman ini tidak butuh render ulang per request -- ISR 60 detik cukup.
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function TeamBoardPage() {
-  const openTeams = listOpenTeamPosts();
+  const cloud = isSupabaseConfigured();
+  const openTeams = cloud
+    ? (await listCloudTeamPosts()).filter((item) => item.team.status === "open")
+    : listOpenTeamPosts();
+  const demoEditorEnabled = cloud || isLocalDemoEditorEnabled();
 
   return (
     <>
-      <Suspense fallback={
-        <div className="sticky top-0 z-30 h-14 border-b border-line/60 bg-cream/80 backdrop-blur-sm" />
-      }>
-        <TeamPageNav />
-      </Suspense>
+      <TopBar
+        left={
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="link-underline text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink"
+            >
+              Beranda
+            </Link>
+            <span className="text-line-strong" aria-hidden="true">/</span>
+            <span className="text-[14px] font-semibold text-ink">Cari Tim</span>
+          </div>
+        }
+        right={
+          <div className="flex items-center gap-4">
+            <AccountNav />
+            <span className="hidden sm:inline-flex"><SiteBrand /></span>
+          </div>
+        }
+      />
 
       <main className="mx-auto max-w-[1200px] px-5 pb-24 pt-8 sm:px-8 sm:pt-10">
         {/* Hero Banner */}
@@ -44,18 +64,19 @@ export default async function TeamBoardPage() {
                 <em className="font-medium italic text-sun">bukan cuma CV.</em>
               </h1>
               <p className="mt-5 max-w-[38rem] text-[16px] leading-[1.7] text-cream/75">
-                Bosan mencari tim lomba hanya dari lingkaran yang itu-itu saja? Di Akashic, setiap pembuat tim dan pelamar menunjukkan studi kasus nyata dan komitmen jam yang jelas.
+                Bosan mencari tim lomba hanya dari lingkaran yang itu-itu saja? Di Akashic, kamu bisa melihat profil pembuat tim, kebutuhan peran, dan komitmen jam sebelum mengajukan diri dengan bukti karya.
               </p>
             </div>
 
-            <Suspense fallback={
-              <div className="inline-flex h-12 shrink-0 items-center gap-2 rounded-full bg-sun/50 px-6 text-[15px] font-bold text-ink/50 self-start lg:self-auto">
+            {demoEditorEnabled ? (
+              <Link
+                href="/dashboard/tim/baru"
+                className="group inline-flex min-h-12 shrink-0 items-center gap-2 self-start rounded-lg bg-sun px-6 text-[15px] font-bold text-ink shadow-[4px_4px_0_0_#0b1a13] transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_#0b1a13] lg:self-auto"
+              >
                 <Icon name="plus" className="size-4" />
-                Pasang Pencarian Tim
-              </div>
-            }>
-              <NewTeamCta />
-            </Suspense>
+                Pasang pencarian tim
+              </Link>
+            ) : null}
           </div>
         </header>
 
@@ -79,7 +100,7 @@ export default async function TeamBoardPage() {
               key={item.title}
               className="flex items-start gap-4 border-ink/15 py-6 sm:px-6 sm:first:pl-0 sm:[&:not(:first-child)]:border-l [&:not(:first-child)]:border-t sm:[&:not(:first-child)]:border-t-0"
             >
-              <span className="font-display text-[15px] font-semibold tabular-nums text-coral">0{index + 1}</span>
+              <span className="font-display text-[15px] font-semibold tabular-nums text-coral-ink">0{index + 1}</span>
               <div>
                 <h3 className="text-[19px] font-semibold text-ink">{item.title}</h3>
                 <p className="mt-1 text-[14px] leading-relaxed text-ink-2">{item.body}</p>
@@ -103,24 +124,35 @@ export default async function TeamBoardPage() {
             <div className="mt-8 rounded-xl border border-dashed border-line bg-surface p-12 text-center">
               <p className="text-[16px] font-medium text-ink">Belum ada pencarian tim yang terbuka saat ini.</p>
               <p className="mt-1 text-[14px] text-ink-2">
-                Jadilah yang pertama membuat pencarian tim untuk kompetisi Anda!
+                {demoEditorEnabled
+                  ? cloud ? "Mulai pencarian tim untuk kompetisimu." : "Coba buat pencarian tim untuk kompetisimu."
+                  : "Pencarian tim baru belum dibuka saat ini."}
               </p>
-              <div className="mt-5">
+              {demoEditorEnabled ? <div className="mt-5">
                 <Link
-                  href="/register"
+                  href="/dashboard/tim/baru"
                   className="inline-flex items-center gap-1.5 rounded-full bg-accent px-5 py-2.5 text-[14px] font-semibold text-white transition-colors hover:bg-accent-hover"
                 >
                   <Icon name="plus" className="size-4" />
                   Buat Pencarian Tim
                 </Link>
-              </div>
+              </div> : null}
             </div>
           ) : (
-            <Suspense fallback={<p className="mt-6 text-[14px] text-ink-2">Memuat papan tim…</p>}>
-              <TeamBoard items={openTeams} />
-            </Suspense>
+            <TeamBoard items={openTeams} />
           )}
         </section>
+
+        {cloud && openTeams.length === 0 ? (
+          <section aria-labelledby="heading-contoh" className="mt-14 border-t border-line pt-10">
+            <p className="text-[12px] font-semibold uppercase tracking-wide text-accent">Pratinjau papan</p>
+            <h2 id="heading-contoh" className="mt-2 text-[26px] font-semibold text-ink">Contoh pencarian tim</h2>
+            <p className="mt-2 max-w-[45rem] text-[14px] leading-6 text-ink-2">
+              Kartu di bawah memakai data fiktif untuk memperlihatkan cara papan dan filter bekerja. Tidak ada tim yang sedang merekrut melalui contoh ini, dan pengajuan tidak tersedia.
+            </p>
+            <TeamBoard items={listExampleTeamPosts()} example />
+          </section>
+        ) : null}
       </main>
     </>
   );

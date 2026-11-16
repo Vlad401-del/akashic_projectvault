@@ -4,16 +4,17 @@ import type { CSSProperties } from "react";
 
 import { Icon } from "@/components/icons";
 import { HeroSpotlight, PathTabs, RevealObserver, type PathData } from "@/components/landing/landing-motion";
-import { MobileMenu } from "@/components/mobile-menu";
 import { ProjectCard } from "@/components/project-card";
 import { SiteBrand } from "@/components/site-brand";
-import { TopBar } from "@/components/site-nav";
+import { AccountNav, TopBar } from "@/components/site-nav";
 import { TeamCard } from "@/components/team/team-card";
 import { getPublicProjects, listPublicProfiles } from "@/lib/content";
-import { getCurrentUser } from "@/lib/auth-session";
 import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
-import { openSlots } from "@/lib/team-utils";
+import { formatTeamDeadline, openSlots } from "@/lib/team-utils";
 import { listOpenTeamPosts } from "@/lib/teams";
+import { listCloudTeamPosts } from "@/lib/team-cloud";
+import { listCloudPublicProfiles } from "@/lib/supabase/content";
+import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /**
  * Halaman ini menampilkan proyek dan pencarian tim yang sedang terbuka,
@@ -55,24 +56,31 @@ const PRINCIPLES = [
  * Gerak dibuat ringan dengan CSS dan satu IntersectionObserver.
  */
 export default async function HomePage() {
-  const demoEditorEnabled = isLocalDemoEditorEnabled();
-  const user = await getCurrentUser();
-  const profiles = listPublicProfiles();
+  const cloud = isSupabaseConfigured();
+  const demoEditorEnabled = cloud || isLocalDemoEditorEnabled();
+  const profiles = cloud ? await listCloudPublicProfiles() : listPublicProfiles();
   const featured = profiles
     .flatMap((profile) => getPublicProjects(profile).map((project) => ({ profile, project })))
+    .filter(({ project }) => !cloud || (
+      project.title.trim().length >= 8 &&
+      project.summary.trim().length >= 40 &&
+      (project.sources.length > 0 || Boolean(project.cover.src))
+    ))
     .slice(0, 4);
-  const openTeams = listOpenTeamPosts();
+  const openTeams = cloud
+    ? (await listCloudTeamPosts()).filter((item) => item.team.status === "open")
+    : listOpenTeamPosts();
 
   const heroTeam = openTeams[0] ?? null;
   const heroProject = featured[0] ?? null;
   const heroSlots = heroTeam ? openSlots(heroTeam.team) : 0;
 
-  const portfolioCta = user
-    ? { label: "Buat portofolio", href: "/dashboard/projects/new" }
-    : { label: "Buat portofolio", href: "/register" };
-  const openTeamCta = user
-    ? { label: "Pasang pencarian tim", href: "/dashboard/tim/baru" }
-    : { label: "Pasang pencarian tim", href: "/register" };
+  const portfolioCta = demoEditorEnabled
+    ? { label: cloud ? "Buat portofolio" : "Coba editor portofolio", href: "/dashboard/projects/new" }
+    : { label: "Jelajahi portofolio", href: "/#karya" };
+  const openTeamCta = demoEditorEnabled
+    ? { label: cloud ? "Pasang pencarian tim" : "Coba pasang pencarian tim", href: "/dashboard/tim/baru" }
+    : { label: "Buka papan tim", href: "/tim" };
 
   const tickerItems = Array.from(
     new Set([
@@ -157,57 +165,14 @@ export default async function HomePage() {
                 </a>
               ))}
             </nav>
-            {user ? (
-              <Link
-                href="/dashboard"
-                className="hidden items-center gap-2 text-[14px] font-semibold text-cream/80 hover:text-cream sm:ml-2 sm:flex"
-              >
-                <span
-                  aria-hidden="true"
-                  className="flex size-7 items-center justify-center rounded-full bg-sun font-display text-[11px] font-semibold text-ink"
-                >
-                  {user.name.trim().split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
-                </span>
-                {user.name.split(" ")[0]}
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="link-underline hidden text-[14px] font-semibold text-cream/80 hover:text-cream sm:ml-2 sm:inline"
-                >
-                  Masuk
-                </Link>
-                <Link
-                  href="/register"
-                  className="hidden h-9 items-center rounded-full bg-cream/10 px-4 text-[13px] font-bold text-cream ring-1 ring-cream/20 transition-transform hover:-translate-y-0.5 sm:inline-flex"
-                >
-                  Daftar
-                </Link>
-              </>
-            )}
+            <AccountNav tone="dark" />
             <Link
               href="/tim"
-              className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sun px-4 text-[14px] font-bold text-ink transition-transform hover:-translate-y-0.5"
+              className="hidden h-10 items-center gap-1.5 rounded-lg bg-sun px-4 text-[14px] font-bold text-ink transition-colors hover:bg-sun-soft sm:inline-flex"
             >
               <Icon name="users" className="size-4" />
               Cari tim
             </Link>
-            <MobileMenu
-              tone="dark"
-              links={[
-                { label: "Cara kerja", href: "#cara-kerja" },
-                { label: "Karya", href: "#karya" },
-                { label: "Lomba", href: "#lomba" },
-                { label: "Cari tim", href: "/tim" },
-                ...(user
-                  ? [{ label: `Dashboard (${user.name.split(" ")[0]})`, href: "/dashboard" }]
-                  : [
-                      { label: "Masuk", href: "/login" },
-                      { label: "Daftar", href: "/register", primary: true as const },
-                    ]),
-              ]}
-            />
           </>
         }
       />
@@ -305,7 +270,13 @@ export default async function HomePage() {
                 </h2>
                 <p className="mt-3 text-[13px] text-ink-2">oleh {heroProject.profile.displayName}</p>
               </article>
-            ) : null}
+            ) : (
+              <article className="absolute left-0 top-2 w-[80%] rounded-[18px] border border-cream/30 bg-cream p-5 text-ink shadow-[6px_6px_0_0_#0b1a13]">
+                <span className="inline-flex rounded-full bg-sun px-2.5 py-0.5 text-[11px] font-bold">Bukti karya</span>
+                <h2 className="mt-4 text-[22px] font-semibold">Mulai dari satu proyek</h2>
+                <p className="mt-2 text-[13px] leading-6 text-ink-2">Tulis masalah, proses, kontribusimu, hasil, lalu lampirkan bukti yang bisa dibuka.</p>
+              </article>
+            )}
 
             {heroTeam ? (
               <article
@@ -336,8 +307,10 @@ export default async function HomePage() {
                   ))}
                 </ul>
                 <div className="mt-4 flex items-center justify-between border-t border-ink/10 pt-3 text-[12px] text-ink-2">
-                  <span>Tenggat {heroTeam.team.deadline}</span>
-                  <span className="font-bold text-ink">Ajukan diri →</span>
+                  <span>Tenggat {formatTeamDeadline(heroTeam.team.deadline)}</span>
+                  <Link href={`/tim/${heroTeam.team.id}`} className="font-bold text-accent underline-offset-4 hover:underline">
+                    Lihat tim →
+                  </Link>
                 </div>
               </article>
             ) : null}
@@ -384,7 +357,7 @@ export default async function HomePage() {
         <div className="mx-auto max-w-[1200px] px-5 sm:px-8">
           <div data-reveal className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="eyebrow text-coral">Alur kolaborasi</p>
+              <p className="eyebrow text-coral-ink">Alur kolaborasi</p>
               <h2
                 id="jalur-title"
                 className="mt-4 text-[44px] font-semibold leading-[1] tracking-[-0.03em] sm:text-[64px]"
@@ -429,10 +402,12 @@ export default async function HomePage() {
               </p>
             </div>
             <Link
-              href="/u/nadia"
+              href={featured[0] ? `/u/${featured[0].profile.username}` : portfolioCta.href}
               className="group inline-flex items-center gap-2 text-[15px] font-bold text-forest"
             >
-              <span className="link-underline">Lihat semua proyek Nadia</span>
+              <span className="link-underline">
+                {featured[0] ? `Lihat karya ${featured[0].profile.displayName}` : "Mulai portofoliomu"}
+              </span>
               <Icon name="arrowUpRight" className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </Link>
           </div>
@@ -449,6 +424,13 @@ export default async function HomePage() {
               </div>
             ))}
           </div>
+          {featured.length === 0 ? (
+            <div className="mt-10 rounded-xl border border-line bg-surface p-8 text-center">
+              <p className="text-[16px] font-semibold text-ink">Belum ada karya pilihan untuk ditampilkan.</p>
+              <p className="mt-2 text-[14px] text-ink-2">Proyek dengan cerita dan bukti yang lengkap dapat tampil di sini.</p>
+              <Link href="/dashboard/projects/new" className="mt-4 inline-block font-semibold text-accent underline">Tulis proyekmu</Link>
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -486,8 +468,8 @@ export default async function HomePage() {
                 id="prinsip-title"
                 className="mt-4 text-[42px] font-semibold leading-[1.02] tracking-[-0.03em] sm:text-[60px]"
               >
-                Bukan CV. Bukan DM kosong.{" "}
-                <em className="font-medium italic text-sun">Bukti.</em>
+                Bukti kerja{" "}
+                <em className="font-medium italic text-sun">yang bisa diperiksa.</em>
               </h2>
             </div>
 

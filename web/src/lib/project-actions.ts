@@ -1,7 +1,5 @@
 "use server";
 
-import "server-only";
-
 import { revalidatePath } from "next/cache";
 
 import { DEMO_OWNER_USERNAME, listOwnedProjects } from "@/lib/content";
