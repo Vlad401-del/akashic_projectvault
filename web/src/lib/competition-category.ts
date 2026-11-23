@@ -32,5 +32,7 @@ export function extractCategory(competition: string): ActiveCategory {
  * "lomba bebas" => "lomba bebas".
  */
 export function extractDetail(competition: string): string {
-  return competition.replace(CATEGORY_PREFIX_RE, "").trim();
+  // This value also drives the controlled input. Preserve trailing spaces while
+  // typing; teamPostFromForm trims the full competition text when saving.
+  return competition.replace(CATEGORY_PREFIX_RE, "").trimStart();
 }
