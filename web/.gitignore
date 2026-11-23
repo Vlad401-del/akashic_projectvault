@@ -15,6 +15,7 @@
 /test-results/
 /playwright-report/
 /.data-playwright/
+/supabase/.temp/
 
 # next.js
 /.next/

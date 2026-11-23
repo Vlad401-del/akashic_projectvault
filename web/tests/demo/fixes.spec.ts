@@ -96,7 +96,7 @@ test("tombol Tolak dan Diskusi dinonaktifkan setelah pelamar diterima", async ({
   await expect(applicant.getByRole("button", { name: "Sedang Diskusi" })).not.toBeDisabled();
 
   await applicant.getByRole("button", { name: "Terima" }).click();
-  await expect(applicant.getByText("Diterima", { exact: true })).toBeVisible();
+  await expect(applicant.getByText("Anggota tim", { exact: true })).toBeVisible();
 
   // Setelah Terima: Tolak dan Diskusi harus disabled.
   await expect(applicant.getByRole("button", { name: "Tolak" })).toBeDisabled();

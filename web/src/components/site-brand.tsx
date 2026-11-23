@@ -1,19 +1,12 @@
 import Link from "next/link";
+import Image from "next/image";
 
-/**
- * Tanda merek Akashic: ubin hijau hutan berisi prisma mustard dan titik koral.
- *
- * Prisma dari tanda lama dipertahankan sebagai bentuk, tetapi warnanya kini
- * mengikuti palet "studio lomba" (forest, sun, coral).
- */
+/** New owner-supplied mark on forest so its cream details remain visible. */
 export function PrismMark({ className = "size-4" }: { className?: string }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" className={`${className} shrink-0`}>
-      <rect width="24" height="24" rx="6" className="fill-forest" />
-      <path d="M12 4.5 19 18H5z" className="fill-sun" />
-      <path d="M12 4.5 19 18h-7z" fill="#000" fillOpacity="0.14" />
-      <circle cx="17.6" cy="6.4" r="2.3" className="fill-coral" />
-    </svg>
+    <span aria-hidden="true" className={`${className} inline-flex shrink-0 items-center justify-center overflow-hidden rounded-[22%] bg-forest p-[2px]`}>
+      <Image src="/images/akashic-logo.png" alt="" width={1004} height={808} sizes="32px" className="h-full w-full object-contain" />
+    </span>
   );
 }
 

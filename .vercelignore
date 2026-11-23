@@ -15,3 +15,9 @@ web/coverage/
 web/test-results/
 web/playwright-report/
 web/*.tsbuildinfo
+web/supabase/.temp/
+
+# Premium customization remains a local-only experiment for now.
+web/src/app/premium-preview/
+web/src/components/premium-preview.tsx
+web/tests/demo/premium-preview.spec.ts

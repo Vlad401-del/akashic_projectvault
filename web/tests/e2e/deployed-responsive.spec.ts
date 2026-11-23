@@ -1,8 +1,20 @@
 import { expect, test } from "@playwright/test";
 
 test.skip(!process.env.AKASHIC_E2E_BASE_URL, "Pemeriksaan khusus deployment nyata.");
-const profile = "/u/user-8373091f28e644979447648d";
-const paths = ["/", "/tim", "/login", "/register", "/forgot-password", profile, `${profile}/p/website-pembelajaran-mandiri`];
+const profile = process.env.AKASHIC_E2E_PROFILE || "/u/rafitp";
+const paths = ["/", "/tim", "/login", "/register", "/forgot-password", profile, `${profile}/p/${process.env.AKASHIC_E2E_PROJECT || "website-pembelajaran-mandiri"}`];
+
+test("deployment: logo baru terlihat dan tim penuh tidak muncul di papan pencarian", async ({ page }) => {
+  await page.goto("/");
+  const logos = page.locator('img[src*="akashic-logo"]');
+  expect(await logos.count()).toBeGreaterThan(0);
+  for (const logo of await logos.all()) {
+    await logo.scrollIntoViewIfNeeded();
+    await expect.poll(() => logo.evaluate((node: HTMLImageElement) => node.complete && node.naturalWidth > 0)).toBe(true);
+  }
+  await page.goto("/tim");
+  await expect(page.getByRole("heading", { name: "Dipaksa Mas Reza Lomba", exact: true })).toHaveCount(0);
+});
 
 for (const width of [320, 390, 768, 1440]) {
   test(`deployment: halaman publik muat tanpa galat pada ${width}px`, async ({ page }, testInfo) => {

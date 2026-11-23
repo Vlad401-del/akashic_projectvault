@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 
 import { Icon, type IconName } from "@/components/icons";
 import type { IntroReviewStatus } from "@/lib/fixtures/types";
@@ -40,6 +41,7 @@ export function IntroReviewControls({
   joinedAt?: string | null;
   contact?: string;
 }) {
+  const router = useRouter();
   const [review, setReview] = useState<IntroReviewStatus>(initialReview);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -52,6 +54,7 @@ export function IntroReviewControls({
         const result = await reviewTeamIntroAction(teamId, sentAt, next);
         if (result.ok) {
           setReview(result.review);
+          router.refresh();
         } else {
           setError(result.message);
         }
@@ -83,12 +86,12 @@ export function IntroReviewControls({
         <span
           className={`inline-flex items-center rounded-full px-2.5 py-1 text-[12px] font-semibold ${meta.badgeClass}`}
         >
-          {joinedAt ? "Anggota tim" : meta.label}
+          {joinedAt || review === "diterima" ? "Anggota tim" : meta.label}
         </span>
 
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Ubah status perkenalan">
           {ACTIONS.map((action) => {
-            // Setelah diterima, hanya bisa menunggu konfirmasi -- tidak bisa downgrade.
+            // Acceptance fills a seat immediately and cannot be downgraded.
             const lockedAfterAccept = review === "diterima" && action.status !== "diterima";
             return (
               <button
@@ -120,9 +123,7 @@ export function IntroReviewControls({
 
       {review === "diterima" ? (
         <p className="mt-2 text-[13px] text-ink-2" role="status">
-          {joinedAt
-            ? "Pelamar sudah mengonfirmasi bergabung dan terhitung sebagai anggota tim."
-            : "Menunggu pelamar mengonfirmasi bergabung melalui dasbornya. Slot sudah dicadangkan; jumlah anggota bertambah setelah konfirmasi."}
+          Pelamar sudah menjadi anggota tim. Jumlah anggota otomatis bertambah dan pencarian ditutup ketika kuota terpenuhi.
         </p>
       ) : null}
 

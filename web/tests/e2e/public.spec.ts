@@ -1,7 +1,7 @@
 import { expect, test } from "@playwright/test";
 
-const publicProfile = "/u/user-8373091f28e644979447648d";
-const publicProject = `${publicProfile}/p/website-pembelajaran-mandiri`;
+const publicProfile = process.env.AKASHIC_E2E_PROFILE || "/u/rafitp";
+const publicProject = `${publicProfile}/p/${process.env.AKASHIC_E2E_PROJECT || "website-pembelajaran-mandiri"}`;
 
 test("pengunjung dapat membuka jalur utama tanpa galat browser", async ({ page }) => {
   const browserErrors: string[] = [];

@@ -9,11 +9,10 @@ import { setTeamStatusAction } from "@/lib/team-actions";
 export function TeamStatusControl({ teamId, status, slots }: { teamId: string; status: TeamSearchStatus; slots: number }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
-  const [current, setCurrent] = useState(status);
   const [message, setMessage] = useState("");
-  const next = current === "open" ? "closed" : "open";
+  const next = status === "open" ? "closed" : "open";
 
-  if (current === "closed" && slots === 0) {
+  if (status === "closed" && slots === 0) {
     return <span className="text-[12px] text-ink-2">Kuota penuh. Ubah target anggota untuk membuka lagi.</span>;
   }
 
@@ -27,7 +26,6 @@ export function TeamStatusControl({ teamId, status, slots }: { teamId: string; s
           try {
             const result = await setTeamStatusAction(teamId, next);
             if (result.ok) {
-              setCurrent(next);
               router.refresh();
             } else setMessage(result.message ?? "Status belum berubah.");
           } catch {

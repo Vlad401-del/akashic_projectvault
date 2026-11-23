@@ -8,7 +8,6 @@ import { ProjectRow } from "@/components/editor/project-row";
 import { Icon } from "@/components/icons";
 import { Avatar } from "@/components/avatar";
 import { IntroReviewControls } from "@/components/team/intro-review-controls";
-import { JoinTeamControl } from "@/components/team/join-team-control";
 import { TeamStatusControl } from "@/components/team/team-status-control";
 import { DiscussionThread } from "@/components/team/discussion-thread";
 import { getDemoOwner, listOwnedProjects } from "@/lib/content";
@@ -247,7 +246,7 @@ export default async function DashboardPage() {
         {cloud ? (
           <section aria-labelledby="pengajuan-saya-heading" className="mt-12 border-t border-line pt-8">
             <h2 id="pengajuan-saya-heading" className="text-[22px] font-semibold tracking-tight text-ink">Pengajuan Saya</h2>
-            <p className="mt-1 text-[14px] text-ink-2">Pantau pengajuanmu. Setelah diterima, konfirmasi bergabung untuk mengisi slot tim.</p>
+            <p className="mt-1 text-[14px] text-ink-2">Pantau pengajuanmu. Setelah diterima pemilik tim, kamu otomatis tercatat sebagai anggota.</p>
             {sentIntros.length === 0 ? (
               <div className="mt-5 rounded-xl border border-dashed border-line bg-surface p-6">
                 <p className="text-[14px] text-ink-2">Belum ada pengajuan. Cari tim yang sesuai dengan keterampilan dan waktu yang kamu punya.</p>
@@ -265,10 +264,8 @@ export default async function DashboardPage() {
                     </div>
                     <div>
                       <span className="rounded-full bg-accent/10 px-3 py-1 text-[13px] font-semibold text-accent">
-                        {entry.joinedAt ? "Anggota tim" : entry.review === "diskusi" ? "Sedang Diskusi" : entry.review === "diterima" ? "Diterima — perlu konfirmasi" : entry.review === "ditolak" ? "Ditolak" : "Diajukan"}
+                        {entry.joinedAt || entry.review === "diterima" ? "Anggota tim" : entry.review === "diskusi" ? "Sedang Diskusi" : entry.review === "ditolak" ? "Ditolak" : "Diajukan"}
                       </span>
-                      {entry.review === "diterima" && !entry.joinedAt && entry.teamOpen ? <JoinTeamControl teamId={entry.teamId} /> : null}
-                      {entry.review === "diterima" && !entry.joinedAt && !entry.teamOpen ? <p className="mt-2 text-[12px] text-ink-2">Pencarian ditutup; hubungi pemilik tim bila masih ingin bergabung.</p> : null}
                     </div>
                   </li>
                 ))}
@@ -342,6 +339,8 @@ export default async function DashboardPage() {
                         </span>
                         <span>·</span>
                         <span>{slots > 0 ? `Butuh ${slots} anggota lagi` : "Slot penuh"}</span>
+                        <span>·</span>
+                        <span>{team.currentMembers}/{team.targetMembers} anggota</span>
                         <span>·</span>
                         <span>Tenggat: {formatTeamDeadline(team.deadline)}</span>
                         <span>·</span>

@@ -189,30 +189,29 @@ export async function reviewCloudTeamIntro(
   const { data: auth, error: authError } = await supabase.auth.getUser();
   if (authError || !auth.user) return { ok: false, message: sessionFailureMessage(authError, "Masuk lagi untuk meninjau perkenalan.") };
 
-  // Guard: pelamar yang sudah diterima tidak bisa di-downgrade via API langsung.
-  const { data: current } = await supabase.from("team_intros")
+  const { data: team, error: teamError } = await supabase.from("team_posts")
+    .select("id").eq("id", teamId).eq("owner_id", auth.user.id).maybeSingle();
+  if (teamError || !team) return { ok: false, message: "Pencarian tim tidak ditemukan atau bukan milik Anda." };
+
+  const { data: current, error: currentError } = await supabase.from("team_intros")
     .select("review").eq("team_id", teamId).eq("created_at", sentAt).maybeSingle();
+  if (currentError || !current) return { ok: false, message: "Perkenalan belum dapat diperiksa. Coba lagi." };
   if (current?.review === "diterima" && review !== "diterima") {
     return { ok: false, message: "Status pelamar yang sudah diterima tidak dapat diubah." };
   }
 
-  if (review === "diterima") {
-    const { data: team } = await supabase.from("team_posts")
-      .select("current_members,target_members,status").eq("id", teamId).eq("owner_id", auth.user.id).maybeSingle();
-    if (!team || team.status !== "open") return { ok: false, message: "Pencarian tim sudah ditutup." };
-    const { count, error: countError } = await supabase.from("team_intros")
-      .select("id", { count: "exact", head: true }).eq("team_id", teamId)
-      .eq("review", "diterima").is("joined_at", null);
-    if (countError || count === null) return { ok: false, message: "Sisa undangan belum dapat diperiksa." };
-    if (team.current_members + count >= team.target_members) {
-      return { ok: false, message: "Semua slot sudah diisi atau menunggu konfirmasi pelamar yang diterima. Tunggu konfirmasi atau tambah target anggota tim sebelum menerima pelamar baru." };
-    }
-  }
+  // The database fills the seat and closes recruitment in the same transaction.
+  // Repeated acceptance is a no-op, including when the last seat has closed the team.
   const { data, error } = await supabase.from("team_intros")
     .update({ review }).eq("team_id", teamId).eq("created_at", sentAt)
-    .is("joined_at", null).select("id").maybeSingle();
-  if (error || !data) return { ok: false, message: "Perkenalan tidak ditemukan atau bukan milik tim Anda." };
+    .select("id").maybeSingle();
+  if (error || !data) return { ok: false, message: error?.message.includes("team_full_or_closed")
+    ? "Tim sudah penuh atau pencariannya ditutup. Muat ulang untuk melihat jumlah anggota terbaru."
+    : "Status belum dapat disimpan. Muat ulang lalu coba lagi." };
   revalidatePath("/dashboard");
+  revalidatePath("/tim");
+  revalidatePath(`/tim/${teamId}`);
+  revalidatePath("/");
   return { ok: true, review };
 }
 
@@ -221,12 +220,13 @@ export async function confirmCloudTeamJoin(teamId: string): Promise<{ ok: boolea
   const { data: auth, error: authError } = await supabase.auth.getUser();
   if (authError || !auth.user) return { ok: false, message: sessionFailureMessage(authError, "Masuk lagi untuk mengonfirmasi bergabung.") };
 
+  // Compatibility for an already-open old browser: acceptance now joins atomically.
   const { data, error } = await supabase.from("team_intros")
-    .update({ joined_at: new Date().toISOString() })
+    .select("joined_at")
     .eq("team_id", teamId).eq("sender_id", auth.user.id).eq("review", "diterima")
-    .is("joined_at", null).select("joined_at").maybeSingle();
-  if (error || !data) {
-    return { ok: false, message: "Belum bisa bergabung. Pastikan undangan diterima dan pencarian masih memiliki slot." };
+    .maybeSingle();
+  if (error || !data?.joined_at) {
+    return { ok: false, message: "Keanggotaan belum tercatat. Muat ulang atau hubungi pemilik tim." };
   }
   revalidatePath("/dashboard");
   revalidatePath("/tim");

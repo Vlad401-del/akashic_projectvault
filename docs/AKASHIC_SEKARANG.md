@@ -1,5 +1,17 @@
 # Konteks Lengkap Akashic Saat Ini (Untuk AI & Pengembang)
 
+## Hotfix penerimaan tim dan logo — 23 November 2026
+
+- Alur terbaru: keputusan pemilik **Terima langsung berarti bergabung**. Trigger privat `accept_team_intro_before_update` memperbarui `review`, `joined_at`, jumlah anggota, dan status rekrutmen dalam transaksi yang sama. Kuota terakhir menutup pencarian; penerimaan ulang tidak menambah anggota lagi; tim penuh/tertutup menolak penerimaan baru. Konfirmasi tambahan pelamar tidak lagi diperlukan.
+- Migration lokal dan Supabase sama-sama bernomor `20261123033749_accept_team_intro_atomically`. Dua penerimaan lama pada `dipaksa-mas-reza-lomba` diselaraskan atas konfirmasi pengguna bahwa jumlah manual 3/3 sudah mencakup mereka. Jumlah tetap 3/3, status tetap closed, kedua `joined_at` kini terisi. Jangan menaikkan jumlah mereka lagi.
+- Dashboard memperbarui data setelah review, menampilkan jumlah aktual/target, dan kontrol buka/tutup mengikuti status server terbaru. Papan tim, detail tim, dan landing direvalidasi setelah review. Hasil pengajuan diterima ditampilkan sebagai Anggota tim.
+- Logo baru memakai `web/public/images/akashic-logo.png`, berasal dari file pengguna, dengan latar forest agar detail krem terbaca; dipakai komponen merek bersama dan metadata ikon.
+- Sebelum rilis: lint, typecheck, build lokal lulus. PostgreSQL lokal terisolasi (PGlite) menguji SQL migration asli, rekonsiliasi 3/3 tanpa hitung ganda, penutupan slot terakhir, penerimaan ulang, penolakan saat penuh, rollback, kunci status, beberapa slot, izin pemilik dan larangan mengubah `joined_at` secara langsung. Uji antarmuka dengan backend tiruan lulus di 320/390/768/1440 px.
+- Production aktif: deployment `dpl_HEU4w7e5Zv8V1teincuNwPcEGBVq` pada https://akashic-projectvault.vercel.app/. Sumber diunggah melalui CLI dari perubahan lokal sesudah commit dasar `91817c3`; metadata commit dasar bukan hash seluruh isi rilis.
+- Username akun uji kini `rafitp`; alamat username lama mengembalikan 404 secara benar. Uji publik menerima override `AKASHIC_E2E_PROFILE` dan `AKASHIC_E2E_PROJECT` agar tidak bergantung pada username lama.
+- Pemeriksaan Production setelah aktivasi: 32 lulus, 2 kasus khusus tim contoh dilewati; meliputi halaman publik, pengalihan login, formulir, menu mobile, matriks resolusi, logo yang benar-benar termuat, dan tim penuh tidak tampil di pencarian. Berkas logo Production cocok SHA-256 dengan file pengguna. Pengujian ini tidak mengklaim telah melakukan penerimaan baru dengan dua akun nyata di Production.
+- Percobaan Premium masih lokal dan dikecualikan dari unggahan Vercel. Runtime PostgreSQL uji terletak di `.vercel/db-regression` dan tidak menjadi dependency aplikasi.
+
 ## Checkpoint Production terbaru — 23 November 2026
 
 Bagian ini menggantikan status belum deploy dan penghambat DNS pada catatan historis di bawah.

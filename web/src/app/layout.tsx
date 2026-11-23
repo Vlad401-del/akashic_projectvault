@@ -27,6 +27,7 @@ export const metadata: Metadata = {
   },
   description:
     "Akashic membantu mahasiswa menunjukkan bukti kerja, menemukan rekan tim lomba, dan menjelaskan kontribusi dalam proyek.",
+  icons: { icon: { url: "/images/akashic-logo.png", type: "image/png" }, apple: "/images/akashic-logo.png" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
