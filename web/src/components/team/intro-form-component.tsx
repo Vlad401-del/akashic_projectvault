@@ -168,11 +168,15 @@ export function IntroFormComponent({
               id="intro-name"
               type="text"
               value={form.senderName}
-              readOnly={Boolean(accountName)}
+              maxLength={80}
+              aria-describedby="intro-name-help"
               onChange={(e) => handleChange("senderName", e.target.value)}
               placeholder="Contoh: Budi Santoso"
               className="mt-1.5 w-full rounded-lg border border-line bg-canvas px-3.5 py-2 text-base text-ink sm:text-[14px] transition-colors placeholder:text-ink-2/60 focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
             />
+            <p id="intro-name-help" className="mt-1 text-[12px] text-ink-2">
+              Nama untuk pengajuan ini saja. Kosongkan untuk memakai nama profil; profil Anda tetap terhubung.
+            </p>
           </div>
 
           <div>

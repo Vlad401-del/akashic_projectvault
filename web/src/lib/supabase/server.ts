@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 
 import { supabaseConfig } from "@/lib/supabase/config";
 import type { Database } from "@/lib/supabase/database.types";
+import { createBoundedFetch } from "@/lib/supabase/fetch";
 
 /** A Supabase client belongs to one request and carries that request's session. */
 export async function createClient() {
@@ -10,6 +11,7 @@ export async function createClient() {
   const cookieStore = await cookies();
 
   return createServerClient<Database>(url, key, {
+    global: { fetch: createBoundedFetch() },
     cookies: {
       getAll() {
         return cookieStore.getAll();

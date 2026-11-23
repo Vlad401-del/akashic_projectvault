@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
+import { unstable_rethrow } from "next/navigation";
 
 import { PasswordInput } from "@/components/auth/password-input";
 import { Field, TextInput } from "@/components/editor/field";
@@ -16,10 +17,10 @@ import {
   type LoginForm,
 } from "@/lib/auth-form";
 
-export function LoginForm() {
+export function LoginForm({ initialMessage }: { initialMessage?: string }) {
   const [form, setForm] = useState<LoginForm>(emptyLoginForm);
   const [errors, setErrors] = useState<LoginErrors>({});
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(initialMessage ?? null);
   const [isPending, startTransition] = useTransition();
 
   function handleChange<K extends keyof LoginForm>(field: K, value: LoginForm[K]) {
@@ -32,6 +33,7 @@ export function LoginForm() {
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (isPending) return;
     const clientErrors = validateLoginForm(form);
     if (hasLoginErrors(clientErrors)) {
       setErrors(clientErrors);
@@ -39,10 +41,14 @@ export function LoginForm() {
     }
 
     startTransition(async () => {
-      const result = await loginAction(form);
-      if (result) {
+      setMessage(null);
+      try {
+        const result = await loginAction(form);
         setErrors(result.errors);
         setMessage(result.message ?? null);
+      } catch (error) {
+        unstable_rethrow(error);
+        setMessage("Permintaan login terputus. Periksa koneksi dan coba lagi.");
       }
     });
   }
@@ -106,6 +112,7 @@ export function LoginForm() {
         <button
           type="submit"
           disabled={isPending}
+          aria-busy={isPending}
           className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-full bg-forest px-6 text-[15px] font-semibold text-cream transition-colors hover:bg-accent-hover disabled:opacity-60"
         >
           {isPending ? (

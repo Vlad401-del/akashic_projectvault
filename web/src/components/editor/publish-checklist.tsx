@@ -93,7 +93,7 @@ export function PublishChecklist({
 
         <p className="mt-4 text-[13px] leading-5 text-ink-2">
           {done === total && !declarationsReady
-            ? "Isi sudah lengkap. Centang kedua pernyataan agar tombol Terbitkan aktif."
+            ? "Isi sudah lengkap. Centang kedua pernyataan sebelum menerbitkan proyek."
             : "Checklist ini pernyataan Anda, bukan verifikasi platform. Tanggal terbit tidak dibuat otomatis."}
         </p>
       </div>

@@ -1,14 +1,14 @@
 import Link from "next/link";
 
 import { PrismMark, Wordmark } from "@/components/site-brand";
-import { getCurrentUser } from "@/lib/auth-session";
+import { getOptionalCurrentUser } from "@/lib/auth-session";
 import { isLocalDemoEditorEnabled } from "@/lib/demo-mode";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 
 /** Footer setiap halaman dengan navigasi utama Akashic. */
 export async function SiteFooter() {
   const demoEditorEnabled = isSupabaseConfigured() || isLocalDemoEditorEnabled();
-  const user = await getCurrentUser();
+  const user = await getOptionalCurrentUser();
 
   const groups: { title: string; links: { label: string; href: string }[] }[] = [
     {
@@ -48,7 +48,7 @@ export async function SiteFooter() {
   return (
     <footer className="on-dark relative overflow-hidden bg-forest-deep text-cream">
       <div aria-hidden="true" className="grid-lines pointer-events-none absolute inset-0 text-cream/[0.05]" />
-      <div className="relative mx-auto grid max-w-[1200px] gap-12 px-5 pb-10 pt-16 sm:px-8 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+      <div className="relative mx-auto grid max-w-[1200px] gap-8 px-5 pb-8 pt-12 sm:gap-12 sm:px-8 sm:pb-10 sm:pt-16 md:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <div>
           <p className="flex items-center gap-2.5 text-[22px]">
             <PrismMark className="size-7" />
@@ -67,10 +67,10 @@ export async function SiteFooter() {
           {groups.map((group) => (
             <div key={group.title}>
               <h2 className="uppercase text-[12px] font-bold tracking-[0.14em] text-cream/50">{group.title}</h2>
-              <ul className="mt-4 space-y-2.5">
+              <ul className="mt-3 sm:mt-4 sm:space-y-2.5">
                 {group.links.map((link) => (
                   <li key={link.href}>
-                    <Link href={link.href} className="link-underline text-[14px] text-cream/85 hover:text-cream">
+                    <Link href={link.href} className="link-underline flex min-h-11 items-center text-[14px] text-cream/85 hover:text-cream sm:inline">
                       {link.label}
                     </Link>
                   </li>

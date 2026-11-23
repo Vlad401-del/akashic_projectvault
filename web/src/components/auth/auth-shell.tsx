@@ -4,7 +4,7 @@ import type { CSSProperties, ReactNode } from "react";
 import { Icon } from "@/components/icons";
 import { PrismMark, SpectrumRule, Wordmark } from "@/components/site-brand";
 
-const COMPETITIONS = ["GEMASTIK", "PKM", "Hackathon", "Business Case", "UI/UX", "Data Science", "Tugas Akhir"];
+const COMPETITIONS = ["GEMASTIK", "PKM", "Hackathon", "Business Case", "UI/UX", "Data Science"];
 
 /**
  * Bingkai halaman autentikasi: panel merek hijau hutan di kiri dan area
@@ -42,7 +42,7 @@ export function AuthShell({ mode, children }: { mode: "login" | "register"; chil
         <div className="relative flex flex-1 flex-col justify-center px-10 py-14 xl:px-14">
           <p className="eyebrow text-sun">{isLogin ? "Selamat datang kembali" : "Mulai dari sini"}</p>
 
-          <h1 className="mt-5 font-display text-[44px] font-semibold leading-[1.05] tracking-[-0.02em] xl:text-[54px]">
+          <p className="mt-5 font-display text-[44px] font-semibold leading-[1.05] tracking-[-0.02em] xl:text-[54px]">
             <span className="line-mask">
               <span>{isLogin ? "Karya dulu," : "Rekam karya,"}</span>
             </span>
@@ -51,7 +51,7 @@ export function AuthShell({ mode, children }: { mode: "login" | "register"; chil
                 {isLogin ? "baru cari tim." : "lalu temukan tim."}
               </span>
             </span>
-          </h1>
+          </p>
 
           <SpectrumRule className="mt-7" />
 

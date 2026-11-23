@@ -2,6 +2,7 @@
 
 import { useId, type ReactNode } from "react";
 
+import { CoverUpload } from "@/components/editor/cover-upload";
 import { Field, SelectInput, TextArea, TextInput } from "@/components/editor/field";
 import { Icon, type IconName } from "@/components/icons";
 import type { EditorErrors, EditorForm as EditorFormValue, EditorSource } from "@/lib/editor-form";
@@ -145,7 +146,7 @@ export function EditorForm({
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field label="Jenis tugas" htmlFor={id("jenis")} hint="Menentukan bagian kontribusi di halaman publik.">
+          <Field label="Jenis tugas" required htmlFor={id("jenis")} hint="Pilih Tugas individu jika dikerjakan sendiri, atau Tugas kelompok jika dikerjakan bersama tim.">
             <SelectInput
               id={id("jenis")}
               value={form.workType}
@@ -226,7 +227,7 @@ export function EditorForm({
         title="Masalah dan proses"
         description="Jelaskan masalah yang dihadapi dan langkah yang kamu ambil."
       >
-        <p className="text-[13px] font-medium text-ink-2">Wajib: masalah dan salah satu dari pengantar atau langkah proses.</p>
+        <p className="text-[13px] font-medium text-ink-2">Wajib: masalah yang ingin diselesaikan. Pengantar dan langkah proses bersifat opsional.</p>
         <Field
           label="Masalah"
           required
@@ -262,13 +263,11 @@ export function EditorForm({
           <TextArea
             id={id("proses-intro")}
             value={form.processIntro}
-            invalid={Boolean(errors.processIntro)}
             rows={3}
             onChange={(event) => onChange({ processIntro: event.target.value })}
           />
         </Field>
 
-        {errors.processIntro ? <p role="alert" className="text-[13px] text-danger">{errors.processIntro}</p> : null}
 
         <Field
           label="Langkah proses"
@@ -301,7 +300,7 @@ export function EditorForm({
 
       {step === 3 ? (
       <Section first icon="checkCircle" title="Kontribusi dan hasil" description="Pisahkan pekerjaanmu dari hasil tim, lalu jelaskan keluarannya.">
-        <p className="text-[13px] font-medium text-ink-2">Wajib: kontribusi pribadi dan hasil. Isi pengantar atau daftar kontribusi.</p>
+        <p className="text-[13px] font-medium text-ink-2">Wajib: isi Kontribusi saya dan hasil proyek. Pengantar kontribusi bersifat opsional.</p>
 
         <Field
           label="Pengantar bagian Kontribusi"
@@ -318,6 +317,7 @@ export function EditorForm({
 
         <Field
           label="Kontribusi saya"
+          required
           htmlFor={id("kontribusi-daftar")}
           error={errors.contributionChecklist}
           hint="Satu pekerjaan per baris. Bagian mana yang benar-benar Anda kerjakan sendiri?"
@@ -404,33 +404,8 @@ export function EditorForm({
         title="Bukti karya"
         description="Tautan dan keterangan gambar yang membuktikan proyek ini benar ada."
       >
-        <p className="text-[13px] font-medium text-ink-2">Wajib: minimal satu tautan bukti yang lengkap atau URL gambar sampul asli.</p>
-        <p className="flex items-start gap-2 rounded-[10px] border border-line bg-canvas px-4 py-3 text-[13px] leading-5 text-ink-2">
-          <Icon name="info" className="mt-0.5 size-4" />
-          <span>
-            Tempel alamat gambar asli proyek Anda pada isian di bawah. Bila dikosongkan, ilustrasi
-            cadangan yang dipakai.
-          </span>
-        </p>
-
-        {errors.evidence ? <p role="alert" className="text-[13px] font-medium text-danger">{errors.evidence}</p> : null}
-
-        <Field
-          label="Gambar sampul (URL)"
-          htmlFor={id("sampul-gambar")}
-          error={errors.coverImageUrl}
-          hint="Tautan gambar berawalan https://, atau jalur di dalam situs seperti /images/projects/nama.jpg."
-        >
-          <TextInput
-            id={id("sampul-gambar")}
-            value={form.coverImageUrl}
-            invalid={Boolean(errors.coverImageUrl)}
-            onChange={(event) => onChange({ coverImageUrl: event.target.value })}
-            placeholder="/images/projects/dashboard-penjualan-ritel.jpg"
-            autoComplete="off"
-            inputMode="url"
-          />
-        </Field>
+        <CoverUpload value={form.coverImageUrl} onChange={(coverImageUrl) => onChange({ coverImageUrl })} />
+        {errors.coverImageUrl ? <p role="alert" className="text-danger">{errors.coverImageUrl}</p> : null}
 
         <Field label="Ilustrasi cadangan" htmlFor={id("sampul-jenis")} hint="Dipakai bila gambar sampul kosong.">
           <SelectInput

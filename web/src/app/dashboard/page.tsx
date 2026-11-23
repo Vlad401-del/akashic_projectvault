@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { SharePortfolio } from "@/components/share-portfolio";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -121,6 +122,10 @@ export default async function DashboardPage() {
           </div>
         </header>
 
+        {owner.isPublished ? <SharePortfolio username={owner.username} /> : (
+          <p className="mt-6 rounded-xl border border-line bg-surface p-4 text-sm leading-6 text-ink-2">Profilmu masih privat. Terbitkan melalui Atur profil agar portofolio bisa dibagikan kepada orang lain.</p>
+        )}
+
         {/* Bagian 1: Perkenalan Masuk (Pelamar Tim Berbasis Bukti Kerja) */}
         <section aria-labelledby="perkenalan-masuk-heading" className="mt-12 border-t border-line pt-8">
           <div className="flex flex-wrap items-baseline justify-between gap-3">
@@ -192,7 +197,8 @@ export default async function DashboardPage() {
                           year: "numeric",
                           hour: "2-digit",
                           minute: "2-digit",
-                        })}
+                          timeZone: "Asia/Jakarta",
+                        })} WIB
                       </p>
                     </div>
                   </div>

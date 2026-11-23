@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { EditorForm } from "@/components/editor/editor-form";
 import { EditorPreview } from "@/components/editor/editor-preview";
@@ -27,9 +28,9 @@ import type { Profile, Project, ProjectStatus } from "@/lib/fixtures/types";
 import { deleteProjectAction, saveProjectAction } from "@/lib/project-actions";
 
 const PRIMARY_BUTTON =
-  "inline-flex h-11 items-center gap-2 rounded-[10px] bg-accent px-4 text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex h-11 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-[15px] font-semibold text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60";
 const SECONDARY_BUTTON =
-  "inline-flex h-11 items-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink transition-colors hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex h-11 items-center justify-center gap-2 rounded-[10px] border border-line bg-surface px-4 text-[15px] font-medium text-ink transition-colors hover:border-line-strong disabled:cursor-not-allowed disabled:opacity-60";
 
 /** Aksi yang sedang berjalan; dipakai untuk menonaktifkan tombol dan mengganti label. */
 type BusyKind = null | "save" | "publish" | "unpublish" | "delete";
@@ -79,6 +80,14 @@ export function ProjectEditor({
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [errorFocusRequest, setErrorFocusRequest] = useState(0);
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+  const stepContent = useRef<HTMLDivElement>(null);
+  const previousStep = useRef(step);
+  useEffect(() => {
+    if (previousStep.current === step) return;
+    previousStep.current = step;
+    stepContent.current?.scrollIntoView({ block: "start", behavior: "instant" });
+    stepContent.current?.focus({ preventScroll: true });
+  }, [step]);
 
   const steps = ["Identitas", "Masalah & proses", "Kontribusi & hasil", "Bukti & terbit"] as const;
 
@@ -100,8 +109,6 @@ export function ProjectEditor({
       for (const field of Object.keys(patch) as (keyof EditorFormValue)[]) {
         if (field in next) delete next[field as keyof EditorErrors];
       }
-      if (patch.processSteps !== undefined) delete next.processIntro;
-      if (patch.contributionIntro !== undefined) delete next.contributionChecklist;
       if (patch.coverImageUrl !== undefined) delete next.evidence;
       return next;
     });
@@ -327,10 +334,10 @@ export function ProjectEditor({
   const isBusy = busy !== null;
 
   return (
-    <div className="mx-auto max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-10 xl:px-0">
+    <div className="mx-auto min-w-0 w-full max-w-[1120px] px-5 pb-24 pt-8 sm:px-8 sm:pt-10 xl:px-0">
       <header>
         <div className="flex flex-wrap items-start justify-between gap-5">
-          <div className="min-w-0">
+          <div className="min-w-0 w-full sm:w-auto">
             <p className="text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-2">
               {project ? "Editor proyek" : "Proyek baru"}
             </p>
@@ -348,13 +355,13 @@ export function ProjectEditor({
             </div>
           </div>
 
-          <div className="flex flex-wrap gap-2.5">
+          <div className="grid min-w-0 w-full grid-cols-2 gap-2.5 sm:flex sm:w-auto sm:flex-wrap">
             {allowDelete && savedSlug ? (
               <button
                 type="button"
                 onClick={() => setDeleteConfirm(true)}
                 disabled={isBusy}
-                className="inline-flex h-11 items-center rounded-[10px] border border-danger/30 bg-surface px-4 text-[15px] font-medium text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
+                className="inline-flex h-11 items-center justify-center rounded-[10px] border border-danger/30 bg-surface px-4 text-[15px] font-medium text-danger transition-colors hover:bg-danger-soft disabled:opacity-60"
               >
                 Hapus proyek
               </button>
@@ -370,12 +377,12 @@ export function ProjectEditor({
                   type="button"
                   onClick={() => setUnpublishConfirm(true)}
                   disabled={unpublishConfirm || isBusy}
-                  className={SECONDARY_BUTTON}
+                  className={`${SECONDARY_BUTTON} col-span-2 sm:col-span-1`}
                 >
                   <Icon name="x" className="size-4" />
                   {busy === "unpublish" ? "Menarik..." : "Tarik dari publik"}
                 </button>
-                <button type="button" onClick={handleSave} disabled={isBusy} className={PRIMARY_BUTTON}>
+                <button type="button" onClick={handleSave} disabled={isBusy} className={`${PRIMARY_BUTTON} col-span-2 sm:col-span-1`}>
                   <Icon name="save" className="size-4" />
                   {busy === "save" ? "Menyimpan..." : "Simpan perubahan publik"}
                 </button>
@@ -392,9 +399,12 @@ export function ProjectEditor({
         </div>
 
         {isPublished ? (
-          <p className="mt-4 max-w-[46rem] text-[13px] leading-5 text-ink-2">
-            Simpan perubahan langsung mengganti isi halaman publik proyek ini.
-          </p>
+          <div className="mt-4 space-y-3">
+            <p className="max-w-[46rem] text-[13px] leading-5 text-ink-2">
+              Simpan perubahan langsung mengganti isi halaman publik proyek ini.
+            </p>
+            {publicHref ? <Link href={publicHref} className={`${SECONDARY_BUTTON} lg:hidden`}><Icon name="externalLink" className="size-4" />Buka halaman publik</Link> : null}
+          </div>
         ) : null}
 
         {unpublishConfirm ? (
@@ -493,7 +503,7 @@ export function ProjectEditor({
       </p>
 
       <div className="mt-9 grid gap-9 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-12">
-        <div className="min-w-0">
+        <div ref={stepContent} tabIndex={-1} role="region" aria-label={`Langkah ${step}: ${steps[step - 1]}`} className="min-w-0 scroll-mt-24 focus:outline-none">
           <EditorForm
             form={form}
             step={step}
@@ -535,7 +545,11 @@ export function ProjectEditor({
         </div>
 
         <aside className="lg:sticky lg:top-24 lg:self-start">
-          <EditorPreview project={previewProject} status={status} publicHref={publicHref} />
+          <details className="rounded-xl border border-line lg:hidden">
+            <summary className="min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold text-accent">Lihat pratinjau ringkas</summary>
+            <EditorPreview project={previewProject} status={status} publicHref={publicHref} />
+          </details>
+          <div className="hidden lg:block"><EditorPreview project={previewProject} status={status} publicHref={publicHref} /></div>
         </aside>
       </div>
 

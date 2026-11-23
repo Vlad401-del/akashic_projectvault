@@ -17,11 +17,11 @@ export function Avatar({ displayName, size = "sm" }: { displayName: string; size
 }
 
 /** Penanda pemilik portofolio di bilah atas: avatar kecil + nama. */
-export function OwnerChip({ profile }: { profile: Profile }) {
+export function OwnerChip({ profile, compactOnSmallScreens = false }: { profile: Profile; compactOnSmallScreens?: boolean }) {
   return (
-    <span className="flex min-w-0 items-center gap-2">
+    <span className="flex min-w-0 max-w-[7rem] items-center gap-2 sm:max-w-[13rem]">
       <Avatar displayName={profile.displayName} />
-      <span className="truncate text-[15px] font-semibold text-ink">{profile.displayName}</span>
+      <span className={`${compactOnSmallScreens ? "sr-only min-[360px]:not-sr-only min-[360px]:truncate" : "truncate"} text-[15px] font-semibold text-ink`}>{profile.displayName}</span>
     </span>
   );
 }

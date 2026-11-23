@@ -48,11 +48,15 @@ export function IntroReviewControls({
   function handleReview(next: IntroReviewStatus) {
     setError(null);
     startTransition(async () => {
-      const result = await reviewTeamIntroAction(teamId, sentAt, next);
-      if (result.ok) {
-        setReview(result.review);
-      } else {
-        setError(result.message);
+      try {
+        const result = await reviewTeamIntroAction(teamId, sentAt, next);
+        if (result.ok) {
+          setReview(result.review);
+        } else {
+          setError(result.message);
+        }
+      } catch {
+        setError("Status belum dapat disimpan. Periksa koneksi, lalu coba lagi.");
       }
     });
   }
@@ -83,18 +87,23 @@ export function IntroReviewControls({
         </span>
 
         <div className="flex flex-wrap gap-1.5" role="group" aria-label="Ubah status perkenalan">
-          {ACTIONS.map((action) => (
-            <button
-              key={action.status}
-              type="button"
-            disabled={isPending || Boolean(joinedAt) || review === action.status}
-              onClick={() => handleReview(action.status)}
-              className="inline-flex items-center gap-1 rounded-lg border border-line bg-canvas px-2.5 py-1 text-[12px] font-medium text-ink transition-colors hover:border-line-strong hover:text-accent disabled:cursor-default disabled:opacity-50"
-            >
-              <Icon name={action.icon} className="size-3" />
-              {action.label}
-            </button>
-          ))}
+          {ACTIONS.map((action) => {
+            // Setelah diterima, hanya bisa menunggu konfirmasi -- tidak bisa downgrade.
+            const lockedAfterAccept = review === "diterima" && action.status !== "diterima";
+            return (
+              <button
+                key={action.status}
+                type="button"
+                disabled={isPending || Boolean(joinedAt) || review === action.status || lockedAfterAccept}
+                title={lockedAfterAccept ? "Status tidak bisa diubah setelah pelamar diterima" : undefined}
+                onClick={() => handleReview(action.status)}
+                className="inline-flex items-center gap-1 rounded-lg border border-line bg-canvas px-2.5 py-1 text-[12px] font-medium text-ink transition-colors hover:border-line-strong hover:text-accent disabled:cursor-default disabled:opacity-50"
+              >
+                <Icon name={action.icon} className="size-3" />
+                {action.label}
+              </button>
+            );
+          })}
         </div>
 
         {contact ? (
@@ -108,6 +117,14 @@ export function IntroReviewControls({
           </button>
         ) : null}
       </div>
+
+      {review === "diterima" ? (
+        <p className="mt-2 text-[13px] text-ink-2" role="status">
+          {joinedAt
+            ? "Pelamar sudah mengonfirmasi bergabung dan terhitung sebagai anggota tim."
+            : "Menunggu pelamar mengonfirmasi bergabung melalui dasbornya. Slot sudah dicadangkan; jumlah anggota bertambah setelah konfirmasi."}
+        </p>
+      ) : null}
 
       {contact ? (
         <p className="mt-2 text-[13px] text-ink-2">

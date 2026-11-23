@@ -76,6 +76,7 @@ export function profileFromRow(row: ProfileRow, projects: Project[]): Profile {
     skills: row.skills,
     contacts: contacts(row.contacts),
     isPublished: row.is_published,
+    showContacts: row.show_contacts,
     projects,
   };
 }

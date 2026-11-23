@@ -414,7 +414,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      read_visible_profiles: { Args: Record<string, never>; Returns: Database["public"]["Tables"]["profiles"]["Row"][] }
     }
     Enums: {
       [_ in never]: never

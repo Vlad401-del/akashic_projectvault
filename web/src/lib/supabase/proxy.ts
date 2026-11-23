@@ -3,15 +3,21 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { isSupabaseConfigured, supabaseConfig } from "@/lib/supabase/config";
 import type { Database } from "@/lib/supabase/database.types";
+import { createBoundedFetch } from "@/lib/supabase/fetch";
 
 export async function updateSession(request: NextRequest) {
-  if (!isSupabaseConfigured()) {
+  // The callback verifies the OAuth code/OTP itself. Refreshing an old session
+  // first adds a second network round trip and can delay account recovery.
+  // A password-login POST also validates its own credentials in the server action.
+  const signingIn = request.method === "POST" && request.nextUrl.pathname === "/login";
+  if (!isSupabaseConfigured() || request.nextUrl.pathname === "/auth/callback" || signingIn) {
     return NextResponse.next({ request });
   }
 
   const { url, key } = supabaseConfig();
   let response = NextResponse.next({ request });
   const supabase = createServerClient<Database>(url, key, {
+    global: { fetch: createBoundedFetch() },
     cookies: {
       getAll() {
         return request.cookies.getAll();

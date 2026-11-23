@@ -1,0 +1,3 @@
+insert into storage.buckets(id,name,public,file_size_limit,allowed_mime_types) values ('project-covers','project-covers',false,3145728,array['image/jpeg','image/png','image/webp']);
+create policy "Owner uploads project covers" on storage.objects for insert to authenticated with check (bucket_id='project-covers' and (storage.foldername(name))[1]=(select auth.uid())::text);
+create policy "Read visible project covers" on storage.objects for select to anon,authenticated using (bucket_id='project-covers' and ((storage.foldername(name))[1]=(select auth.uid())::text or exists(select 1 from public.projects p join public.profiles u on u.id=p.owner_id where p.status='published' and u.is_published=true and p.story->'cover'->>'src'='/api/project-cover/' || name)));

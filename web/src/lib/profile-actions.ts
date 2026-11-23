@@ -6,6 +6,7 @@ import { toCsv } from "@/lib/editor-form";
 import { profiles as demoProfiles } from "@/lib/fixtures/fixtures";
 import { createClient } from "@/lib/supabase/server";
 import { isSafeExternalUrl } from "@/lib/url";
+import { sessionFailureMessage } from "@/lib/auth-availability";
 
 export type ProfileActionState = { error?: string; message?: string };
 
@@ -39,9 +40,9 @@ export async function updateProfileAction(_previous: ProfileActionState, form: F
   }
 
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: auth, error: authError } = await supabase.auth.getUser();
   const ownerId = auth.user?.id;
-  if (!ownerId) return { error: "Sesi berakhir. Masuk kembali untuk mengubah profil." };
+  if (authError || !ownerId) return { error: sessionFailureMessage(authError, "Sesi berakhir. Masuk kembali untuk mengubah profil.") };
 
   const { data: previous } = await supabase.from("profiles").select("username").eq("id", ownerId).single();
   const { error } = await supabase.from("profiles").update({
@@ -59,6 +60,7 @@ export async function updateProfileAction(_previous: ProfileActionState, form: F
       ...(cv ? [{ kind: "cv", label: "Unduh CV", url: cv }] : []),
     ],
     is_published: isPublished,
+    show_contacts: form.get("show_contacts") === "on",
     updated_at: new Date().toISOString(),
   }).eq("id", ownerId);
 

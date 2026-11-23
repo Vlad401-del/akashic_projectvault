@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { createClient } from "@/lib/supabase/server";
+import { isAuthUnavailable } from "@/lib/auth-availability";
 
 export type RecoveryResult = { ok: boolean; message: string };
 
@@ -19,7 +20,9 @@ export async function requestPasswordResetAction(email: string): Promise<Recover
     ...(url ? { redirectTo: url } : {}),
   });
   if (error) {
-    const message = error.code === "email_address_not_authorized"
+    const message = isAuthUnavailable(error) && error.status !== 429
+      ? "Layanan pemulihan belum dapat dihubungi. Coba lagi setelah koneksi pulih."
+      : error.code === "email_address_not_authorized"
       ? "Email pemulihan belum dapat dikirim ke alamat ini. Pengelola perlu mengatur layanan email Akashic."
       : error.code === "over_email_send_rate_limit" || error.code === "over_request_rate_limit"
         ? "Batas permintaan pemulihan tercapai. Tunggu beberapa saat sebelum mencoba lagi."
@@ -34,7 +37,8 @@ export async function updatePasswordAction(password: string): Promise<RecoveryRe
     return { ok: false, message: "Kata sandi minimal 8 karakter dan memuat huruf serta angka." };
   }
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError && isAuthUnavailable(authError)) return { ok: false, message: "Layanan akun belum dapat dihubungi. Coba lagi; ini bukan berarti tautan pemulihan kedaluwarsa." };
   if (!auth.user) return { ok: false, message: "Tautan pemulihan sudah kedaluwarsa. Minta tautan baru." };
   const { error } = await supabase.auth.updateUser({ password });
   if (error) return { ok: false, message: "Kata sandi belum dapat diperbarui. Coba lagi." };

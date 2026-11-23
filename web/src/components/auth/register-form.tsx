@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useTransition } from "react";
+import { unstable_rethrow } from "next/navigation";
 
 import { PasswordInput } from "@/components/auth/password-input";
 import { Field, TextInput } from "@/components/editor/field";
@@ -36,6 +37,7 @@ export function RegisterForm() {
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (isPending) return;
     const clientErrors = validateRegisterForm(form);
     if (hasRegisterErrors(clientErrors)) {
       setErrors(clientErrors);
@@ -43,11 +45,18 @@ export function RegisterForm() {
     }
 
     startTransition(async () => {
-      const result = await registerAction(form);
-      if (result) {
-        setErrors(result.ok ? {} : result.errors);
-        setMessage(result.message ?? null);
-        setRegistrationSent(result.ok);
+      setMessage(null);
+      try {
+        const result = await registerAction(form);
+        if (result) {
+          setErrors(result.ok ? {} : result.errors);
+          setMessage(result.message ?? null);
+          setRegistrationSent(result.ok);
+        }
+      } catch (error) {
+        unstable_rethrow(error);
+        setRegistrationSent(false);
+        setMessage("Permintaan pendaftaran terputus. Periksa koneksi dan coba lagi.");
       }
     });
   }

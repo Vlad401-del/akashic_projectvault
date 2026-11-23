@@ -3,20 +3,26 @@ import type { ReactNode } from "react";
 
 import { Avatar } from "@/components/avatar";
 import { SiteBrand } from "@/components/site-brand";
-import { getCurrentUser } from "@/lib/auth-session";
+import { getAccountState } from "@/lib/auth-session";
 import { firstName } from "@/lib/text";
+import { MobileNav } from "@/components/mobile-nav";
 
 /** Navigasi akun mengikuti sesi: tombol masuk atau identitas pemilik. */
 export async function AccountNav({ tone = "light" }: { tone?: "light" | "dark" }) {
   const dark = tone === "dark";
-  const user = await getCurrentUser();
+  const state = await getAccountState();
+  const user = state.user;
+
+  if (state.status === "unavailable") {
+    return <Link href="/dashboard" className="inline-flex min-h-11 items-center rounded-lg bg-sun px-4 text-[14px] font-bold text-ink">Buka dasbor</Link>;
+  }
 
   if (user) {
     return (
       <Link
         href="/dashboard"
         aria-label={`Buka area akun ${user.name}`}
-        className={`inline-flex min-h-10 max-w-[11rem] items-center gap-2 rounded-full border py-1 pl-1 pr-3 transition-colors sm:max-w-[13rem] ${
+        className={`inline-flex min-h-11 max-w-[5.5rem] items-center gap-2 rounded-full border py-1 pl-1 pr-3 transition-colors sm:max-w-[13rem] ${
           dark
             ? "border-cream/25 bg-cream/10 text-cream hover:bg-cream/20"
             : "border-line-strong bg-surface text-ink hover:border-accent hover:bg-accent-soft"
@@ -48,10 +54,12 @@ export function TopBar({
   left,
   right,
   tone = "light",
+  showMobileMenu = true,
 }: {
   left: ReactNode;
   right?: ReactNode;
   tone?: "light" | "dark";
+  showMobileMenu?: boolean;
 }) {
   const isDark = tone === "dark";
 
@@ -65,9 +73,9 @@ export function TopBar({
     >
       <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-5 sm:px-8">
         <div className="flex min-w-0 items-center gap-3">{left}</div>
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           {right ?? (
-            <div className="flex items-center gap-4 sm:gap-5">
+            <div className="flex min-w-0 items-center gap-2 sm:gap-5">
               <Link
                 href="/tim"
                 className="link-underline hidden text-[14px] font-semibold text-ink-2 transition-colors hover:text-ink sm:inline"
@@ -78,6 +86,7 @@ export function TopBar({
               <span className="hidden sm:inline-flex"><SiteBrand /></span>
             </div>
           )}
+          {showMobileMenu ? <MobileNav dark={isDark} /> : null}
         </div>
       </div>
     </div>

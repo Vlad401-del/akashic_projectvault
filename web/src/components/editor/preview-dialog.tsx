@@ -37,15 +37,31 @@ export function PreviewDialog({
   publicHref: string | null;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!open) {
       return;
     }
 
+    const previousFocus = document.activeElement;
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        event.preventDefault();
         onClose();
+      }
+      if (event.key === "Tab") {
+        const items = Array.from(dialogRef.current?.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])') ?? [])
+          .filter((element) => element.getClientRects().length > 0);
+        const first = items[0];
+        const last = items.at(-1);
+        if (event.shiftKey && (document.activeElement === first || !dialogRef.current?.contains(document.activeElement))) {
+          event.preventDefault();
+          last?.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !dialogRef.current?.contains(document.activeElement))) {
+          event.preventDefault();
+          first?.focus();
+        }
       }
     };
 
@@ -57,6 +73,7 @@ export function PreviewDialog({
     return () => {
       document.removeEventListener("keydown", onKeyDown);
       document.body.style.overflow = previousOverflow;
+      if (previousFocus instanceof HTMLElement && previousFocus.isConnected) previousFocus.focus({ preventScroll: true });
     };
   }, [open, onClose]);
 
@@ -68,6 +85,7 @@ export function PreviewDialog({
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label="Pratinjau proyek"
@@ -83,11 +101,12 @@ export function PreviewDialog({
           <button
             ref={closeRef}
             type="button"
+            aria-label="Tutup pratinjau"
             onClick={onClose}
-            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-[10px] border border-line bg-surface px-3 text-[14px] font-medium text-ink transition-colors hover:border-line-strong"
+            className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-[10px] border border-line bg-surface px-3 text-[14px] font-medium text-ink transition-colors hover:border-line-strong"
           >
             <Icon name="x" className="size-4" />
-            Tutup pratinjau
+            <span className="sm:hidden">Tutup</span><span className="hidden sm:inline">Tutup pratinjau</span>
           </button>
         </div>
       </div>

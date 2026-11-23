@@ -68,7 +68,6 @@ export type EditorErrors = {
   title?: string;
   summary?: string;
   problem?: string;
-  processIntro?: string;
   contributionChecklist?: string;
   outcomeIntro?: string;
   evidence?: string;
@@ -332,7 +331,7 @@ export function validateForm(form: EditorForm): EditorErrors {
 
 export function hasErrors(errors: EditorErrors): boolean {
   return Boolean(
-    errors.title || errors.summary || errors.problem || errors.processIntro ||
+    errors.title || errors.summary || errors.problem ||
     errors.contributionChecklist || errors.outcomeIntro || errors.evidence ||
     errors.publish || errors.coverImageUrl || errors.sources,
   );
@@ -350,13 +349,10 @@ export function validateStep(form: EditorForm, step: 1 | 2 | 3 | 4): EditorError
 
   if (step === 2) {
     if (!toParagraphs(form.problem).length) errors.problem = "Jelaskan masalah yang ingin diselesaikan.";
-    if (!form.processIntro.trim() && !toLabelledItems(form.processSteps).length) {
-      errors.processIntro = "Isi pengantar atau minimal satu langkah proses.";
-    }
   }
 
   if (step === 3) {
-    if (!form.contributionIntro.trim() && !toBullets(form.contributionChecklist).length) {
+    if (!toBullets(form.contributionChecklist).length) {
       errors.contributionChecklist = "Jelaskan pekerjaan yang benar-benar kamu kerjakan.";
     }
     if (!form.outcomeIntro.trim()) errors.outcomeIntro = "Jelaskan hasil proyek.";
@@ -366,9 +362,8 @@ export function validateStep(form: EditorForm, step: 1 | 2 | 3 | 4): EditorError
     const base = validateForm(form);
     errors.coverImageUrl = base.coverImageUrl;
     errors.sources = base.sources;
-    const hasSource = form.sources.some((source) => source.label.trim() && isHttpsExternalUrl(source.url));
     const hasImage = Boolean(toSafeImageSrc(form.coverImageUrl));
-    if (!hasSource && !hasImage) errors.evidence = "Tambahkan tautan bukti karya atau URL gambar sampul asli.";
+    if (!hasImage) errors.coverImageUrl = "Unggah gambar sampul proyek sebelum menerbitkan.";
   }
 
   return errors;
@@ -386,7 +381,6 @@ export function validatePublishedContent(form: EditorForm): EditorErrors {
  * minimal satu bukti berupa gambar atau tautan.
  */
 export function publishChecklist(form: EditorForm): ChecklistItem[] {
-  const hasSafeSource = form.sources.some((source) => source.label.trim() && isHttpsExternalUrl(source.url));
   const hasCoverImage = Boolean(toSafeImageSrc(form.coverImageUrl));
 
   return [
@@ -394,20 +388,15 @@ export function publishChecklist(form: EditorForm): ChecklistItem[] {
     { id: "ringkasan", label: "Ringkasan proyek terisi", ok: form.summary.trim().length > 0 },
     { id: "masalah", label: "Bagian Masalah terisi", ok: toParagraphs(form.problem).length > 0 },
     {
-      id: "proses",
-      label: "Bagian Proses terisi",
-      ok: form.processIntro.trim().length > 0 || toLabelledItems(form.processSteps).length > 0,
-    },
-    {
       id: "kontribusi",
       label: "Kontribusi pribadi dijelaskan",
-      ok: toBullets(form.contributionChecklist).length > 0 || form.contributionIntro.trim().length > 0,
+      ok: toBullets(form.contributionChecklist).length > 0,
     },
     { id: "hasil", label: "Bagian Hasil terisi", ok: form.outcomeIntro.trim().length > 0 },
     {
       id: "bukti",
-      label: "Ada minimal satu bukti: tautan atau gambar sampul asli",
-      ok: Boolean(hasSafeSource || hasCoverImage),
+      label: "Gambar sampul proyek tersedia",
+      ok: hasCoverImage,
     },
   ];
 }

@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 
 const publicProfile = "/u/user-8373091f28e644979447648d";
+const publicProject = `${publicProfile}/p/website-pembelajaran-mandiri`;
 
 test("pengunjung dapat membuka jalur utama tanpa galat browser", async ({ page }) => {
   const browserErrors: string[] = [];
@@ -9,7 +10,7 @@ test("pengunjung dapat membuka jalur utama tanpa galat browser", async ({ page }
     if (message.type() === "error" && /hydrat/i.test(message.text())) browserErrors.push(message.text());
   });
 
-  for (const path of ["/", "/tim", "/login", "/register", "/forgot-password", publicProfile, `${publicProfile}/p/project-web`]) {
+  for (const path of ["/", "/tim", "/login", "/register", "/forgot-password", publicProfile, publicProject]) {
     const response = await page.goto(path);
     expect(response?.status(), path).toBe(200);
     await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
@@ -72,7 +73,7 @@ test("tombol sandi dan tautan pemulihan dapat digunakan", async ({ page }) => {
 });
 
 test("navigasi studi kasus menuju bagian yang ada dan tautan aman", async ({ page }) => {
-  await page.goto(`${publicProfile}/p/project-web`);
+  await page.goto(publicProject);
   const sectionLinks = page.getByRole("navigation", { name: "Di halaman ini" }).locator("a");
   for (const href of await sectionLinks.evaluateAll((links) => links.map((link) => link.getAttribute("href")))) {
     expect(href).toMatch(/^#[a-z-]+$/);
@@ -107,7 +108,7 @@ test("contoh tim dapat dibaca tanpa membuka pengajuan palsu", async ({ page }) =
 });
 
 test("halaman utama tidak melebar di luar layar", async ({ page }) => {
-  for (const path of ["/", "/tim", "/login", "/register", publicProfile, `${publicProfile}/p/project-web`]) {
+  for (const path of ["/", "/tim", "/login", "/register", publicProfile, publicProject]) {
     await page.goto(path);
     await expect(page.locator("body")).toHaveCSS("font-family", /sans/);
     const widths = await page.evaluate(() => ({

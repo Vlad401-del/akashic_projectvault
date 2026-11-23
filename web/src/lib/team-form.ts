@@ -96,7 +96,7 @@ export function validateTeamForm(form: TeamPostForm, allowFull = false): TeamErr
     errors.title = "Judul tim harus 3–160 karakter.";
   }
 
-  const hasCategory = /^(GEMASTIK|PKM|Hackathon|Tugas Akhir|Lainnya)/i.test(form.competition.trim());
+  const hasCategory = /^(GEMASTIK|PKM|Hackathon|Lainnya)/i.test(form.competition.trim());
   if (form.competition.trim().length === 0 || !hasCategory) {
     errors.competition = "Pilih kategori lomba terlebih dahulu.";
   }
@@ -134,8 +134,13 @@ export function validateTeamForm(form: TeamPostForm, allowFull = false): TeamErr
   const usedRoles = new Set<string>();
 
   form.roles.forEach((role, index) => {
-    const title = role.title.trim();
-    if (title.length < 2 || title.length > 100) {
+    // "__lainnya__" adalah sentinel dari dropdown -- artinya user pilih "Lainnya"
+    // tapi belum mengisi nama perannya.
+    const rawTitle = role.title === "__lainnya__" ? "" : role.title;
+    const title = rawTitle.trim();
+    if (title.length === 0 || role.title === "__lainnya__") {
+      roleErrors[index] = "Isi nama peran, atau pilih dari daftar yang tersedia.";
+    } else if (title.length < 2 || title.length > 100) {
       roleErrors[index] = "Nama peran harus 2–100 karakter.";
     } else if (usedRoles.has(title.toLowerCase())) {
       roleErrors[index] = "Nama peran tidak boleh sama dalam satu tim.";
@@ -175,7 +180,7 @@ export function teamPostFromForm(form: TeamPostForm, status: TeamSearchStatus): 
   const targetMembers = Math.max(currentMembers, parseMembers(form.targetMembers, currentMembers));
   const weeklyHours = optionalNumber(form.weeklyHours) ?? 0;
   const roles: TeamRole[] = form.roles
-    .map((role) => ({ title: role.title.trim(), skills: toCsv(role.skills) }))
+    .map((role) => ({ title: role.title === "__lainnya__" ? "" : role.title.trim(), skills: toCsv(role.skills) }))
     .filter((role) => role.title.length > 0);
 
   return {
@@ -209,9 +214,9 @@ export function validateIntroForm(form: IntroForm, roleTitles: string[]): IntroE
     errors.role = "Peran ini bukan bagian dari pencarian yang dituju.";
   }
 
-  const hours = Number.parseInt(form.weeklyHours.trim(), 10);
+  const hours = Number(form.weeklyHours.trim());
 
-  if (!Number.isFinite(hours) || hours < 1 || hours > 40) {
+  if (!Number.isInteger(hours) || hours < 1 || hours > 40) {
     errors.weeklyHours = "Isi jam per minggu di antara 1 sampai 40.";
   }
 

@@ -11,6 +11,7 @@ import { getTeamPost } from "@/lib/teams";
 import { getCloudTeamDiscussion, getCloudTeamPost } from "@/lib/team-cloud";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
+import { sessionFailureMessage } from "@/lib/auth-availability";
 
 export type PostDiscussionResult =
   | { ok: true; message: DiscussionMessage }
@@ -29,8 +30,8 @@ export async function postTeamDiscussionAction(
       return { ok: false, errors: { body: "Diskusi tim ini tidak tersedia." } };
     }
     const supabase = await createClient();
-    const { data: auth } = await supabase.auth.getUser();
-    if (!auth.user) return { ok: false, errors: {}, message: "Masuk dulu untuk menulis pesan." };
+    const { data: auth, error: authError } = await supabase.auth.getUser();
+    if (authError || !auth.user) return { ok: false, errors: {}, message: sessionFailureMessage(authError, "Masuk dulu untuk menulis pesan.") };
     const { data: profile } = await supabase.from("profiles")
       .select("display_name").eq("id", auth.user.id).single();
     const authorName = profile?.display_name?.trim() || "Pengguna Akashic";

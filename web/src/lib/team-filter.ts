@@ -6,9 +6,10 @@
  * Seluruh penyaringan dilakukan atas pencarian yang sudah berstatus "open".
  */
 import type { TeamPostWithOwner } from "@/lib/teams";
+import { extractCategory } from "@/lib/competition-category";
 
 /** Kategori lomba yang dikenali dari teks kompetisi pada posting. */
-export const COMPETITION_CATEGORIES = ["GEMASTIK", "PKM", "Hackathon", "Tugas Akhir", "Lainnya"] as const;
+export const COMPETITION_CATEGORIES = ["GEMASTIK", "PKM", "Hackathon", "Lainnya"] as const;
 
 export type CompetitionCategory = (typeof COMPETITION_CATEGORIES)[number];
 
@@ -39,14 +40,32 @@ export function hasActiveFilter(filter: TeamFilter): boolean {
   );
 }
 
-/** Mengenali jenis lomba dari teks kompetisi bebas, misalnya "PKM-K 2027". */
+/**
+ * Mengenali jenis lomba dari teks kompetisi.
+ *
+ * Urutan pengecekan:
+ * 1. Cek prefix yang dipilih pengguna via dropdown ("GEMASTIK ...", "PKM ...", dll).
+ *    Ini sumber utama -- jika prefix dikenal, hasilnya pasti.
+ * 2. Fallback substring untuk data lama yang diketik bebas sebelum dropdown ada.
+ *    Fallback hanya berlaku jika tidak ada prefix yang dikenal.
+ *
+ * Contoh kritis:
+ *   "Lainnya lomba yang mirip PKM"  => "Lainnya"  (prefix "Lainnya" ditemukan, stop)
+ *   "PKM-KC 2027"                   => "PKM"      (prefix "PKM" ditemukan)
+ *   "lomba hacakathon internal"     => "Hackathon" (fallback substring)
+ *   "kompetisi desain"              => "Lainnya"  (tidak ada prefix, tidak ada substring)
+ */
 export function competitionCategory(competition: string): CompetitionCategory {
-  const text = competition.toLowerCase();
+  // Langkah 1: prefix yang dipilih pengguna via dropdown.
+  const prefixCat = extractCategory(competition);
+  if (prefixCat !== "") return prefixCat;
 
+  // Langkah 2: fallback substring untuk data lama (tidak punya prefix).
+  const text = competition.toLowerCase();
   if (text.includes("gemastik")) return "GEMASTIK";
   if (text.includes("pkm")) return "PKM";
   if (text.includes("hackathon") || text.includes("hakathon")) return "Hackathon";
-  if (text.includes("tugas akhir") || text.includes("skripsi")) return "Tugas Akhir";
+
   return "Lainnya";
 }
 

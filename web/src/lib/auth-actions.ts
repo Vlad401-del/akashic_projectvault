@@ -14,6 +14,8 @@ import {
   type RegisterForm,
 } from "@/lib/auth-form";
 import { createClient } from "@/lib/supabase/server";
+import { loginErrorMessage } from "@/lib/login-error";
+import { isAuthUnavailable } from "@/lib/auth-availability";
 
 export type LoginResult = { ok: false; errors: LoginErrors; message?: string };
 export type RegisterResult =
@@ -35,7 +37,9 @@ export async function registerAction(form: RegisterForm): Promise<RegisterResult
     },
   });
   if (error) {
-    const message = error.code === "over_email_send_rate_limit"
+    const message = isAuthUnavailable(error) && error.status !== 429
+      ? "Layanan pendaftaran belum dapat dihubungi. Coba lagi setelah koneksi pulih."
+      : error.status === 429 || error.code === "over_email_send_rate_limit" || error.code === "over_request_rate_limit"
       ? "Batas pengiriman email konfirmasi tercapai. Coba lagi nanti."
       : error.code === "email_address_not_authorized"
         ? "Alamat ini belum dapat menerima email konfirmasi dari layanan Akashic. Hubungi pengelola."
@@ -55,23 +59,27 @@ export async function loginAction(form: LoginForm): Promise<LoginResult> {
   const errors = validateLoginForm(form);
   if (hasLoginErrors(errors)) return { ok: false, errors };
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
-    email: form.email.trim().toLowerCase(),
-    password: form.password,
-  });
-  if (error) {
-    return {
-      ok: false,
-      errors: {},
-      message: "Email atau kata sandi salah, atau akun belum dikonfirmasi.",
-    };
+  try {
+    const supabase = await createClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+    });
+    if (error) {
+      // Record only the error category; never email, password, token, or raw provider messages.
+      console.warn("[auth:login]", { code: error.code ?? "unknown", status: error.status ?? 0 });
+      return { ok: false, errors: {}, message: loginErrorMessage(error) };
+    }
+  } catch {
+    console.warn("[auth:login]", { code: "transport_or_configuration_error" });
+    return { ok: false, errors: {}, message: "Permintaan login terputus. Periksa koneksi dan coba lagi." };
   }
   redirect("/dashboard");
 }
 
-export async function logoutAction(): Promise<void> {
+export async function logoutAction(): Promise<{ error: string }> {
   const supabase = await createClient();
-  await supabase.auth.signOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) return { error: "Belum berhasil keluar. Periksa koneksi lalu coba lagi." };
   redirect("/");
 }

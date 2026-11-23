@@ -13,6 +13,7 @@ import {
 import type { CreateTeamPostResult, ReviewIntroResult, SendIntroResult } from "@/lib/team-actions";
 import { getCloudTeamPost } from "@/lib/team-cloud";
 import { createClient } from "@/lib/supabase/server";
+import { sessionFailureMessage } from "@/lib/auth-availability";
 
 export async function setCloudTeamStatus(
   teamId: string,
@@ -22,8 +23,8 @@ export async function setCloudTeamStatus(
     return { ok: false, message: "Status pencarian tidak dikenal." };
   }
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, message: "Masuk lagi untuk mengatur pencarian tim." };
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError || !auth.user) return { ok: false, message: sessionFailureMessage(authError, "Masuk lagi untuk mengatur pencarian tim.") };
   if (status === "open") {
     const { data: team } = await supabase.from("team_posts")
       .select("current_members,target_members").eq("id", teamId).eq("owner_id", auth.user.id).maybeSingle();
@@ -49,9 +50,9 @@ export async function createCloudTeamPost(
   const errors = validateTeamForm(form);
   if (hasTeamErrors(errors)) return { ok: false, errors };
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: auth, error: authError } = await supabase.auth.getUser();
   const ownerId = auth.user?.id;
-  if (!ownerId) return { ok: false, errors: { title: "Masuk dulu untuk membuat pencarian tim." } };
+  if (authError || !ownerId) return { ok: false, errors: { title: sessionFailureMessage(authError, "Masuk dulu untuk membuat pencarian tim.") } };
   const { data: profile } = await supabase.from("profiles")
     .select("is_published").eq("id", ownerId).single();
   if (!profile?.is_published) {
@@ -99,8 +100,8 @@ export async function updateCloudTeamPost(
   const errors = validateTeamForm(form, true);
   if (hasTeamErrors(errors)) return { ok: false, errors };
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, errors: { title: "Masuk lagi untuk mengubah pencarian tim." } };
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError || !auth.user) return { ok: false, errors: { title: sessionFailureMessage(authError, "Masuk lagi untuk mengubah pencarian tim.") } };
   const current = await getCloudTeamPost(teamId);
   if (!current || current.ownerId !== auth.user.id) {
     return { ok: false, errors: { title: "Pencarian tim ini bukan milik akunmu." } };
@@ -141,9 +142,9 @@ export async function sendCloudTeamIntro(teamId: string, form: IntroForm): Promi
   const errors = validateIntroForm(form, item.team.roles.map((role) => role.title));
   if (hasIntroErrors(errors)) return { ok: false, errors };
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: auth, error: authError } = await supabase.auth.getUser();
   const senderId = auth.user?.id;
-  if (!senderId) return { ok: false, errors: { role: "Masuk dulu untuk mengirim perkenalan." } };
+  if (authError || !senderId) return { ok: false, errors: { role: sessionFailureMessage(authError, "Masuk dulu untuk mengirim perkenalan.") } };
   const { data: existingIntro, error: existingError } = await supabase.from("team_intros")
     .select("id").eq("team_id", teamId).eq("sender_id", senderId).maybeSingle();
   if (existingError) return { ok: false, errors: { role: "Status pengajuan sebelumnya belum dapat diperiksa. Coba lagi." } };
@@ -152,7 +153,7 @@ export async function sendCloudTeamIntro(teamId: string, form: IntroForm): Promi
     .select("display_name").eq("id", senderId).single();
   if (!sender) return { ok: false, errors: { role: "Profil akun belum tersedia." } };
   const intro: TeamIntro = {
-    senderName: sender.display_name.trim() || "Pengguna Akashic",
+    senderName: form.senderName.trim().slice(0, 80) || sender.display_name.trim() || "Pengguna Akashic",
     role: form.role.trim(),
     weeklyHours: form.weeklyHours.trim(),
     bring: form.bring.trim(),
@@ -185,8 +186,16 @@ export async function reviewCloudTeamIntro(
   review: IntroReviewStatus,
 ): Promise<ReviewIntroResult> {
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, message: "Masuk lagi untuk meninjau perkenalan." };
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError || !auth.user) return { ok: false, message: sessionFailureMessage(authError, "Masuk lagi untuk meninjau perkenalan.") };
+
+  // Guard: pelamar yang sudah diterima tidak bisa di-downgrade via API langsung.
+  const { data: current } = await supabase.from("team_intros")
+    .select("review").eq("team_id", teamId).eq("created_at", sentAt).maybeSingle();
+  if (current?.review === "diterima" && review !== "diterima") {
+    return { ok: false, message: "Status pelamar yang sudah diterima tidak dapat diubah." };
+  }
+
   if (review === "diterima") {
     const { data: team } = await supabase.from("team_posts")
       .select("current_members,target_members,status").eq("id", teamId).eq("owner_id", auth.user.id).maybeSingle();
@@ -196,7 +205,7 @@ export async function reviewCloudTeamIntro(
       .eq("review", "diterima").is("joined_at", null);
     if (countError || count === null) return { ok: false, message: "Sisa undangan belum dapat diperiksa." };
     if (team.current_members + count >= team.target_members) {
-      return { ok: false, message: "Semua slot sudah diisi atau menunggu konfirmasi. Ubah status undangan lain sebelum menerima pelamar baru." };
+      return { ok: false, message: "Semua slot sudah diisi atau menunggu konfirmasi pelamar yang diterima. Tunggu konfirmasi atau tambah target anggota tim sebelum menerima pelamar baru." };
     }
   }
   const { data, error } = await supabase.from("team_intros")
@@ -209,8 +218,8 @@ export async function reviewCloudTeamIntro(
 
 export async function confirmCloudTeamJoin(teamId: string): Promise<{ ok: boolean; message?: string }> {
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return { ok: false, message: "Masuk lagi untuk mengonfirmasi bergabung." };
+  const { data: auth, error: authError } = await supabase.auth.getUser();
+  if (authError || !auth.user) return { ok: false, message: sessionFailureMessage(authError, "Masuk lagi untuk mengonfirmasi bergabung.") };
 
   const { data, error } = await supabase.from("team_intros")
     .update({ joined_at: new Date().toISOString() })

@@ -8,17 +8,13 @@ import { DiscussionThread } from "@/components/team/discussion-thread";
 import { IntroFormComponent } from "@/components/team/intro-form-component";
 import { getPublicProfile } from "@/lib/content";
 import { getTeamDiscussion } from "@/lib/discussions";
-import { getExampleTeamPost, getTeamPost, listKnownTeamIds } from "@/lib/teams";
+import { getExampleTeamPost, getTeamPost } from "@/lib/teams";
 import { getCloudTeamDiscussion, getCloudTeamPost } from "@/lib/team-cloud";
-import { getCurrentUser } from "@/lib/auth-session";
+import { getOptionalCurrentUser } from "@/lib/auth-session";
 import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 import { getCloudPublicProfile } from "@/lib/supabase/content";
 import { formatTeamDeadline, openSlots, roleSkillsLabel } from "@/lib/team-utils";
-
-export function generateStaticParams() {
-  return listKnownTeamIds().map((id) => ({ id }));
-}
 
 export async function generateMetadata({
   params,
@@ -60,7 +56,7 @@ export default async function TeamDetailPage({
     : getPublicProfile(owner.username);
   const slots = openSlots(team);
   const discussion = example ? [] : cloud ? await getCloudTeamDiscussion(team.id) : getTeamDiscussion(team.id);
-  const currentUser = cloud && !example ? await getCurrentUser() : null;
+  const currentUser = cloud && !example ? await getOptionalCurrentUser() : null;
   const priorIntro = cloud && currentUser && currentUser.id !== item.ownerId
     ? (await (await createClient()).from("team_intros")
       .select("review,joined_at").eq("team_id", team.id).eq("sender_id", currentUser.id).maybeSingle()).data

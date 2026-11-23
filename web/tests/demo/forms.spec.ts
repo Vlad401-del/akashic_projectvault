@@ -30,8 +30,9 @@ test("dasbor dan kedua formulir pemilik tidak melebar di luar ponsel", async ({ 
   }
 });
 
-test("pencarian tersimpan, menerima perkenalan, dan dapat ditinjau", async ({ page }) => {
-  const token = Date.now().toString(36);
+test("pencarian tersimpan, menerima perkenalan, dan dapat ditinjau", async ({ page }, testInfo) => {
+  // Token pakai kombinasi waktu + nama project + index untuk hindari collision antar browser.
+  const token = `${Date.now().toString(36)}-${testInfo.project.name.replace(/\W/g, "")}`;
   const title = `Tim uji Playwright ${token}`;
   const sender = `Pelamar ${token}`;
   await page.goto("/dashboard/tim/baru");
@@ -39,8 +40,11 @@ test("pencarian tersimpan, menerima perkenalan, dan dapat ditinjau", async ({ pa
   await page.locator("#team-comp-category").selectOption("PKM");
   await page.locator("#team-comp").fill("uji lokal");
   await page.locator("#team-summary").fill("Kami membuat prototipe untuk menguji alur pendaftaran dan kolaborasi tim secara lengkap.");
-  await page.getByPlaceholder("Mis. Desainer UI/UX, Backend Dev").fill("Desainer UI");
-  await page.getByPlaceholder("Mis. Figma, User Research, Wireframing").fill("Figma");
+  // Nama peran sekarang dropdown -- pilih opsi dari daftar
+  await page.locator("select").nth(1).selectOption("UI/UX Designer");
+  // Keahlian sekarang SkillPicker -- ketik di input pencarian lalu Enter
+  await page.getByPlaceholder("Cari atau tambah keahlian…").fill("Figma");
+  await page.getByPlaceholder("Cari atau tambah keahlian…").press("Enter");
   await page.locator("#team-current").fill("1");
   await page.locator("#team-target").fill("2");
   await page.locator("#team-hours").fill("6");
@@ -64,7 +68,8 @@ test("pencarian tersimpan, menerima perkenalan, dan dapat ditinjau", async ({ pa
 
   await page.goto("/dashboard");
   await expect(page.getByText(sender, { exact: true })).toBeVisible();
-  const applicant = page.locator("div.rounded-xl").filter({ hasText: sender }).first();
+  // Filter berdasarkan nama pengirim DAN nama tim supaya tidak terpengaruh intro dari test lain.
+  const applicant = page.locator("div.rounded-xl").filter({ hasText: sender }).filter({ hasText: title }).first();
   await applicant.getByRole("button", { name: "Terima" }).click();
   await expect(applicant.getByText("Diterima", { exact: true })).toBeVisible();
 
@@ -91,13 +96,17 @@ test("editor menyimpan tiap langkah lalu menerbitkan proyek dengan bukti", async
   await expect(page.getByRole("heading", { name: "Masalah dan proses" })).toBeVisible();
 
   await page.getByRole("textbox", { name: /^Masalah/ }).fill("Alur pendaftaran tim belum pernah diuji secara menyeluruh pada layar kecil.");
-  await page.getByRole("textbox", { name: "Pengantar bagian Proses" }).fill("Saya menyusun skenario, menguji formulir, lalu memeriksa hasilnya pada halaman publik.");
   await page.getByRole("button", { name: "Lanjut" }).click();
   await expect(page.getByRole("heading", { name: "Kontribusi dan hasil" })).toBeVisible();
   await page.getByRole("textbox", { name: "Pengantar bagian Kontribusi" }).fill("Saya membuat dan menjalankan skenario pengujian Playwright.");
+  await page.getByRole("textbox", { name: "Kontribusi saya", exact: false }).fill("Membuat dan menjalankan skenario pengujian Playwright.");
   await page.getByRole("textbox", { name: "Pengantar bagian Hasil" }).fill("Formulir dan halaman publik dapat digunakan pada desktop serta ponsel.");
   await page.getByRole("button", { name: "Lanjut" }).click();
   await expect(page.getByRole("heading", { name: /Bukti/ }).first()).toBeVisible();
+  await page.route("**/api/project-cover", (route) => route.fulfill({ json: { src: "/api/project-cover/00000000-0000-0000-0000-000000000000/00000000-0000-0000-0000-000000000000.jpeg" } }));
+  await page.route("**/api/project-cover/*/*", (route) => route.fulfill({ path: "public/images/projects/dashboard-penjualan.jpg", contentType: "image/jpeg" }));
+  await page.getByLabel("Gambar sampul proyek").setInputFiles("public/images/projects/dashboard-penjualan.jpg");
+  await expect(page.getByRole("img", { name: "Pratinjau gambar sampul proyek" })).toBeVisible();
 
   await page.getByRole("textbox", { name: "Label" }).fill("Lihat artefak uji");
   await page.getByRole("textbox", { name: "Alamat" }).fill("https://example.com/artefak-uji");

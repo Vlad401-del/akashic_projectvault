@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { unstable_rethrow } from "next/navigation";
 import { useState, useTransition, type FormEvent } from "react";
 
 import { PasswordInput } from "@/components/auth/password-input";
@@ -15,17 +16,25 @@ export function RecoveryForm({ mode }: { mode: "request" | "update" }) {
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (pending) return;
+    setMessage("");
     if (mode === "update" && value !== confirm) {
       setMessage("Konfirmasi kata sandi belum sama.");
       setSuccess(false);
       return;
     }
     startTransition(async () => {
-      const result = mode === "request"
-        ? await requestPasswordResetAction(value)
-        : await updatePasswordAction(value);
-      setMessage(result.message);
-      setSuccess(result.ok);
+      try {
+        const result = mode === "request"
+          ? await requestPasswordResetAction(value)
+          : await updatePasswordAction(value);
+        setMessage(result.message);
+        setSuccess(result.ok);
+      } catch (error) {
+        unstable_rethrow(error);
+        setSuccess(false);
+        setMessage("Permintaan belum berhasil. Periksa koneksi dan coba lagi.");
+      }
     });
   }
 
@@ -37,7 +46,7 @@ export function RecoveryForm({ mode }: { mode: "request" | "update" }) {
       </h1>
       <p className="mt-3 text-[14px] leading-6 text-ink-2">
         {mode === "request"
-          ? "Masukkan email akun Akashic. Kami akan mengirim tautan pemulihan."
+          ? "Masukkan email akun Akashic. Buka tautan terbaru di browser yang sama dengan halaman ini. Jangan berpindah antara localhost dan 127.0.0.1."
           : "Gunakan kata sandi baru dengan minimal 8 karakter, huruf, dan angka."}
       </p>
       {message ? (
@@ -67,7 +76,7 @@ export function RecoveryForm({ mode }: { mode: "request" | "update" }) {
             </div>
           </>
         )}
-        <button type="submit" disabled={pending} className="inline-flex h-11 w-full items-center justify-center rounded-full bg-forest px-5 text-[14px] font-semibold text-cream disabled:opacity-60">
+        <button type="submit" disabled={pending} aria-busy={pending} className="inline-flex h-11 w-full items-center justify-center rounded-full bg-forest px-5 text-[14px] font-semibold text-cream disabled:opacity-60">
           {pending ? "Memproses..." : mode === "request" ? "Kirim tautan pemulihan" : "Simpan kata sandi"}
         </button>
       </form>

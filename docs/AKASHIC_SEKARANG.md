@@ -1,5 +1,41 @@
 # Konteks Lengkap Akashic Saat Ini (Untuk AI & Pengembang)
 
+## Checkpoint Production terbaru — 23 November 2026
+
+Bagian ini menggantikan status belum deploy dan penghambat DNS pada catatan historis di bawah.
+
+- Situs aktif: https://akashic-projectvault.vercel.app/ — deployment `dpl_3incJaZxrHtfimC3rgqXCgTWE7D5`, status READY, sudah dipromosikan ke domain utama.
+- Sumber: unggahan lokal branch `fix/restore-akashic-checkpoint`, hash snapshot `cf56b46c0e24386195fc9ca8654f9927d89b96bf109fb6dac4c33e6ef430e421`. Tidak ada commit/push Git pada pekerjaan deployment ini. Metadata commit dasar bukan representasi seluruh perubahan lokal yang diunggah.
+- Koreksi akhir: tombol editor mobile tersusun dalam grid, simpan perubahan publik memakai baris penuh pada ponsel; waktu dasbor eksplisit Asia/Jakarta (WIB).
+- Pengujian otomatis terakhir terhadap Production selesai dengan status passed dan failedTests kosong. Cakupan halaman publik, pengalihan halaman terlindungi, formulir autentikasi, awal navigasi Google, menu mobile, dan responsivitas 320/390/768/1440. Kasus tim contoh dapat dilewati ketika data Production berisi tim nyata.
+- Uji manual akun nyata di Production: sesi bertahan setelah refresh; simpan profil berhasil; validasi wajib editor memblokir langkah kosong; pengantar proses opsional boleh kosong; draft tersimpan dan dapat dibuka kembali.
+- Unggah sampul nyata berhasil. Saat diterbitkan, halaman dan gambar dapat diakses anonim (200); hash bytes gambar unduhan sama dengan file yang diunggah. Setelah ditarik menjadi draft, halaman dan gambar tidak dapat diakses anonim (404).
+- Proyek sementara "Uji deployment Akashic 23 Nov 2026" telah dihapus setelah izin eksplisit pengguna. Proyek lama tidak dihapus. Penghapusan objek Storage tidak diklaim telah diverifikasi.
+- Logout berhasil; mengunjungi /dashboard setelah logout dialihkan ke /login. Browser pengujian terakhir ditinggalkan pada halaman login.
+- Pemeriksaan log deployment terbaru selama 15 menit terakhir tidak menampilkan kelompok error/fatal. Ini bukan jaminan bebas semua kesalahan.
+- Batas verifikasi: alur dua akun Production, pengiriman/pemakaian email pemulihan, dan Safari/iPhone fisik belum diuji ulang pada sesi ini. Uji emulasi mobile Chrome tidak menggantikan perangkat fisik.
+- Berikutnya: tinjau/uji fitur Premium kustomisasi portofolio. Pembayaran, paywall, dan perubahan besar database belum dikerjakan pada checkpoint ini.
+
+## Pembaruan verifikasi 22 November 2026 — autentikasi dan gangguan jaringan
+
+**Verifikasi ulang 23 November 2026:** DNS dan endpoint kesehatan Supabase sudah berhasil (HTTP 200), localhost HTTP 200. Login email melalui browser nyata berhasil sebagai rafi; refresh dasbor mempertahankan sesi, Atur profil terbuka, dan simpan profil dengan isian yang sudah ada menampilkan konfirmasi berhasil. Gangguan DNS di bawah adalah riwayat, bukan hasil pemeriksaan terakhir. Unggah gambar serta pemulihan/Google end-to-end belum diuji ulang pada sesi ini. Belum ada push atau deploy.
+
+Catatan ini mendahului roadmap historis di bagian bawah. Integrasi Supabase dan login Google/email sudah ada; jangan membangun ulang dengan akun demo sebagai pengganti autentikasi.
+
+- Pemeriksaan sesi kini membedakan `authenticated`, `signed-out`, dan `unavailable`. Gangguan layanan tidak boleh dianggap logout atau memberikan akses ke data pribadi.
+- Saat pemeriksaan gagal sementara, dasbor menyediakan Coba lagi tanpa menghapus sesi. Konten terlindungi tetap tidak dirender sampai verifikasi berhasil.
+- Permintaan Supabase memiliki batas waktu 12 detik per permintaan. Tidak ada pengulangan otomatis tambahan untuk operasi tulis; ini bukan jaminan durasi total halaman karena SDK dapat melakukan beberapa permintaan.
+- Login membedakan gangguan jaringan, kredensial salah, dan rate limit. Simpan profil/proyek, tindakan tim, diskusi, serta unggah menggunakan pesan sesi yang membedakan gangguan layanan dari sesi yang benar-benar tidak berlaku.
+- Endpoint unggah mengembalikan JSON 503 jika autentikasi tidak dapat diperiksa, bukan 401 palsu. Pemeriksaan kepemilikan gambar dan RLS tetap berlaku.
+- Pemulihan sandi dan penyelesaian callback tidak boleh menyebut kegagalan jaringan sebagai tautan kedaluwarsa.
+- Form profil mempertahankan isian saat action gagal; reset otomatis React dicegah agar perubahan pengguna tidak hilang.
+- Koreksi mobile: tautan Buka halaman publik setelah proyek diterbitkan terlihat di luar panel pratinjau tertutup; kontrol formulir tim minimal 44 px pada ponsel dan label peran/keahlian dihubungkan ke isiannya. Fokus pratinjau terkurung di dialog dan kembali ke tombol pembuka saat ditutup. Heading utama autentikasi hanya satu.
+- `npm run check:connectivity` memeriksa DNS dan endpoint kesehatan Auth tanpa menampilkan kunci, token, atau sandi.
+- Uji browser `playwright.account.config.ts` memakai backend lokal tiruan, terpisah dari data nyata. Uji Google memverifikasi awal alur PKCE dengan navigasi eksternal tiruan; hasilnya tidak membuktikan sesi Supabase/Google nyata.
+- Penghambat pengujian nyata: DNS Supabase menampilkan `DNS operation refused` di PowerShell pengguna dan proses agen. Kedua DNS Wi-Fi yang terpasang menolak kueri; resolver pembanding timeout. Pengguna juga mengalami gangguan Steam/Discord dan koneksi ponsel. Belum ada perubahan DNS/router/firewall.
+- Login, simpan data, dan pemulihan nyata harus diuji ulang setelah koneksi internet pulih sebelum menyatakan deployment siap. Perbaikan sesi ini belum di-commit, di-push, atau di-deploy.
+- Bukti uji lokal setelah koreksi: 40/40 uji akun dengan backend tiruan; 53 uji demo lulus dan 1 uji sentuh dilewati khusus desktop (uji mobile lulus); 9/9 unit; 2/2 awal alur Google tiruan. Matriks 13 halaman pada lebar 320/390/768/1440 diuji ulang pada Chrome desktop dan emulasi ponsel: 8/8, tanpa overflow maupun galat hydration yang terdeteksi. Belum ada pembuktian Safari/iPhone fisik atau koneksi produksi pada jaringan yang pulih.
+
 > **Catatan untuk AI/Developer**: Dokumen ini adalah ringkasan arsitektur, filosofi produk, status implementasi terkini, dan panduan teknis Akashic setelah melakukan pivot ke **Team Finder berbasis Proof of Work**. Baca dokumen ini terlebih dahulu sebelum memodifikasi atau memperluas kode.
 
 ---
@@ -52,7 +88,7 @@ Akashic menghubungkan dua sisi:
 1. **Papan Publik Pencarian Tim (`/tim`)**:
    - Menampilkan kartu pencarian tim lomba yang sedang membuka rekrutmen.
    - Kartu menampilkan: konteks kompetisi, jumlah slot yang dibutuhkan (`openSlots`), ringkasan ide, daftar peran & keahlian yang dicari, komitmen jam/minggu, tenggat, serta kartu profil pembuat tim lengkap dengan tautan ke portofolionya.
-   - **Filter & pencarian**: kata kunci (judul/ide/kompetisi/peran), jenis lomba (GEMASTIK, PKM, Hackathon, Tugas Akhir, Lainnya — dikenali dari teks kompetisi), keahlian yang dicari, dan batas maksimum jam komitmen. Logika murni di `web/src/lib/team-filter.ts`, dijalankan di peramban oleh `TeamBoard`.
+   - **Filter & pencarian**: kata kunci (judul/ide/kompetisi/peran), jenis lomba (GEMASTIK, PKM, Hackathon, Lainnya — dikenali dari teks kompetisi), keahlian yang dicari, dan batas maksimum jam komitmen. Logika murni di `web/src/lib/team-filter.ts`, dijalankan di peramban oleh `TeamBoard`.
 2. **Halaman Detail Tim (`/tim/[id]`)**:
    - Informasi lengkap ide proyek, masalah yang dihadapi, rincian peran, ritme pertemuan, dan profil pencari tim.
    - **Formulir Perkenalan Terstruktur (Structured Intro)**: Pengunjung mengajukan diri dengan memilih peran, jam komitmen, penjelasan apa yang dibawa, tautan bukti karya, dan kontak yang bisa dihubungi (wajib, hanya terlihat oleh pemilik tim).

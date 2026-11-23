@@ -11,6 +11,7 @@ import type { SaveProjectInput, SaveProjectResult } from "@/lib/project-actions"
 import { projectStory } from "@/lib/supabase/mappers";
 import { createClient } from "@/lib/supabase/server";
 import type { TablesInsert } from "@/lib/supabase/database.types";
+import { sessionFailureMessage } from "@/lib/auth-availability";
 
 export async function saveCloudProject(input: SaveProjectInput): Promise<SaveProjectResult> {
   const errors = validateForm(input.form);
@@ -21,9 +22,13 @@ export async function saveCloudProject(input: SaveProjectInput): Promise<SavePro
   }
 
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
+  const { data: auth, error: authError } = await supabase.auth.getUser();
   const ownerId = auth.user?.id;
-  if (!ownerId) return { ok: false, errors: { publish: "Sesi berakhir. Masuk lagi sebelum menyimpan." } };
+  if (authError || !ownerId) return { ok: false, errors: { publish: sessionFailureMessage(authError, "Sesi berakhir. Masuk lagi sebelum menyimpan.") } };
+  const cover = input.form.coverImageUrl.trim();
+  if (cover.startsWith("/api/project-cover/") && !cover.startsWith(`/api/project-cover/${ownerId}/`)) {
+    return { ok: false, errors: { coverImageUrl: "Gunakan gambar yang diunggah dari akun Anda sendiri." } };
+  }
 
   const { data: owner, error: ownerError } = await supabase
     .from("profiles").select("username").eq("id", ownerId).single();

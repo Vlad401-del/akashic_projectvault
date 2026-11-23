@@ -1,19 +1,21 @@
 import type { Metadata } from "next";
-import { Fraunces, Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 
 import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
-const fraunces = Fraunces({
-  subsets: ["latin"],
+const fraunces = localFont({
+  src: [
+    { path: "../../public/fonts/fraunces-latin-normal.woff2", weight: "100 900", style: "normal" },
+    { path: "../../public/fonts/fraunces-latin-italic.woff2", weight: "100 900", style: "italic" },
+  ],
   variable: "--font-fraunces",
-  axes: ["opsz", "SOFT"],
-  style: ["normal", "italic"],
   display: "swap",
 });
 
-const jakarta = Plus_Jakarta_Sans({
-  subsets: ["latin"],
+const jakarta = localFont({
+  src: "../../public/fonts/plus-jakarta-sans-latin.woff2",
+  weight: "200 800",
   variable: "--font-jakarta",
   display: "swap",
 });

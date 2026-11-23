@@ -27,18 +27,20 @@ export async function OwnerTopBar({
 
   return (
     <TopBar
+      showMobileMenu={false}
       left={
         <Link
           href={backHref}
-          className="inline-flex items-center gap-1.5 rounded text-[14px] font-medium text-accent hover:text-accent-hover"
+          className="inline-flex min-h-11 min-w-0 items-center gap-1.5 rounded text-[14px] font-medium text-accent hover:text-accent-hover"
         >
-          <Icon name="arrowLeft" className="size-[18px]" />
-          {backLabel}
+          <Icon name="arrowLeft" className="size-[18px] shrink-0" />
+          <span className="sm:hidden">{backHref === "/" ? "Beranda" : backHref === "/dashboard" ? "Dasbor" : backLabel}</span>
+          <span className="hidden truncate sm:inline">{backLabel}</span>
         </Link>
       }
       right={
-        <div className="flex items-center gap-3">
-          <OwnerChip profile={owner} />
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <OwnerChip profile={owner} compactOnSmallScreens />
           {user ? <SignOutButton /> : null}
         </div>
       }

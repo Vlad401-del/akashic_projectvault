@@ -78,6 +78,18 @@
     background: var(--color-sun);
     color: var(--color-ink);
   }
+
+  @media (max-width: 639px) {
+    /* Prevent iOS focus zoom and keep long user content inside its column. */
+    input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+      font-size: 16px;
+      max-width: 100%;
+    }
+
+    :where(h1, h2, h3, p, li, dd) {
+      overflow-wrap: anywhere;
+    }
+  }
 }
 
 @layer components {
@@ -302,5 +314,11 @@
   .card-lift:hover,
   .card-lift:focus-within {
     transform: none;
+  }
+}
+
+@media (max-width: 639px) {
+  .team-post-form :is(button, select, input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"])) {
+    min-height: 44px;
   }
 }

@@ -225,5 +225,6 @@ export type Profile = {
   contacts: ContactLink[];
   /** Profil privat menyembunyikan seluruh proyeknya dari pengunjung anonim. */
   isPublished: boolean;
+  showContacts?: boolean;
   projects: Project[];
 };
